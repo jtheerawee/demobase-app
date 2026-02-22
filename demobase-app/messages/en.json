@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "home": "Home",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "home": {
+    "title": "Welcome",
+    "subtitle": "Built with Mantine, next-intl & Supabase"
+  }
+}
