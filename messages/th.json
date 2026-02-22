@@ -1,0 +1,16 @@
+{
+  "Navbar": {
+    "signIn": "เข้าสู่ระบบ",
+    "signOut": "ออกจากระบบ"
+  },
+  "HomePage": {
+    "title": "demobase-app",
+    "welcome": "ยินดีต้อนรับ, {name}!",
+    "signIn": "เข้าสู่ระบบ",
+    "signOut": "ออกจากระบบ"
+  },
+  "SignInPage": {
+    "title": "เข้าสู่ระบบ",
+    "signInWithGoogle": "เข้าสู่ระบบด้วย Google"
+  }
+}

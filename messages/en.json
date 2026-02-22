@@ -1,0 +1,16 @@
+{
+  "Navbar": {
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "HomePage": {
+    "title": "demobase-app",
+    "welcome": "Welcome, {name}!",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "SignInPage": {
+    "title": "Sign in",
+    "signInWithGoogle": "Sign in with Google"
+  }
+}
