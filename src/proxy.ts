@@ -5,7 +5,7 @@ import { routing } from "./i18n/routing";
 
 const handleI18nRouting = createMiddleware(routing);
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Run next-intl routing first
   let response = handleI18nRouting(request);
 
