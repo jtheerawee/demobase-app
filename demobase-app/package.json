@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "clean": "rm -rf .next",
+    "kill": "powershell -Command \"Get-NetTCPConnection -LocalPort 3001 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }\"",
     "lint": "biome check",
     "format": "biome format --write"
   },

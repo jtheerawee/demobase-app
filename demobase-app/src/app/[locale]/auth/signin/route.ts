@@ -1,11 +1,10 @@
-import { redirect } from "next/navigation";
+import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
-type Props = {
-  params: Promise<{ locale: string }>;
-};
-
-export default async function SignInPage({ params }: Props) {
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ locale: string }> },
+) {
   const { locale } = await params;
   const supabase = await createClient();
 
@@ -17,8 +16,10 @@ export default async function SignInPage({ params }: Props) {
   });
 
   if (data.url) {
-    redirect(data.url);
+    return NextResponse.redirect(data.url);
   }
 
-  return null;
+  return NextResponse.redirect(
+    `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}`,
+  );
 }

@@ -1,0 +1,13 @@
+{
+  "name": "demobase-root",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix demobase-app",
+    "build": "npm run build --prefix demobase-app",
+    "start": "npm run start --prefix demobase-app",
+    "clean": "npm run clean --prefix demobase-app",
+    "kill": "npm run kill --prefix demobase-app",
+    "lint": "npm run lint --prefix demobase-app",
+    "format": "npm run format --prefix demobase-app"
+  }
+}
