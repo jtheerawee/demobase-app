@@ -24,6 +24,7 @@ export default async function HomePage() {
 
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
           <WidgetCard title="eBay" href="/ebay" />
+          <WidgetCard title="Sold Items" href="/ebay/sold" />
         </SimpleGrid>
       </Stack>
     </Container>

@@ -4,6 +4,7 @@ import { Box, Button, Container, Group, Text } from "@mantine/core";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { SignInButton } from "./SignInButton";
+import { DevTokenBadge } from "./DevTokenBadge";
 
 async function signOut() {
   "use server";
@@ -19,6 +20,14 @@ export async function Navbar() {
   } = await supabase.auth.getUser();
   const t = await getTranslations("Navbar");
 
+  let accessToken: string | undefined;
+  if (process.env.DEVELOPER_MODE === "true" && user) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    accessToken = session?.access_token;
+  }
+
   return (
     <Box
       component="nav"
@@ -26,13 +35,15 @@ export async function Navbar() {
     >
       <Container size="xl">
         <Group justify="space-between" h={60}>
-          <Link href="/" style={{ textDecoration: "none", color: "inherit" }}>
-            <Text fw={700} size="lg">
-              demobase-app
+          <Link href="/" style={{ textDecoration: "none" }}>
+            <Text fw={900} style={{ fontSize: "1.875rem" }} c="orange">
+              {process.env.NEXT_PUBLIC_APP_NAME ?? "DemoBase"}
             </Text>
           </Link>
 
           <Group gap="sm">
+            {accessToken && <DevTokenBadge token={accessToken} />}
+
             {user ? (
               <form action={signOut}>
                 <Button type="submit" variant="light" color="red" size="sm">

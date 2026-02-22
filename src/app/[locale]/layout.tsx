@@ -33,8 +33,10 @@ export default async function LocaleLayout({
       <body>
         <MantineProvider>
           <NextIntlClientProvider messages={messages}>
-            <Navbar />
-            {children}
+            <div style={{ maxWidth: "80%", margin: "0 auto" }}>
+              <Navbar />
+              {children}
+            </div>
           </NextIntlClientProvider>
         </MantineProvider>
       </body>
