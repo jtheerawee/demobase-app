@@ -23,12 +23,20 @@ import {
 interface ApiDebugPanelProps {
   data: unknown;
   label?: string;
-  href?: string;
 }
 
-export function ApiDebugPanel({ data, label = "API Response", href }: ApiDebugPanelProps) {
+// Auto-extract a URL from common fields in the response data
+function extractUrl(data: unknown): string | undefined {
+  if (typeof data !== "object" || data === null) return undefined;
+  const d = data as Record<string, unknown>;
+  const url = d.itemWebUrl ?? d.itemUrl ?? d.url ?? d.ebayUrl;
+  return typeof url === "string" && url.startsWith("http") ? url : undefined;
+}
+
+export function ApiDebugPanel({ data, label = "API Response" }: ApiDebugPanelProps) {
   const [opened, { toggle }] = useDisclosure(false);
   const json = JSON.stringify(data, null, 2);
+  const linkUrl = extractUrl(data);
 
   return (
     <Box
@@ -76,17 +84,16 @@ export function ApiDebugPanel({ data, label = "API Response", href }: ApiDebugPa
               </Tooltip>
             )}
           </CopyButton>
-          {href && (
+          {linkUrl && (
             <Tooltip label="Open in eBay" withArrow>
               <ActionIcon
                 size="xs"
                 variant="subtle"
                 color="orange"
-                component="a"
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(linkUrl, "_blank", "noopener,noreferrer");
+                }}
               >
                 <IconExternalLink size={12} />
               </ActionIcon>

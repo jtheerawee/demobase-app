@@ -111,7 +111,7 @@ export default function EbayPage() {
         )}
 
         {item && process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
-          <ApiDebugPanel data={item} label={`GET /api/ebay/${item.itemId}`} href={item.itemWebUrl} />
+          <ApiDebugPanel data={item} label={`GET /api/ebay/${item.itemId}`} />
         )}
 
         {item && (

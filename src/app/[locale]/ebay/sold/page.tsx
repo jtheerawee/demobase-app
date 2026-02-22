@@ -52,7 +52,7 @@ const GRADE_OPTIONS = [
 
 export default function SoldItemsPage() {
   const [keyword, setKeyword] = useState("198 PIKACHU");
-  const [grade, setGrade] = useState<string | null>(null);
+  const [grade, setGrade] = useState<string | null>("10");
   const [excludeJp, setExcludeJp] = useState(false);
   const [onlyUs, setOnlyUs] = useState(false);
   const [page, setPage] = useState(1);
