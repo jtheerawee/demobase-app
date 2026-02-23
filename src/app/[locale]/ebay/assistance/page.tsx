@@ -93,22 +93,50 @@ export default function EbaySearchPage() {
                     if (resSold.ok) {
                         const rawSold = await resSold.json();
                         setSoldRaw(rawSold);
-                        const soldItems: EbayItem[] = Array.isArray(rawSold)
+                        let soldItems: EbayItem[] = Array.isArray(rawSold)
                             ? rawSold
                             : Array.isArray(rawSold?.items)
                                 ? rawSold.items
                                 : [];
+
+                        // Enrich Sold Results with Batch Details
+                        if (soldItems.length > 0) {
+                            try {
+                                const ids = soldItems.map(i => i.id).join(",");
+                                const resBatch = await fetch(`/api/ebay/batch?ids=${ids}`, { headers });
+                                if (resBatch.ok) {
+                                    const enriched = await resBatch.json();
+                                    if (Array.isArray(enriched)) soldItems = enriched;
+                                }
+                            } catch (e) {
+                                console.error("Sold Batch Enrichment Error:", e);
+                            }
+                        }
                         setSoldResults(soldItems);
                     } else {
                         setSoldResults([]);
                     }
                 }
 
-                const data: EbayItem[] = Array.isArray(rawActive)
+                let data: EbayItem[] = Array.isArray(rawActive)
                     ? rawActive
                     : Array.isArray(rawActive?.items)
                         ? rawActive.items
                         : [];
+
+                // Enrich Active Results with Batch Details
+                if (data.length > 0) {
+                    try {
+                        const ids = data.map(i => i.id).join(",");
+                        const resBatch = await fetch(`/api/ebay/batch?ids=${ids}`, { headers });
+                        if (resBatch.ok) {
+                            const enriched = await resBatch.json();
+                            if (Array.isArray(enriched)) data = enriched;
+                        }
+                    } catch (e) {
+                        console.error("Active Batch Enrichment Error:", e);
+                    }
+                }
 
                 if (isLoadMore) {
                     setActiveResults((prev) => [...prev, ...data]);
@@ -240,7 +268,7 @@ export default function EbaySearchPage() {
                             {loading ? (
                                 <Center py={100}>
                                     <Stack align="center">
-                                        <Loader color="orange" size="xl" type="bars" />
+                                        <Loader color="orange" size="xl" type="dots" />
                                         <Text c="dimmed" size="sm">
                                             Hunting for the best deals on eBay...
                                         </Text>
