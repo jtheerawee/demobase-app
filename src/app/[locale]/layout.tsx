@@ -24,14 +24,19 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params;
   const messages = await getMessages();
+  const fontFamily = process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit";
+  const fontUrl = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;700;900&display=swap`;
 
   return (
     <html lang={locale} {...mantineHtmlProps}>
       <head>
         <ColorSchemeScript />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href={fontUrl} rel="stylesheet" />
       </head>
       <body>
-        <MantineProvider>
+        <MantineProvider theme={{ fontFamily: `'${fontFamily}', sans-serif` }}>
           <NextIntlClientProvider messages={messages}>
             <div style={{ maxWidth: "80%", margin: "0 auto" }}>
               <Navbar />

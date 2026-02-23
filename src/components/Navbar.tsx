@@ -36,7 +36,14 @@ export async function Navbar() {
       <Container size="xl">
         <Group justify="space-between" h={60}>
           <Link href="/" style={{ textDecoration: "none" }}>
-            <Text fw={900} style={{ fontSize: "1.875rem" }} c="orange">
+            <Text
+              fw={900}
+              c="orange"
+              style={{
+                fontSize: "1.875rem",
+                fontFamily: `'${process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit"}', sans-serif`,
+              }}
+            >
               {process.env.NEXT_PUBLIC_APP_NAME ?? "DemoBase"}
             </Text>
           </Link>
