@@ -65,7 +65,7 @@ export default function EbaySearchPage() {
 
             try {
                 const currentOffset = isLoadMore ? offset + 10 : 0;
-                let url = `/api/ebay/search?q=${encodeURIComponent(query)}&offset=${currentOffset}`;
+                let url = `/api/ebay/active?q=${encodeURIComponent(query)}&offset=${currentOffset}`;
                 if (psa) url += `&psa=${psa}`;
                 if (minPrice) url += `&minPrice=${minPrice}`;
                 if (maxPrice) url += `&maxPrice=${maxPrice}`;

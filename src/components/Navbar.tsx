@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { Link } from "@/i18n/navigation";
-import { Box, Button, Container, Group, Text } from "@mantine/core";
+import { Box, Button, Container, Group, Text, Avatar } from "@mantine/core";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { SignInButton } from "./SignInButton";
@@ -50,6 +50,15 @@ export async function Navbar() {
 
           <Group gap="sm">
             {accessToken && <DevTokenBadge token={accessToken} />}
+
+            {user && (
+              <Avatar
+                src={user.user_metadata?.avatar_url}
+                alt={user.user_metadata?.full_name ?? user.email ?? ""}
+                radius="xl"
+                size="sm"
+              />
+            )}
 
             {user ? (
               <form action={signOut}>
