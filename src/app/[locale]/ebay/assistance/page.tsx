@@ -69,7 +69,7 @@ export default function EbaySearchPage() {
     const [threshold, setThreshold] = useState(EBAY_OUTLIER_THRESHOLD);
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
     const [doSearchTrigger, setDoSearchTrigger] = useState(0);
-    const [lastSearchParams, setLastSearchParams] = useState<any>(null);
+    const [lastSearchParams, setLastSearchParams] = useState<any>({});
 
     const handleSearch = useCallback(
         async (isLoadMore = false) => {
@@ -186,20 +186,20 @@ export default function EbaySearchPage() {
                                                     itemLocation:
                                                         item.itemLocation
                                                             ? [
-                                                                  item
-                                                                      .itemLocation
-                                                                      .city,
-                                                                  item
-                                                                      .itemLocation
-                                                                      .stateOrProvince,
-                                                                  item
-                                                                      .itemLocation
-                                                                      .country,
-                                                              ]
-                                                                  .filter(
-                                                                      Boolean,
-                                                                  )
-                                                                  .join(", ")
+                                                                item
+                                                                    .itemLocation
+                                                                    .city,
+                                                                item
+                                                                    .itemLocation
+                                                                    .stateOrProvince,
+                                                                item
+                                                                    .itemLocation
+                                                                    .country,
+                                                            ]
+                                                                .filter(
+                                                                    Boolean,
+                                                                )
+                                                                .join(", ")
                                                             : item.itemLocation,
                                                     endDate:
                                                         item.itemEndDate ||
@@ -264,13 +264,13 @@ export default function EbaySearchPage() {
                                             "",
                                         itemLocation: item.itemLocation
                                             ? [
-                                                  item.itemLocation.city,
-                                                  item.itemLocation
-                                                      .stateOrProvince,
-                                                  item.itemLocation.country,
-                                              ]
-                                                  .filter(Boolean)
-                                                  .join(", ")
+                                                item.itemLocation.city,
+                                                item.itemLocation
+                                                    .stateOrProvince,
+                                                item.itemLocation.country,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(", ")
                                             : item.itemLocation,
                                         endDate:
                                             item.itemEndDate || item.endDate,
@@ -370,15 +370,15 @@ export default function EbaySearchPage() {
         const sortedResults = [...filteredSoldResults].sort((a, b) => {
             const dateA = new Date(
                 a.endDate ||
-                    (a as any).soldTime ||
-                    (a as any).soldDate ||
-                    (a as any).timestamp,
+                (a as any).soldTime ||
+                (a as any).soldDate ||
+                (a as any).timestamp,
             ).getTime();
             const dateB = new Date(
                 b.endDate ||
-                    (b as any).soldTime ||
-                    (b as any).soldDate ||
-                    (b as any).timestamp,
+                (b as any).soldTime ||
+                (b as any).soldDate ||
+                (b as any).timestamp,
             ).getTime();
             return dateA - dateB;
         });
@@ -528,7 +528,7 @@ export default function EbaySearchPage() {
                                 setListingType(s.listingType);
                                 setExcludeJp(s.excludeJp);
                                 setOnlyUs(s.onlyUs);
-                                handleSearch();
+                                setDoSearchTrigger((n) => n + 1);
                             }}
                         />
                         {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
@@ -540,26 +540,20 @@ export default function EbaySearchPage() {
                     </Stack>
                     <div style={{ gridColumn: "span 2" }}>
                         <Stack gap="xl">
-                            <MarketTrendAnalysis
-                                results={cleanSoldResults}
-                                highlightedDate={hoveredDate}
-                                query={lastSearchParams?.query || query}
-                                service={lastSearchParams?.service || service}
-                                grade={lastSearchParams?.psa || psa}
-                                minPrice={
-                                    lastSearchParams?.minPrice ?? minPrice
-                                }
-                                maxPrice={
-                                    lastSearchParams?.maxPrice ?? maxPrice
-                                }
-                                excludeJp={
-                                    lastSearchParams?.excludeJp ?? excludeJp
-                                }
-                                onlyUs={lastSearchParams?.onlyUs ?? onlyUs}
-                                listingType={
-                                    lastSearchParams?.listingType || listingType
-                                }
-                            />
+                            {lastSearchParams && (
+                                <MarketTrendAnalysis
+                                    results={cleanSoldResults}
+                                    highlightedDate={hoveredDate}
+                                    query={lastSearchParams.query}
+                                    service={lastSearchParams.service}
+                                    grade={lastSearchParams.psa}
+                                    minPrice={lastSearchParams.minPrice}
+                                    maxPrice={lastSearchParams.maxPrice}
+                                    excludeJp={lastSearchParams.excludeJp}
+                                    onlyUs={lastSearchParams.onlyUs}
+                                    listingType={lastSearchParams.listingType}
+                                />
+                            )}
 
                             {error && (
                                 <Center py="xl">
@@ -639,27 +633,27 @@ export default function EbaySearchPage() {
                                         {process.env
                                             .NEXT_PUBLIC_DEVELOPER_MODE ===
                                             "true" && (
-                                            <SegmentedControl
-                                                size="xs"
-                                                color="orange"
-                                                value={displayMode}
-                                                onChange={(value: any) =>
-                                                    setDisplayMode(value)
-                                                }
-                                                data={[
-                                                    {
-                                                        label: t(
-                                                            "activeResults",
-                                                        ),
-                                                        value: "active",
-                                                    },
-                                                    {
-                                                        label: t("soldResults"),
-                                                        value: "sold",
-                                                    },
-                                                ]}
-                                            />
-                                        )}
+                                                <SegmentedControl
+                                                    size="xs"
+                                                    color="orange"
+                                                    value={displayMode}
+                                                    onChange={(value: any) =>
+                                                        setDisplayMode(value)
+                                                    }
+                                                    data={[
+                                                        {
+                                                            label: t(
+                                                                "activeResults",
+                                                            ),
+                                                            value: "active",
+                                                        },
+                                                        {
+                                                            label: t("soldResults"),
+                                                            value: "sold",
+                                                        },
+                                                    ]}
+                                                />
+                                            )}
                                     </Group>
 
                                     <EbayActiveResults

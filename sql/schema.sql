@@ -3,6 +3,7 @@
 -- ==========================================
 
 DROP TABLE IF EXISTS public.ebay_searches CASCADE;
+DROP TABLE IF EXISTS public.ebay_price_history CASCADE;
 DROP TABLE IF EXISTS public.user_statuses CASCADE;
 DROP TRIGGER IF EXISTS on_auth_user_sync ON auth.users CASCADE;
 DROP FUNCTION IF EXISTS public.handle_auth_user_sync CASCADE;
@@ -120,3 +121,43 @@ CREATE POLICY "Users can update their own saved searches" ON public.ebay_searche
 
 -- INDEXES
 CREATE INDEX idx_ebay_searches_user_id ON public.ebay_searches(user_id);
+
+-- ==========================================
+-- 04. EBAY PRICE HISTORY TABLE
+-- ==========================================
+
+CREATE TABLE public.ebay_price_history (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    item_id         TEXT NOT NULL UNIQUE,
+    title           TEXT NOT NULL,
+    price           NUMERIC NOT NULL,
+    currency        TEXT NOT NULL DEFAULT 'USD',
+    sold_date       TIMESTAMPTZ NOT NULL,
+    listing_type    TEXT, -- 'auction', 'fixed_price'
+    bids            INTEGER,
+    image_url       TEXT,
+    item_url        TEXT,
+    item_location   TEXT,
+    service         TEXT, -- psa, bgs, cgc, sgc, etc.
+    grade           TEXT, -- "10", "9", etc.
+    cert_number     TEXT,
+    seller_username TEXT,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ENABLE RLS
+ALTER TABLE public.ebay_price_history ENABLE ROW LEVEL SECURITY;
+
+-- SELECT: Public read (or authenticated) depends on usage. 
+-- For now, let's allow authenticated users to read.
+CREATE POLICY "Allow authenticated read price history" ON public.ebay_price_history
+    FOR SELECT TO authenticated USING (true);
+
+-- INSERT: Authenticated users can insert
+CREATE POLICY "Allow authenticated insert price history" ON public.ebay_price_history
+    FOR INSERT TO authenticated WITH CHECK (true);
+
+-- INDEXES
+CREATE INDEX idx_ebay_price_history_item_id ON public.ebay_price_history(item_id);
+CREATE INDEX idx_ebay_price_history_sold_date ON public.ebay_price_history(sold_date);
+CREATE INDEX idx_ebay_price_history_service_grade ON public.ebay_price_history(service, grade);
