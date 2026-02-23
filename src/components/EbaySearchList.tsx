@@ -10,7 +10,7 @@ import {
     Text,
     Tooltip,
 } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { IconRefresh, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -38,10 +38,20 @@ interface EbaySearchListProps {
         excludeJp: boolean;
         onlyUs: boolean;
     }) => void;
+    onExecute: (search: {
+        query: string;
+        service: string;
+        psa: string;
+        minPrice: number | string;
+        maxPrice: number | string;
+        listingType: string;
+        excludeJp: boolean;
+        onlyUs: boolean;
+    }) => void;
     refreshTrigger?: number;
 }
 
-export function EbaySearchList({ onSelect, refreshTrigger }: EbaySearchListProps) {
+export function EbaySearchList({ onSelect, onExecute, refreshTrigger }: EbaySearchListProps) {
     const supabase = createClient();
     const [searches, setSearches] = useState<EbaySearch[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,7 +80,7 @@ export function EbaySearchList({ onSelect, refreshTrigger }: EbaySearchListProps
     };
 
     const handleSelect = (s: EbaySearch) => {
-        onSelect({
+        const params = {
             query: s.keyword,
             service: s.service || "psa",
             psa: s.grade != null ? String(s.grade) : "10",
@@ -79,7 +89,22 @@ export function EbaySearchList({ onSelect, refreshTrigger }: EbaySearchListProps
             listingType: s.listing_type || "auction",
             excludeJp: s.exclude_jp,
             onlyUs: s.only_us,
-        });
+        };
+        onSelect(params);
+    };
+
+    const handleExecute = (s: EbaySearch) => {
+        const params = {
+            query: s.keyword,
+            service: s.service || "psa",
+            psa: s.grade != null ? String(s.grade) : "10",
+            minPrice: s.min_price ?? "",
+            maxPrice: s.max_price ?? "",
+            listingType: s.listing_type || "auction",
+            excludeJp: s.exclude_jp,
+            onlyUs: s.only_us,
+        };
+        onExecute(params);
     };
 
     if (loading) {
@@ -159,13 +184,29 @@ export function EbaySearchList({ onSelect, refreshTrigger }: EbaySearchListProps
                         </Stack>
 
                         <Group gap={4} wrap="nowrap">
+                            <Tooltip label="Fetch results now" withArrow>
+                                <ActionIcon
+                                    size="sm"
+                                    variant="subtle"
+                                    color="orange"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleExecute(s);
+                                    }}
+                                >
+                                    <IconRefresh size={13} />
+                                </ActionIcon>
+                            </Tooltip>
                             <Tooltip label="Delete" withArrow>
                                 <ActionIcon
                                     size="sm"
                                     variant="subtle"
                                     color="red"
                                     loading={deletingId === s.id}
-                                    onClick={() => handleDelete(s.id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDelete(s.id);
+                                    }}
                                 >
                                     <IconTrash size={13} />
                                 </ActionIcon>

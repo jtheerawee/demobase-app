@@ -54,9 +54,29 @@ interface PriceTrendAnalysisProps {
     results: EbayItem[];
     exchangeRate?: number | null;
     highlightedDate?: string | null;
+    query?: string;
+    service?: string;
+    grade?: string;
+    minPrice?: number | string;
+    maxPrice?: number | string;
+    excludeJp?: boolean;
+    onlyUs?: boolean;
+    listingType?: string;
 }
 
-export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: PriceTrendAnalysisProps) {
+export function PriceTrendAnalysis({
+    results,
+    exchangeRate,
+    highlightedDate,
+    query,
+    service,
+    grade,
+    minPrice,
+    maxPrice,
+    excludeJp,
+    onlyUs,
+    listingType
+}: PriceTrendAnalysisProps) {
     // Defensive: ensure results is always an array
     const safeResults = Array.isArray(results) ? results : [];
 
@@ -151,9 +171,41 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
 
     return (
         <Stack gap="md" mb="xl">
-            <Group gap="xs">
-                <IconTrendingUp size={20} color="#27AE60" />
-                <Title order={5}>Market Analysis &amp; Price Trend</Title>
+            <Group gap="xs" justify="space-between" align="center">
+                <Group gap="xs">
+                    <IconTrendingUp size={20} color="#27AE60" />
+                    <Title order={5} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        Market Analysis:
+                        <Badge variant="light" color="orange" size="sm" radius="sm">
+                            {query}
+                        </Badge>
+                        {service && service !== "---" && (
+                            <Badge variant="light" color="orange" size="sm" radius="sm">
+                                {service.toUpperCase()} {grade}
+                            </Badge>
+                        )}
+                        {(minPrice || maxPrice) && (
+                            <Badge variant="light" color="orange" size="sm" radius="sm">
+                                ${minPrice || 0} - ${maxPrice || "∞"}
+                            </Badge>
+                        )}
+                        {excludeJp && (
+                            <Badge variant="light" color="orange" size="sm" radius="sm">
+                                No Japanese
+                            </Badge>
+                        )}
+                        {onlyUs && (
+                            <Badge variant="light" color="orange" size="sm" radius="sm">
+                                US Only
+                            </Badge>
+                        )}
+                        {listingType && (
+                            <Badge variant="light" color="orange" size="sm" radius="sm">
+                                {listingType === "auction" ? "Auctions" : "Fixed Price"}
+                            </Badge>
+                        )}
+                    </Title>
+                </Group>
                 {exchangeRate && (
                     <Badge variant="light" color="gray" size="sm">
                         1 USD = {(1 / exchangeRate).toFixed(2)} THB

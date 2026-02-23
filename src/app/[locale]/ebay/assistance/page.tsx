@@ -55,6 +55,7 @@ export default function EbaySearchPage() {
     const [threshold, setThreshold] = useState(EBAY_OUTLIER_THRESHOLD);
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
     const [doSearchTrigger, setDoSearchTrigger] = useState(0);
+    const [lastSearchParams, setLastSearchParams] = useState<any>(null);
 
     const handleSearch = useCallback(
         async (isLoadMore = false) => {
@@ -62,6 +63,21 @@ export default function EbaySearchPage() {
             else {
                 setLoading(true);
                 setOffset(0);
+                setActiveResults([]);
+                setSoldResults([]);
+                setActiveRaw(null);
+                setSoldRaw(null);
+                // Update header info immediately when fetch starts
+                setLastSearchParams({
+                    query,
+                    service,
+                    psa,
+                    minPrice,
+                    maxPrice,
+                    excludeJp,
+                    onlyUs,
+                    listingType
+                });
             }
             setError(null);
 
@@ -372,6 +388,16 @@ export default function EbaySearchPage() {
                                 setListingType(s.listingType);
                                 setExcludeJp(s.excludeJp);
                                 setOnlyUs(s.onlyUs);
+                            }}
+                            onExecute={(s) => {
+                                setQuery(s.query);
+                                setService(s.service);
+                                setPsa(s.psa);
+                                setMinPrice(s.minPrice);
+                                setMaxPrice(s.maxPrice);
+                                setListingType(s.listingType);
+                                setExcludeJp(s.excludeJp);
+                                setOnlyUs(s.onlyUs);
                                 setDoSearchTrigger(n => n + 1);
                             }}
                         />
@@ -384,7 +410,18 @@ export default function EbaySearchPage() {
                     </Stack>
                     <div style={{ gridColumn: "span 2" }}>
                         <Stack gap="xl">
-                            <PriceTrendAnalysis results={cleanSoldResults} highlightedDate={hoveredDate} />
+                            <PriceTrendAnalysis
+                                results={cleanSoldResults}
+                                highlightedDate={hoveredDate}
+                                query={lastSearchParams?.query || query}
+                                service={lastSearchParams?.service || service}
+                                grade={lastSearchParams?.psa || psa}
+                                minPrice={lastSearchParams?.minPrice ?? minPrice}
+                                maxPrice={lastSearchParams?.maxPrice ?? maxPrice}
+                                excludeJp={lastSearchParams?.excludeJp ?? excludeJp}
+                                onlyUs={lastSearchParams?.onlyUs ?? onlyUs}
+                                listingType={lastSearchParams?.listingType || listingType}
+                            />
 
                             {error && (
                                 <Center py="xl">
