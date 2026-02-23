@@ -11,6 +11,7 @@ import {
 import { IconBolt } from "@tabler/icons-react";
 import { EbayActiveFilters } from "@/components/EbayActiveFilters";
 import { EbayActiveResults } from "@/components/EbayActiveResults";
+import { EbaySearchList } from "@/components/EbaySearchList";
 import { PriceTrendAnalysis } from "@/components/PriceTrendAnalysis";
 import { useCallback, useEffect, useState } from "react";
 import type { EbayItem } from "@/services/ebayService";
@@ -33,6 +34,7 @@ export default function EbaySearchPage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [offset, setOffset] = useState(0);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const handleSearch = useCallback(
         async (isLoadMore = false) => {
@@ -114,6 +116,7 @@ export default function EbaySearchPage() {
             }
 
             alert("Search saved successfully!");
+            setRefreshTrigger((n) => n + 1);
         } catch (err: any) {
             alert(err.message);
         } finally {
@@ -134,28 +137,43 @@ export default function EbaySearchPage() {
             <Stack gap="xl">
                 <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" style={{ alignItems: "start" }}>
                     {/* Left: Filters — 1 of 3 columns */}
-                    <EbayActiveFilters
-                        query={query}
-                        onQueryChange={setQuery}
-                        service={service}
-                        onServiceChange={setService}
-                        psa={psa}
-                        onPsaChange={setPsa}
-                        minPrice={minPrice}
-                        onMinPriceChange={setMinPrice}
-                        maxPrice={maxPrice}
-                        onMaxPriceChange={setMaxPrice}
-                        listingType={listingType}
-                        onListingTypeChange={setListingType}
-                        excludeJp={excludeJp}
-                        onExcludeJpChange={setExcludeJp}
-                        onlyUs={onlyUs}
-                        onOnlyUsChange={setOnlyUs}
-                        onSearch={handleSearch}
-                        onSaveSearch={handleSaveSearch}
-                        loading={loading}
-                        saving={saving}
-                    />
+                    <Stack gap="md">
+                        <EbayActiveFilters
+                            query={query}
+                            onQueryChange={setQuery}
+                            service={service}
+                            onServiceChange={setService}
+                            psa={psa}
+                            onPsaChange={setPsa}
+                            minPrice={minPrice}
+                            onMinPriceChange={setMinPrice}
+                            maxPrice={maxPrice}
+                            onMaxPriceChange={setMaxPrice}
+                            listingType={listingType}
+                            onListingTypeChange={setListingType}
+                            excludeJp={excludeJp}
+                            onExcludeJpChange={setExcludeJp}
+                            onlyUs={onlyUs}
+                            onOnlyUsChange={setOnlyUs}
+                            onSearch={handleSearch}
+                            onSaveSearch={handleSaveSearch}
+                            loading={loading}
+                            saving={saving}
+                        />
+                        <EbaySearchList
+                            refreshTrigger={refreshTrigger}
+                            onSelect={(s) => {
+                                setQuery(s.query);
+                                setService(s.service);
+                                setPsa(s.psa);
+                                setMinPrice(s.minPrice);
+                                setMaxPrice(s.maxPrice);
+                                setListingType(s.listingType);
+                                setExcludeJp(s.excludeJp);
+                                setOnlyUs(s.onlyUs);
+                            }}
+                        />
+                    </Stack>
                     {/* Right: Market Analysis — 2 of 3 columns */}
                     <div style={{ gridColumn: "span 2" }}>
                         <PriceTrendAnalysis results={results} />

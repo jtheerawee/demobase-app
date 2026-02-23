@@ -4,7 +4,6 @@ import { createClient } from "@/utils/supabase/server";
 export async function POST(req: NextRequest) {
     const supabase = await createClient();
 
-    // Check if user is authenticated
     const {
         data: { user },
     } = await supabase.auth.getUser();
@@ -14,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { query, psaGrade, minPrice, maxPrice, listingType } = body;
+        const { query, service, psaGrade, minPrice, maxPrice, listingType, excludeJp, onlyUs } = body;
 
         if (!query) {
             return NextResponse.json({ error: "Query is required" }, { status: 400 });
@@ -24,11 +23,14 @@ export async function POST(req: NextRequest) {
             .from("ebay_searches")
             .insert({
                 user_id: user.id,
-                query,
-                psa_grade: psaGrade ? parseInt(psaGrade, 10) : null,
-                min_price: minPrice ? parseFloat(minPrice) : null,
-                max_price: maxPrice ? parseFloat(maxPrice) : null,
-                listing_type: listingType || "AUCTION",
+                keyword: query,
+                service: service && service !== "---" ? service : "---",
+                grade: psaGrade && service !== "---" ? parseInt(psaGrade, 10) : null,
+                min_price: minPrice ? parseFloat(String(minPrice)) : null,
+                max_price: maxPrice ? parseFloat(String(maxPrice)) : null,
+                listing_type: listingType || "auction",
+                exclude_jp: excludeJp ?? false,
+                only_us: onlyUs ?? false,
             })
             .select()
             .single();
