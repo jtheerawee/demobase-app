@@ -135,9 +135,14 @@ export function EbayActiveFilters({
                     <Group grow align="flex-end">
                         <Select
                             label="Service"
-                            data={["PSA", "BGS", "CGC", "---"]}
+                            data={[
+                                { label: "PSA", value: "psa" },
+                                { label: "BGS", value: "bgs" },
+                                { label: "CGC", value: "cgc" },
+                                { label: "---", value: "---" },
+                            ]}
                             value={service}
-                            onChange={(value) => onServiceChange(value || "PSA")}
+                            onChange={(value) => onServiceChange(value || "psa")}
                             styles={{ input: { borderRadius: "8px" } }}
                         />
                         <Select
@@ -193,8 +198,8 @@ export function EbayActiveFilters({
                             value={listingType}
                             onChange={onListingTypeChange}
                             data={[
-                                { label: "Auction (End Soonest)", value: "AUCTION" },
-                                { label: "Fixed Price (Lowest)", value: "FIXED_PRICE" },
+                                { label: "Auction (End Soonest)", value: "auction" },
+                                { label: "Fixed Price (Lowest)", value: "fixed_price" },
                             ]}
                             color="orange"
                             styles={{ root: { borderRadius: "8px" } }}

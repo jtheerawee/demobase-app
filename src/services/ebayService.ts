@@ -17,6 +17,6 @@ export interface EbaySearchOptions {
     psaGrade?: number;
     minPrice?: number;
     maxPrice?: number;
-    listingType?: "AUCTION" | "FIXED_PRICE";
+    listingType?: "auction" | "fixed_price";
     offset?: number;
 }

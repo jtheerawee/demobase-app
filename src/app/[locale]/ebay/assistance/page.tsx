@@ -20,11 +20,11 @@ import { createClient } from "@/utils/supabase/client";
 export default function EbaySearchPage() {
     const supabase = createClient();
     const [query, setQuery] = useState("charizard 050");
-    const [service, setService] = useState("PSA");
+    const [service, setService] = useState("psa");
     const [psa, setPsa] = useState<string>("10");
     const [minPrice, setMinPrice] = useState<number | string>("");
     const [maxPrice, setMaxPrice] = useState<number | string>("");
-    const [listingType, setListingType] = useState<string>("AUCTION");
+    const [listingType, setListingType] = useState<string>("auction");
     const [excludeJp, setExcludeJp] = useState(false);
     const [onlyUs, setOnlyUs] = useState(false);
     const [results, setResults] = useState<EbayItem[]>([]);
@@ -50,7 +50,8 @@ export default function EbaySearchPage() {
                 if (psa && service !== "---") url += `&grade=${psa}`;
                 if (minPrice) url += `&minPrice=${minPrice}`;
                 if (maxPrice) url += `&maxPrice=${maxPrice}`;
-                if (listingType !== "ALL") url += `&type=${listingType}`;
+                if (listingType) url += `&type=${listingType}`;
+
                 if (excludeJp) url += `&excludeJp=true`;
                 if (onlyUs) url += `&onlyUs=true`;
 

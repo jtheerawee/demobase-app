@@ -6,11 +6,11 @@ CREATE TABLE public.ebay_searches (
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id         UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     keyword         TEXT NOT NULL,
-    service         TEXT NOT NULL, -- PSA, BGS, CGC, etc.
+    service         TEXT NOT NULL, -- psa, bgs, cgc, etc.
     grade           SMALLINT,
     min_price       NUMERIC,
     max_price       NUMERIC,
-    listing_type    TEXT, -- 'AUCTION' or 'FIXED_PRICE'
+    listing_type    TEXT, -- 'auction' or 'fixed_price'
     exclude_jp      boolean not null default false,
     only_us         boolean not null default false,
     created_at      TIMESTAMPTZ DEFAULT NOW(),
