@@ -5,7 +5,6 @@ import {
     Button,
     Checkbox,
     Code,
-    Divider,
     Group,
     NumberInput,
     Paper,
@@ -65,29 +64,50 @@ export function EbayActiveFilters({
     loading,
     saving,
 }: EbayActiveFiltersProps) {
-    // Build API URLs for display
-    const buildActiveUrl = () => {
-        let url = `/api/ebay/active?q=${encodeURIComponent(query)}&offset=0`;
-        if (service && service !== "---") url += `&service=${service}`;
-        if (psa && service !== "---") url += `&grade=${psa}`;
-        if (minPrice) url += `&minPrice=${minPrice}`;
-        if (maxPrice) url += `&maxPrice=${maxPrice}`;
-        if (listingType !== "ALL") url += `&type=${listingType}`;
-        if (excludeJp) url += `&excludeJp=true`;
-        if (onlyUs) url += `&onlyUs=true`;
-        return url;
-    };
+    // Build API params as objects for display
+    const buildActiveParams = () => ({
+        endpoint: `/api/ebay/active`,
+        q: query,
+        offset: 0,
+        ...(service && service !== "---" ? { service } : {}),
+        ...(psa && service !== "---" ? { grade: psa } : {}),
+        ...(minPrice ? { minPrice } : {}),
+        ...(maxPrice ? { maxPrice } : {}),
+        type: listingType,
+        ...(excludeJp ? { excludeJp: true } : {}),
+        ...(onlyUs ? { onlyUs: true } : {}),
+    });
 
-    const buildSoldUrl = () => {
-        let url = `/api/ebay/sold?q=${encodeURIComponent(query)}`;
-        if (service && service !== "---") url += `&service=${service}`;
-        if (psa && service !== "---") url += `&grade=${psa}`;
-        if (minPrice) url += `&minPrice=${minPrice}`;
-        if (maxPrice) url += `&maxPrice=${maxPrice}`;
-        if (excludeJp) url += `&excludeJp=true`;
-        if (onlyUs) url += `&onlyUs=true`;
-        return url;
-    };
+    const buildSoldParams = () => ({
+        endpoint: `/api/ebay/sold`,
+        q: query,
+        ...(service && service !== "---" ? { service } : {}),
+        ...(psa && service !== "---" ? { grade: psa } : {}),
+        ...(minPrice ? { minPrice } : {}),
+        ...(maxPrice ? { maxPrice } : {}),
+        ...(excludeJp ? { excludeJp: true } : {}),
+        ...(onlyUs ? { onlyUs: true } : {}),
+    });
+
+    const ApiPopover = ({ label, color, params }: { label: string; color: string; params: object }) => (
+        <Popover width={360} position="bottom-end" withArrow shadow="md">
+            <Popover.Target>
+                <Tooltip label={`${label} API params`} withArrow>
+                    <ActionIcon variant="light" color={color} size="sm" radius="sm">
+                        <IconCode size={14} />
+                    </ActionIcon>
+                </Tooltip>
+            </Popover.Target>
+            <Popover.Dropdown p="xs">
+                <Stack gap={6}>
+                    <Text size="xs" fw={800} c={color}>{label}</Text>
+                    <Code block style={{ fontSize: 11, whiteSpace: "pre-wrap" }}>
+                        {JSON.stringify(params, null, 2)}
+                    </Code>
+                </Stack>
+            </Popover.Dropdown>
+        </Popover>
+    );
 
     return (
         <Paper
@@ -99,29 +119,9 @@ export function EbayActiveFilters({
             style={{ backdropFilter: "blur(10px)" }}
         >
             <Stack gap="md">
-                <Group justify="flex-end">
-                    <Popover width={380} position="bottom-end" withArrow shadow="md">
-                        <Popover.Target>
-                            <Tooltip label="View API calls" withArrow>
-                                <ActionIcon variant="subtle" color="gray" size="sm">
-                                    <IconCode size={16} />
-                                </ActionIcon>
-                            </Tooltip>
-                        </Popover.Target>
-                        <Popover.Dropdown>
-                            <Stack gap="xs">
-                                <Text size="xs" fw={700} c="dimmed">ACTIVE</Text>
-                                <Code block style={{ wordBreak: "break-all", fontSize: 11 }}>
-                                    {buildActiveUrl()}
-                                </Code>
-                                <Divider />
-                                <Text size="xs" fw={700} c="dimmed">SOLD</Text>
-                                <Code block style={{ wordBreak: "break-all", fontSize: 11 }}>
-                                    {buildSoldUrl()}
-                                </Code>
-                            </Stack>
-                        </Popover.Dropdown>
-                    </Popover>
+                <Group justify="flex-end" gap="xs">
+                    <ApiPopover label="ACTIVE" color="orange" params={buildActiveParams()} />
+                    <ApiPopover label="SOLD" color="blue" params={buildSoldParams()} />
                 </Group>
                 <SimpleGrid cols={1} spacing="md">
                     <TextInput

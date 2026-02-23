@@ -4,17 +4,28 @@ const CARD_API = process.env.EBAY_API_HOST ?? "http://localhost:3002";
 
 export async function GET(request: NextRequest) {
     const authorization = request.headers.get("Authorization") ?? "";
-    const searchParams = request.nextUrl.searchParams;
+    const sp = request.nextUrl.searchParams;
 
-    // Extract keyword from `q`, forward remaining params as-is to card-api
-    const q = searchParams.get("q") ?? "";
-    const forwardParams = new URLSearchParams(searchParams);
-    forwardParams.delete("q");
+    // Translate demobase params → card-api params
+    const forward = new URLSearchParams();
 
-    const qs = forwardParams.toString() ? `?${forwardParams.toString()}` : "";
+    const q = sp.get("q") ?? "";
+    if (q) forward.set("keyword", q);
+
+    if (sp.has("grade")) forward.set("grade", sp.get("grade")!);
+    if (sp.has("service")) forward.set("service", sp.get("service")!);
+    if (sp.has("page")) forward.set("page", sp.get("page")!);
+    if (sp.has("minPrice")) forward.set("minPrice", sp.get("minPrice")!);
+    if (sp.has("maxPrice")) forward.set("maxPrice", sp.get("maxPrice")!);
+
+    // camelCase → snake_case for exclude/us flags
+    if (sp.get("excludeJp") === "true" || sp.get("exclude_jp") === "true")
+        forward.set("exclude_jp", "true");
+    if (sp.get("onlyUs") === "true" || sp.get("only_us") === "true")
+        forward.set("only_us", "true");
 
     const res = await fetch(
-        `${CARD_API}/api/ebay/sold/${encodeURIComponent(q)}${qs}`,
+        `${CARD_API}/api/ebay/sold?${forward.toString()}`,
         { headers: { Authorization: authorization } },
     );
 

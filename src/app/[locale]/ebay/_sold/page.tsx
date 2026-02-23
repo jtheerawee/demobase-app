@@ -73,13 +73,13 @@ export default function SoldItemsPage() {
         data: { session },
       } = await supabase.auth.getSession();
 
-      const params = new URLSearchParams({ page: String(targetPage) });
+      const params = new URLSearchParams({ q: kw, page: String(targetPage) });
       if (grade !== null && grade !== "") params.set("grade", grade);
-      if (excludeJp) params.set("exclude_jp", "true");
-      if (onlyUs) params.set("only_us", "true");
+      if (excludeJp) params.set("excludeJp", "true");
+      if (onlyUs) params.set("onlyUs", "true");
 
       const res = await fetch(
-        `/api/ebay/sold/${encodeURIComponent(kw)}?${params}`,
+        `/api/ebay/sold?${params}`,
         { headers: { Authorization: `Bearer ${session?.access_token ?? ""}` } },
       );
 

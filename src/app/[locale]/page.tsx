@@ -6,9 +6,7 @@ export default async function HomePage() {
     <Container size="xl" py="xl">
       <Stack gap="xl">
         <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
-          <WidgetCard title="eBay" href="/ebay" />
-          <WidgetCard title="eBay Active" href="/ebay/active" />
-          <WidgetCard title="eBay Sold" href="/ebay/sold" />
+          <WidgetCard title="eBay Assistance" href="/ebay/assistance" />
         </SimpleGrid>
       </Stack>
     </Container>
