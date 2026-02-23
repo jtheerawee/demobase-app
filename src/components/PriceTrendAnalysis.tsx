@@ -1,0 +1,285 @@
+"use client";
+
+import { Badge, Card, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { IconTrendingUp } from "@tabler/icons-react";
+import { useMemo } from "react";
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import type { EbayItem } from "@/services/ebayService";
+
+function calculateMedian(values: number[]): number {
+    if (values.length === 0) return 0;
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+function filterByDays(items: EbayItem[], days: number): EbayItem[] {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return items.filter((item) => {
+        if (!item.endTime) return false;
+        const date = new Date(item.endTime);
+        return !Number.isNaN(date.getTime()) && date >= cutoff;
+    });
+}
+
+interface CustomDotProps {
+    cx?: number;
+    cy?: number;
+    payload: { price: number; date: string };
+    minPrice: number;
+    maxPrice: number;
+}
+
+const CustomDot = (props: CustomDotProps) => {
+    const { cx, cy, payload, minPrice, maxPrice } = props;
+    if (cx === undefined || cy === undefined) return null;
+    if (payload.price === maxPrice) {
+        return <circle cx={cx} cy={cy} r={6} fill="#fa5252" stroke="#fff" strokeWidth={2} />;
+    }
+    if (payload.price === minPrice) {
+        return <circle cx={cx} cy={cy} r={6} fill="#40c057" stroke="#fff" strokeWidth={2} />;
+    }
+    return <circle cx={cx} cy={cy} r={4} fill="#228be6" stroke="#fff" strokeWidth={2} />;
+};
+
+interface PriceTrendAnalysisProps {
+    results: EbayItem[];
+    exchangeRate?: number | null;
+    highlightedDate?: string | null;
+}
+
+export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: PriceTrendAnalysisProps) {
+    // Defensive: ensure results is always an array
+    const safeResults = Array.isArray(results) ? results : [];
+
+    const currencySymbol = useMemo(() => {
+        if (safeResults.length === 0) return "$";
+        const firstWithCurrency = safeResults.find((item) => item.currency);
+        if (!firstWithCurrency) return "$";
+        return firstWithCurrency.currency === "USD" ? "$" : firstWithCurrency.currency;
+    }, [safeResults]);
+
+    const stats = useMemo(() => {
+        if (safeResults.length === 0) return null;
+
+        const prices = safeResults
+            .map((item) => parseFloat(item.price.replace(/,/g, "")))
+            .filter((price) => !Number.isNaN(price));
+
+        if (prices.length === 0) return null;
+
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const median = calculateMedian(prices);
+
+        const items14 = filterByDays(safeResults, 14);
+        const prices14 = items14.map((item) => parseFloat(item.price.replace(/,/g, ""))).filter((p) => !Number.isNaN(p));
+        const median14 = calculateMedian(prices14);
+        const avg14 = prices14.length > 0 ? prices14.reduce((a, b) => a + b, 0) / prices14.length : 0;
+
+        const items30 = filterByDays(safeResults, 30);
+        const prices30 = items30.map((item) => parseFloat(item.price.replace(/,/g, ""))).filter((p) => !Number.isNaN(p));
+        const median30 = calculateMedian(prices30);
+        const avg30 = prices30.length > 0 ? prices30.reduce((a, b) => a + b, 0) / prices30.length : 0;
+
+        return { min, max, avg, median, median14, median30, avg14, avg30, count: prices.length };
+    }, [safeResults]);
+
+    const chartData = useMemo(() => {
+        if (safeResults.length === 0) return [];
+
+        const groupedByDate: Record<string, number[]> = {};
+
+        safeResults.forEach((item) => {
+            if (!item.endTime) return;
+            const date = new Date(item.endTime);
+            if (Number.isNaN(date.getTime())) return;
+
+            const dateKey = date.toISOString().split("T")[0];
+            if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
+
+            const price = parseFloat(item.price.replace(/,/g, ""));
+            if (!Number.isNaN(price)) {
+                groupedByDate[dateKey].push(price);
+            }
+        });
+
+        const sortedKeys = Object.keys(groupedByDate).sort();
+
+        return sortedKeys.map((dateKey) => {
+            const avgPrice =
+                groupedByDate[dateKey].length > 0
+                    ? groupedByDate[dateKey].reduce((a, b) => a + b, 0) / groupedByDate[dateKey].length
+                    : 0;
+            return {
+                date: new Date(dateKey).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+                price: parseFloat(avgPrice.toFixed(2)),
+                fullDate: dateKey,
+            };
+        });
+    }, [safeResults]);
+
+    const chartMaxPrice = useMemo(() => {
+        if (chartData.length === 0) return 0;
+        return Math.max(...chartData.map((d) => d.price));
+    }, [chartData]);
+
+    const chartMinPrice = useMemo(() => {
+        if (chartData.length === 0) return 0;
+        return Math.min(...chartData.map((d) => d.price));
+    }, [chartData]);
+
+    if (safeResults.length === 0 || !stats) return null;
+
+    return (
+        <Stack gap="md" mb="xl">
+            <Group gap="xs">
+                <IconTrendingUp size={20} color="#27AE60" />
+                <Title order={5}>Market Analysis &amp; Price Trend</Title>
+                {exchangeRate && (
+                    <Badge variant="light" color="gray" size="sm">
+                        1 USD = {(1 / exchangeRate).toFixed(2)} THB
+                    </Badge>
+                )}
+            </Group>
+
+            <Grid gutter="md">
+                <Grid.Col span={{ base: 12, sm: 3 }}>
+                    <Card withBorder padding="sm" radius="md">
+                        <Stack gap={0}>
+                            <Text size="xs" fw={700} c="dimmed">Average</Text>
+                            <Text size="xl" fw={900} color="blue.7">
+                                {currencySymbol}{stats.avg.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </Text>
+                            <SimpleGrid cols={2} mt="xs">
+                                <Stack gap={0}>
+                                    <Text size="xs" c="dimmed">30d</Text>
+                                    <Text size="sm" fw={700} color="blue.6">
+                                        {currencySymbol}{stats.avg30.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </Text>
+                                </Stack>
+                                <Stack gap={0}>
+                                    <Text size="xs" c="dimmed">14d</Text>
+                                    <Text size="sm" fw={700} color="blue.6">
+                                        {currencySymbol}{stats.avg14.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </Text>
+                                </Stack>
+                            </SimpleGrid>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 3 }}>
+                    <Card withBorder padding="sm" radius="md">
+                        <Stack gap={0}>
+                            <Text size="xs" fw={700} c="dimmed">Median</Text>
+                            <Text size="xl" fw={900} color="teal.7">
+                                {currencySymbol}{stats.median.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                            </Text>
+                            <SimpleGrid cols={2} mt="xs">
+                                <Stack gap={0}>
+                                    <Text size="xs" c="dimmed">30d</Text>
+                                    <Text size="sm" fw={700} color="teal.6">
+                                        {currencySymbol}{stats.median30.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </Text>
+                                </Stack>
+                                <Stack gap={0}>
+                                    <Text size="xs" c="dimmed">14d</Text>
+                                    <Text size="sm" fw={700} color="teal.6">
+                                        {currencySymbol}{stats.median14.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </Text>
+                                </Stack>
+                            </SimpleGrid>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 3 }}>
+                    <Card withBorder padding="sm" radius="md">
+                        <Stack gap={0}>
+                            <Text size="xs" fw={700} c="dimmed">Lowest</Text>
+                            <Text size="xl" fw={900} color="green.7">
+                                {currencySymbol}{stats.min.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </Text>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 3 }}>
+                    <Card withBorder padding="sm" radius="md">
+                        <Stack gap={0}>
+                            <Text size="xs" fw={700} c="dimmed">Highest</Text>
+                            <Text size="xl" fw={900} color="red.7">
+                                {currencySymbol}{stats.max.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </Text>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
+            </Grid>
+
+            {chartData.length > 1 && (
+                <Paper withBorder p="md" radius="md" bg="gray.0">
+                    <Stack gap="xs">
+                        <Text size="xs" fw={700} c="dimmed">
+                            Price Trend ({stats.count} listings)
+                        </Text>
+                        <div style={{ height: 200, width: "100%" }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e9ecef" />
+                                    <XAxis
+                                        dataKey="fullDate"
+                                        tick={{ fontSize: 12, fill: "#868e96" }}
+                                        tickLine={false}
+                                        axisLine={{ stroke: "#dee2e6" }}
+                                        tickFormatter={(val) => {
+                                            const d = new Date(val);
+                                            return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+                                        }}
+                                    />
+                                    <YAxis
+                                        tick={{ fontSize: 12, fill: "#868e96" }}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickFormatter={(value) => `${currencySymbol}${value}`}
+                                        domain={["auto", "auto"]}
+                                    />
+                                    <Tooltip
+                                        cursor={{ stroke: "#adb5bd", strokeWidth: 1, strokeDasharray: "4 4" }}
+                                        content={({ active, payload, label }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <Paper withBorder p="xs" radius="sm" bg="gray.1" shadow="xs">
+                                                        <Stack gap={2}>
+                                                            <Text size="xs" c="dimmed" fw={700}>{label}</Text>
+                                                            <Text size="sm" fw={800} c="blue.7">
+                                                                {currencySymbol}{payload[0].value?.toLocaleString()}
+                                                            </Text>
+                                                        </Stack>
+                                                    </Paper>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    {highlightedDate && (
+                                        <ReferenceLine x={highlightedDate} stroke="#fa5252" strokeDasharray="3 3" />
+                                    )}
+                                    <Line
+                                        type="monotone"
+                                        dataKey="price"
+                                        stroke="#228be6"
+                                        strokeWidth={3}
+                                        activeDot={{ r: 8, strokeWidth: 0 }}
+                                        dot={(props: any) => (
+                                            <CustomDot {...props} minPrice={chartMinPrice} maxPrice={chartMaxPrice} />
+                                        )}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </Stack>
+                </Paper>
+            )}
+        </Stack>
+    );
+}

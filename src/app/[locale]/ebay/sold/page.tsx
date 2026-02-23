@@ -167,7 +167,7 @@ export default function SoldItemsPage() {
                 <Stack gap="md">
                   <TextInput
                     label="Keyword"
-                    placeholder="charizard 050"
+                    placeholder="pikachu 198"
                     value={keyword}
                     onChange={(e) => setKeyword(e.currentTarget.value)}
                     onKeyDown={(e) => e.key === "Enter" && search(1)}
