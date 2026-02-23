@@ -17,7 +17,7 @@ function filterByDays(items: EbayItem[], days: number): EbayItem[] {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return items.filter((item) => {
-        const dateStr = item.endTime || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
+        const dateStr = item.endDate || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
         if (!dateStr) return false;
         const date = new Date(dateStr);
         return !Number.isNaN(date.getTime()) && date >= cutoff;
@@ -27,14 +27,20 @@ function filterByDays(items: EbayItem[], days: number): EbayItem[] {
 interface CustomDotProps {
     cx?: number;
     cy?: number;
-    payload: { price: number; date: string };
+    payload: { price: number; date: string; fullDate: string };
     minPrice: number;
     maxPrice: number;
+    highlightedDate?: string | null;
 }
 
 const CustomDot = (props: CustomDotProps) => {
-    const { cx, cy, payload, minPrice, maxPrice } = props;
+    const { cx, cy, payload, minPrice, maxPrice, highlightedDate } = props;
     if (cx === undefined || cy === undefined) return null;
+
+    if (highlightedDate && payload.fullDate === highlightedDate) {
+        return <circle cx={cx} cy={cy} r={8} fill="#ffcc00" stroke="#fff" strokeWidth={3} style={{ transition: 'all 0.2s ease' }} />;
+    }
+
     if (payload.price === maxPrice) {
         return <circle cx={cx} cy={cy} r={6} fill="#fa5252" stroke="#fff" strokeWidth={2} />;
     }
@@ -104,7 +110,7 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
         const groupedByDate: Record<string, number[]> = {};
 
         safeResults.forEach((item) => {
-            const dateStr = item.endTime || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
+            const dateStr = item.endDate || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
             if (!dateStr) return;
             const date = new Date(dateStr);
             if (Number.isNaN(date.getTime())) return;
@@ -121,14 +127,13 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
         const sortedKeys = Object.keys(groupedByDate).sort();
 
         return sortedKeys.map((dateKey) => {
-            const avgPrice =
-                groupedByDate[dateKey].length > 0
-                    ? groupedByDate[dateKey].reduce((a, b) => a + b, 0) / groupedByDate[dateKey].length
-                    : 0;
+            const prices = groupedByDate[dateKey];
+            const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
             return {
                 date: new Date(dateKey).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-                price: parseFloat(avgPrice.toFixed(2)),
+                price: parseFloat(maxPrice.toFixed(2)),
                 fullDate: dateKey,
+                count: prices.length,
             };
         });
     }, [safeResults]);
@@ -262,9 +267,15 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
                                                     <Paper withBorder p="xs" radius="sm" bg="gray.1" shadow="xs">
                                                         <Stack gap={2}>
                                                             <Text size="xs" c="dimmed" fw={700}>{label}</Text>
-                                                            <Text size="sm" fw={800} c="blue.7">
-                                                                {currencySymbol}{payload[0].value?.toLocaleString()}
-                                                            </Text>
+                                                            <Group gap={4} align="baseline">
+                                                                <Text size="xs" fw={700} c="dimmed">Max:</Text>
+                                                                <Text size="sm" fw={800} c="blue.7">
+                                                                    {currencySymbol}{payload[0].value?.toLocaleString()}
+                                                                </Text>
+                                                                <Text size="10px" c="dimmed">
+                                                                    ({payload[0].payload.count} listings)
+                                                                </Text>
+                                                            </Group>
                                                         </Stack>
                                                     </Paper>
                                                 );
@@ -282,7 +293,7 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
                                         strokeWidth={3}
                                         activeDot={{ r: 8, strokeWidth: 0 }}
                                         dot={(props: any) => (
-                                            <CustomDot {...props} minPrice={chartMinPrice} maxPrice={chartMaxPrice} />
+                                            <CustomDot {...props} minPrice={chartMinPrice} maxPrice={chartMaxPrice} highlightedDate={highlightedDate} />
                                         )}
                                     />
                                 </LineChart>

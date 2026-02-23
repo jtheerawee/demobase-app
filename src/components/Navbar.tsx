@@ -21,7 +21,7 @@ export async function Navbar() {
   const t = await getTranslations("Navbar");
 
   let accessToken: string | undefined;
-  if (process.env.DEVELOPER_MODE === "true" && user) {
+  if (process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && user) {
     const {
       data: { session },
     } = await supabase.auth.getSession();
