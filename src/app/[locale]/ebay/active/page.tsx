@@ -169,7 +169,7 @@ export default function EbaySearchPage() {
                             </Group>
                         </Group>
 
-                        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+                        <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
                             <TextInput
                                 label="Search Keywords"
                                 placeholder="e.g. Charizard 050"
@@ -178,15 +178,15 @@ export default function EbaySearchPage() {
                                 leftSection={<IconSearch size={16} />}
                                 styles={{ input: { borderRadius: "8px" } }}
                             />
+                            <Select
+                                label="PSA Grade"
+                                placeholder="Select grade"
+                                data={["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]}
+                                value={psa}
+                                onChange={(value) => setPsa(value || "")}
+                                styles={{ input: { borderRadius: "8px" } }}
+                            />
                             <Group grow align="flex-end">
-                                <Select
-                                    label="PSA Grade"
-                                    placeholder="Select grade"
-                                    data={["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]}
-                                    value={psa}
-                                    onChange={(value) => setPsa(value || "")}
-                                    styles={{ input: { borderRadius: "8px" } }}
-                                />
                                 <NumberInput
                                     label="Min Price"
                                     placeholder="0"
