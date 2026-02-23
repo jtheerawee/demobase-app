@@ -18,6 +18,7 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { IconCode, IconPlus, IconSearch } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface EbayActiveFiltersProps {
     query: string;
@@ -64,6 +65,7 @@ export function EbayActiveFilters({
     loading,
     saving,
 }: EbayActiveFiltersProps) {
+    const t = useTranslations("EbayAssistance.filters");
     // Build API params as objects for display
     const buildActiveParams = () => ({
         endpoint: `/api/ebay/active`,
@@ -89,19 +91,37 @@ export function EbayActiveFilters({
         ...(onlyUs ? { onlyUs: true } : {}),
     });
 
-    const ApiPopover = ({ label, color, params }: { label: string; color: string; params: object }) => (
+    const ApiPopover = ({
+        label,
+        color,
+        params,
+    }: {
+        label: string;
+        color: string;
+        params: object;
+    }) => (
         <Popover width={360} position="bottom-end" withArrow shadow="md">
             <Popover.Target>
                 <Tooltip label={`${label} API params`} withArrow>
-                    <ActionIcon variant="light" color={color} size="sm" radius="sm">
+                    <ActionIcon
+                        variant="light"
+                        color={color}
+                        size="sm"
+                        radius="sm"
+                    >
                         <IconCode size={14} />
                     </ActionIcon>
                 </Tooltip>
             </Popover.Target>
             <Popover.Dropdown p="xs">
                 <Stack gap={6}>
-                    <Text size="xs" fw={800} c={color}>{label}</Text>
-                    <Code block style={{ fontSize: 11, whiteSpace: "pre-wrap" }}>
+                    <Text size="xs" fw={800} c={color}>
+                        {label}
+                    </Text>
+                    <Code
+                        block
+                        style={{ fontSize: 11, whiteSpace: "pre-wrap" }}
+                    >
                         {JSON.stringify(params, null, 2)}
                     </Code>
                 </Stack>
@@ -120,13 +140,21 @@ export function EbayActiveFilters({
         >
             <Stack gap="md">
                 <Group justify="flex-end" gap="xs">
-                    <ApiPopover label="ACTIVE" color="orange" params={buildActiveParams()} />
-                    <ApiPopover label="SOLD" color="blue" params={buildSoldParams()} />
+                    <ApiPopover
+                        label="ACTIVE"
+                        color="orange"
+                        params={buildActiveParams()}
+                    />
+                    <ApiPopover
+                        label="SOLD"
+                        color="blue"
+                        params={buildSoldParams()}
+                    />
                 </Group>
                 <SimpleGrid cols={1} spacing="md">
                     <TextInput
-                        label="Search Keywords"
-                        placeholder="e.g. pikachu 198"
+                        label={t("keywords")}
+                        placeholder={t("keywordsPlaceholder")}
                         value={query}
                         onChange={(e) => onQueryChange(e.currentTarget.value)}
                         leftSection={<IconSearch size={16} />}
@@ -134,7 +162,7 @@ export function EbayActiveFilters({
                     />
                     <Group grow align="flex-end">
                         <Select
-                            label="Service"
+                            label={t("service")}
                             data={[
                                 { label: "PSA", value: "psa" },
                                 { label: "BGS", value: "bgs" },
@@ -142,13 +170,26 @@ export function EbayActiveFilters({
                                 { label: "---", value: "---" },
                             ]}
                             value={service}
-                            onChange={(value) => onServiceChange(value || "psa")}
+                            onChange={(value) =>
+                                onServiceChange(value || "psa")
+                            }
                             styles={{ input: { borderRadius: "8px" } }}
                         />
                         <Select
-                            label="Grade"
+                            label={t("grade")}
                             disabled={service === "---"}
-                            data={["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]}
+                            data={[
+                                "10",
+                                "9",
+                                "8",
+                                "7",
+                                "6",
+                                "5",
+                                "4",
+                                "3",
+                                "2",
+                                "1",
+                            ]}
                             value={psa}
                             onChange={(value) => onPsaChange(value || "")}
                             styles={{ input: { borderRadius: "8px" } }}
@@ -156,14 +197,14 @@ export function EbayActiveFilters({
                     </Group>
                     <Group grow align="flex-end">
                         <NumberInput
-                            label="Min Price"
+                            label={t("minPrice")}
                             placeholder="0"
                             value={minPrice}
                             onChange={onMinPriceChange}
                             styles={{ input: { borderRadius: "8px" } }}
                         />
                         <NumberInput
-                            label="Max Price"
+                            label={t("maxPrice")}
                             placeholder="9999"
                             value={maxPrice}
                             onChange={onMaxPriceChange}
@@ -172,15 +213,19 @@ export function EbayActiveFilters({
                     </Group>
                     <Group gap="xl">
                         <Checkbox
-                            label="Exclude Japanese"
+                            label={t("excludeJp")}
                             checked={excludeJp}
-                            onChange={(e) => onExcludeJpChange(e.currentTarget.checked)}
+                            onChange={(e) =>
+                                onExcludeJpChange(e.currentTarget.checked)
+                            }
                             color="orange"
                         />
                         <Checkbox
-                            label="US Only"
+                            label={t("onlyUs")}
                             checked={onlyUs}
-                            onChange={(e) => onOnlyUsChange(e.currentTarget.checked)}
+                            onChange={(e) =>
+                                onOnlyUsChange(e.currentTarget.checked)
+                            }
                             color="orange"
                         />
                     </Group>
@@ -189,15 +234,15 @@ export function EbayActiveFilters({
                 <Stack gap="md">
                     <Stack gap={4}>
                         <Text size="sm" fw={500}>
-                            Listing Type &amp; Sort
+                            {t("listingType")}
                         </Text>
                         <SegmentedControl
                             fullWidth
                             value={listingType}
                             onChange={onListingTypeChange}
                             data={[
-                                { label: "Auction (End Soonest)", value: "auction" },
-                                { label: "Fixed Price (Lowest)", value: "fixed_price" },
+                                { label: t("auction"), value: "auction" },
+                                { label: t("fixedPrice"), value: "fixedPrice" },
                             ]}
                             color="orange"
                             styles={{ root: { borderRadius: "8px" } }}
@@ -213,7 +258,7 @@ export function EbayActiveFilters({
                             radius="md"
                             size="md"
                         >
-                            Save Search
+                            {t("saveSearch")}
                         </Button>
                         <Button
                             color="orange"
@@ -223,7 +268,7 @@ export function EbayActiveFilters({
                             style={{ borderRadius: "8px" }}
                             leftSection={<IconSearch size={18} />}
                         >
-                            Search Now
+                            {t("searchNow")}
                         </Button>
                     </Group>
                 </Stack>

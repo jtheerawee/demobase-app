@@ -1,10 +1,6 @@
 "use client";
 
-import {
-    Button,
-    Center,
-    SimpleGrid,
-} from "@mantine/core";
+import { Button, Center, SimpleGrid } from "@mantine/core";
 import type { EbayItem } from "@/services/ebayService";
 import { EbayItemCard } from "./EbayItemCard";
 

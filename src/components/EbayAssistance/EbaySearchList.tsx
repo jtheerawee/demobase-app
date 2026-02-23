@@ -13,6 +13,7 @@ import {
 import { IconRefresh, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useTranslations } from "next-intl";
 
 interface EbaySearch {
     id: number;
@@ -51,7 +52,12 @@ interface EbaySearchListProps {
     refreshTrigger?: number;
 }
 
-export function EbaySearchList({ onSelect, onExecute, refreshTrigger }: EbaySearchListProps) {
+export function EbaySearchList({
+    onSelect,
+    onExecute,
+    refreshTrigger,
+}: EbaySearchListProps) {
+    const t = useTranslations("EbayAssistance.searchList");
     const supabase = createClient();
     const [searches, setSearches] = useState<EbaySearch[]>([]);
     const [loading, setLoading] = useState(true);
@@ -120,7 +126,9 @@ export function EbaySearchList({ onSelect, onExecute, refreshTrigger }: EbaySear
     if (searches.length === 0) {
         return (
             <Paper withBorder p="md" radius="md" bg="rgba(255,255,255,0.8)">
-                <Text size="xs" c="dimmed" ta="center">No saved searches yet.</Text>
+                <Text size="xs" c="dimmed" ta="center">
+                    {t("noSaved")}
+                </Text>
             </Paper>
         );
     }
@@ -141,42 +149,91 @@ export function EbaySearchList({ onSelect, onExecute, refreshTrigger }: EbaySear
                         justify="space-between"
                         wrap="nowrap"
                         style={{
-                            borderBottom: i < searches.length - 1 ? "1px solid var(--mantine-color-gray-2)" : undefined,
+                            borderBottom:
+                                i < searches.length - 1
+                                    ? "1px solid var(--mantine-color-gray-2)"
+                                    : undefined,
                             cursor: "pointer",
                             transition: "background 0.15s",
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "var(--mantine-color-gray-0)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        onMouseEnter={(e) =>
+                            (e.currentTarget.style.background =
+                                "var(--mantine-color-gray-0)")
+                        }
+                        onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "transparent")
+                        }
                     >
                         {/* Main info */}
-                        <Stack gap={2} style={{ flex: 1, minWidth: 0 }} onClick={() => handleSelect(s)}>
+                        <Stack
+                            gap={2}
+                            style={{ flex: 1, minWidth: 0 }}
+                            onClick={() => handleSelect(s)}
+                        >
                             <Text size="sm" fw={600} truncate>
                                 {s.keyword}
                             </Text>
                             <Group gap={4} wrap="nowrap">
                                 {s.service && s.service !== "---" && (
-                                    <Badge size="xs" variant="light" color="orange" radius="sm">
-                                        {s.service.toUpperCase()} {s.grade != null ? s.grade : ""}
+                                    <Badge
+                                        size="xs"
+                                        variant="light"
+                                        color="orange"
+                                        radius="sm"
+                                    >
+                                        {s.service.toUpperCase()}{" "}
+                                        {s.grade != null ? s.grade : ""}
                                     </Badge>
                                 )}
                                 {s.listing_type && (
-                                    <Badge size="xs" variant="light" color="gray" radius="sm">
-                                        {s.listing_type === "auction" ? "Auction" : "Fixed"}
+                                    <Badge
+                                        size="xs"
+                                        variant="light"
+                                        color="gray"
+                                        radius="sm"
+                                    >
+                                        {s.listing_type === "auction"
+                                            ? "Auction"
+                                            : "Fixed"}
                                     </Badge>
                                 )}
                                 {s.exclude_jp && (
-                                    <Badge size="xs" variant="light" color="red" radius="sm">no JP</Badge>
+                                    <Badge
+                                        size="xs"
+                                        variant="light"
+                                        color="red"
+                                        radius="sm"
+                                    >
+                                        {t("noJp")}
+                                    </Badge>
                                 )}
                                 {s.only_us && (
-                                    <Badge size="xs" variant="light" color="blue" radius="sm">US</Badge>
+                                    <Badge
+                                        size="xs"
+                                        variant="light"
+                                        color="blue"
+                                        radius="sm"
+                                    >
+                                        {t("usOnly")}
+                                    </Badge>
                                 )}
                                 {s.min_price != null && (
-                                    <Badge size="xs" variant="outline" color="green" radius="sm">
+                                    <Badge
+                                        size="xs"
+                                        variant="outline"
+                                        color="green"
+                                        radius="sm"
+                                    >
                                         &gt; ${s.min_price}
                                     </Badge>
                                 )}
                                 {s.max_price != null && (
-                                    <Badge size="xs" variant="outline" color="red" radius="sm">
+                                    <Badge
+                                        size="xs"
+                                        variant="outline"
+                                        color="red"
+                                        radius="sm"
+                                    >
                                         &lt; ${s.max_price}
                                     </Badge>
                                 )}
@@ -184,7 +241,7 @@ export function EbaySearchList({ onSelect, onExecute, refreshTrigger }: EbaySear
                         </Stack>
 
                         <Group gap={4} wrap="nowrap">
-                            <Tooltip label="Fetch results now" withArrow>
+                            <Tooltip label={t("fetchNow")} withArrow>
                                 <ActionIcon
                                     size="sm"
                                     variant="subtle"
@@ -197,7 +254,7 @@ export function EbaySearchList({ onSelect, onExecute, refreshTrigger }: EbaySear
                                     <IconRefresh size={13} />
                                 </ActionIcon>
                             </Tooltip>
-                            <Tooltip label="Delete" withArrow>
+                            <Tooltip label={t("delete")} withArrow>
                                 <ActionIcon
                                     size="sm"
                                     variant="subtle"

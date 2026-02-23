@@ -1,16 +1,62 @@
 {
-  "Navbar": {
-    "signIn": "Sign in",
-    "signOut": "Sign out"
-  },
-  "HomePage": {
-    "title": "demobase-app",
-    "welcome": "Welcome, {name}!",
-    "signIn": "Sign in",
-    "signOut": "Sign out"
-  },
-  "SignInPage": {
-    "title": "Sign in",
-    "signInWithGoogle": "Sign in with Google"
-  }
+    "Navbar": {
+        "signIn": "Sign in",
+        "signOut": "Sign out"
+    },
+    "HomePage": {
+        "title": "demobase-app",
+        "welcome": "Welcome, {name}!",
+        "signIn": "Sign in",
+        "signOut": "Sign out"
+    },
+    "SignInPage": {
+        "title": "Sign in",
+        "signInWithGoogle": "Sign in with Google"
+    },
+    "EbayAssistance": {
+        "loading": "Hunting for the best deals on eBay...",
+        "hideAbnormal": "Hide Abnormal Prices",
+        "hideUnmatched": "Hide Unmatched Services",
+        "activeResults": "Active Results",
+        "soldResults": "Sold Results",
+        "noResults": "No results found for your search filters.",
+        "saveSuccess": "Search saved successfully!",
+        "saveError": "Error",
+        "filters": {
+            "keywords": "Search Keywords",
+            "keywordsPlaceholder": "e.g. pikachu 198",
+            "service": "Service",
+            "grade": "Grade",
+            "minPrice": "Min Price",
+            "maxPrice": "Max Price",
+            "excludeJp": "Exclude Japanese",
+            "onlyUs": "US Only",
+            "listingType": "Listing Type & Sort",
+            "auction": "Auction (End Soonest)",
+            "fixedPrice": "Fixed Price (Lowest)",
+            "saveSearch": "Save Search",
+            "searchNow": "Search Now"
+        },
+        "searchList": {
+            "noSaved": "No saved searches yet.",
+            "noJp": "no JP",
+            "usOnly": "US",
+            "fetchNow": "Fetch results now",
+            "delete": "Delete"
+        },
+        "analysis": {
+            "title": "Market Trend Analysis:",
+            "noJp": "No Japanese",
+            "usOnly": "US Only",
+            "auctions": "Auctions",
+            "fixedPrice": "Fixed Price",
+            "average": "Average",
+            "median": "Median",
+            "lowest": "Lowest",
+            "highest": "Highest",
+            "trend": "Price Trend ({count} listings)",
+            "noData": "No historical data available for chart",
+            "buildingHistory": "Searching for \"Sold\" items to build price history..."
+        }
+    }
 }

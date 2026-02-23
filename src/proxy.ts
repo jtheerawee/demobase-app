@@ -6,36 +6,36 @@ import { routing } from "./i18n/routing";
 const handleI18nRouting = createMiddleware(routing);
 
 export async function proxy(request: NextRequest) {
-  // Run next-intl routing first
-  let response = handleI18nRouting(request);
+    // Run next-intl routing first
+    let response = handleI18nRouting(request);
 
-  // Refresh Supabase session so it doesn't expire mid-visit
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+    // Refresh Supabase session so it doesn't expire mid-visit
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return request.cookies.getAll();
+                },
+                setAll(cookiesToSet) {
+                    for (const { name, value } of cookiesToSet) {
+                        request.cookies.set(name, value);
+                    }
+                    response = NextResponse.next({ request });
+                    for (const { name, value, options } of cookiesToSet) {
+                        response.cookies.set(name, value, options);
+                    }
+                },
+            },
         },
-        setAll(cookiesToSet) {
-          for (const { name, value } of cookiesToSet) {
-            request.cookies.set(name, value);
-          }
-          response = NextResponse.next({ request });
-          for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
-          }
-        },
-      },
-    },
-  );
+    );
 
-  await supabase.auth.getUser();
+    await supabase.auth.getUser();
 
-  return response;
+    return response;
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

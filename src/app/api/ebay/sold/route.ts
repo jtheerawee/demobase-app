@@ -24,10 +24,9 @@ export async function GET(request: NextRequest) {
     if (sp.get("onlyUs") === "true" || sp.get("only_us") === "true")
         forward.set("only_us", "true");
 
-    const res = await fetch(
-        `${CARD_API}/api/ebay/sold?${forward.toString()}`,
-        { headers: { Authorization: authorization } },
-    );
+    const res = await fetch(`${CARD_API}/api/ebay/sold?${forward.toString()}`, {
+        headers: { Authorization: authorization },
+    });
 
     const body = await res.json();
     return NextResponse.json(body, { status: res.status });

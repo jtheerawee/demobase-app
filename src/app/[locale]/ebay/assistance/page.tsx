@@ -13,23 +13,33 @@ import {
     Text,
 } from "@mantine/core";
 import { IconBolt } from "@tabler/icons-react";
-import { EbayActiveFilters } from "@/components/EbayActiveFilters";
-import { EbayActiveResults } from "@/components/EbayActiveResults";
-import { EbaySearchList } from "@/components/EbaySearchList";
-import { EbayApiInspector } from "@/components/EbayApiInspector";
-import { PriceTrendAnalysis } from "@/components/PriceTrendAnalysis";
+import { EbayActiveFilters } from "@/components/EbayAssistance/EbayActiveFilters";
+import { EbayActiveResults } from "@/components/EbayAssistance/EbayActiveResults";
+import { EbaySearchList } from "@/components/EbayAssistance/EbaySearchList";
+import { EbayApiInspector } from "@/components/EbayAssistance/EbayApiInspector";
+import { MarketTrendAnalysis } from "@/components/EbayAssistance/MarketTrendAnalysis";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { EbayItem } from "@/services/ebayService";
 import { createClient } from "@/utils/supabase/client";
 import { notifications } from "@mantine/notifications";
+import { useTranslations } from "next-intl";
 
-const EBAY_ITEMS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_EBAY_ITEMS_PER_PAGE || "8", 10);
-const EBAY_OUTLIER_THRESHOLD = parseFloat(process.env.NEXT_PUBLIC_EBAY_OUTLIER_THRESHOLD || "2.0");
-const EBAY_OUTLIER_WINDOW_SAMPLES = parseInt(process.env.NEXT_PUBLIC_EBAY_OUTLIER_WINDOW_SAMPLES || "3", 10);
+const EBAY_ITEMS_PER_PAGE = parseInt(
+    process.env.NEXT_PUBLIC_EBAY_ITEMS_PER_PAGE || "8",
+    10,
+);
+const EBAY_OUTLIER_THRESHOLD = parseFloat(
+    process.env.NEXT_PUBLIC_EBAY_OUTLIER_THRESHOLD || "2.0",
+);
+const EBAY_OUTLIER_WINDOW_SAMPLES = parseInt(
+    process.env.NEXT_PUBLIC_EBAY_OUTLIER_WINDOW_SAMPLES || "3",
+    10,
+);
 
 export default function EbaySearchPage() {
+    const t = useTranslations("EbayAssistance");
     const supabase = createClient();
-    const [query, setQuery] = useState("pikachu 198");
+    const [query, setQuery] = useState("");
     const [service, setService] = useState("psa");
     const [psa, setPsa] = useState<string>("10");
     const [minPrice, setMinPrice] = useState<number | string>("");
@@ -50,8 +60,12 @@ export default function EbaySearchPage() {
     const [activeRaw, setActiveRaw] = useState<any>(null);
     const [soldRaw, setSoldRaw] = useState<any>(null);
     const [displayMode, setDisplayMode] = useState<"active" | "sold">("active");
-    const [hideUnmatched, setHideUnmatched] = useState(process.env.NEXT_PUBLIC_HIDE_UNMATCHED_SERVICES === "true");
-    const [hideAbnormal, setHideAbnormal] = useState(process.env.NEXT_PUBLIC_HIDE_ABNORMAL_PRICES === "true");
+    const [hideUnmatched, setHideUnmatched] = useState(
+        process.env.NEXT_PUBLIC_HIDE_UNMATCHED_SERVICES === "true",
+    );
+    const [hideAbnormal, setHideAbnormal] = useState(
+        process.env.NEXT_PUBLIC_HIDE_ABNORMAL_PRICES === "true",
+    );
     const [threshold, setThreshold] = useState(EBAY_OUTLIER_THRESHOLD);
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
     const [doSearchTrigger, setDoSearchTrigger] = useState(0);
@@ -76,13 +90,15 @@ export default function EbaySearchPage() {
                     maxPrice,
                     excludeJp,
                     onlyUs,
-                    listingType
+                    listingType,
                 });
             }
             setError(null);
 
             try {
-                const currentOffset = isLoadMore ? offset + EBAY_ITEMS_PER_PAGE : 0;
+                const currentOffset = isLoadMore
+                    ? offset + EBAY_ITEMS_PER_PAGE
+                    : 0;
                 let url = `/api/ebay/active?q=${encodeURIComponent(query)}&offset=${currentOffset}`;
                 if (service && service !== "---") url += `&service=${service}`;
                 if (psa && service !== "---") url += `&grade=${psa}`;
@@ -93,9 +109,13 @@ export default function EbaySearchPage() {
                 if (excludeJp) url += `&excludeJp=true`;
                 if (onlyUs) url += `&onlyUs=true`;
 
-                const { data: { session } } = await supabase.auth.getSession();
+                const {
+                    data: { session },
+                } = await supabase.auth.getSession();
                 const headers = {
-                    Authorization: session ? `Bearer ${session.access_token}` : "",
+                    Authorization: session
+                        ? `Bearer ${session.access_token}`
+                        : "",
                 };
 
                 // 1. Fetch Active
@@ -107,7 +127,8 @@ export default function EbaySearchPage() {
                 // 2. Fetch Sold (if not loading more)
                 if (!isLoadMore) {
                     let soldUrl = `/api/ebay/sold?q=${encodeURIComponent(query)}`;
-                    if (service && service !== "---") soldUrl += `&service=${service}`;
+                    if (service && service !== "---")
+                        soldUrl += `&service=${service}`;
                     if (psa && service !== "---") soldUrl += `&grade=${psa}`;
                     if (minPrice) soldUrl += `&minPrice=${minPrice}`;
                     if (maxPrice) soldUrl += `&maxPrice=${maxPrice}`;
@@ -120,37 +141,79 @@ export default function EbaySearchPage() {
                         setSoldRaw(rawSold);
 
                         // Extract items from the new structure: rawSold.items
-                        let soldItems: EbayItem[] = Array.isArray(rawSold?.items)
+                        let soldItems: EbayItem[] = Array.isArray(
+                            rawSold?.items,
+                        )
                             ? rawSold.items
                             : [];
 
                         // Enrich Sold Results with Batch Details (if needed, though search might be enough now)
                         if (soldItems.length > 0) {
                             try {
-                                const ids = soldItems.map(i => i.itemId).filter(Boolean).join(",");
+                                const ids = soldItems
+                                    .map((i) => i.itemId)
+                                    .filter(Boolean)
+                                    .join(",");
                                 if (ids) {
-                                    const resBatch = await fetch(`/api/ebay/batch?ids=${ids}`, { headers });
+                                    const resBatch = await fetch(
+                                        `/api/ebay/batch?ids=${ids}`,
+                                        { headers },
+                                    );
                                     if (resBatch.ok) {
                                         const enriched = await resBatch.json();
                                         if (Array.isArray(enriched)) {
-                                            soldItems = enriched.map((item: any) => ({
-                                                ...item,
-                                                itemId: item.itemId,
-                                                title: item.title,
-                                                price: item.price?.value || item.price || "0",
-                                                currency: item.price?.currency || item.currency || "USD",
-                                                imageUrl: item.image?.imageUrl || item.imageUrl || "",
-                                                itemUrl: item.itemWebUrl || item.itemUrl || "",
-                                                itemLocation: item.itemLocation
-                                                    ? [item.itemLocation.city, item.itemLocation.stateOrProvince, item.itemLocation.country].filter(Boolean).join(", ")
-                                                    : item.itemLocation,
-                                                endDate: item.itemEndDate || item.endDate,
-                                            }));
+                                            soldItems = enriched.map(
+                                                (item: any) => ({
+                                                    ...item,
+                                                    itemId: item.itemId,
+                                                    title: item.title,
+                                                    price:
+                                                        item.price?.value ||
+                                                        item.price ||
+                                                        "0",
+                                                    currency:
+                                                        item.price?.currency ||
+                                                        item.currency ||
+                                                        "USD",
+                                                    imageUrl:
+                                                        item.image?.imageUrl ||
+                                                        item.imageUrl ||
+                                                        "",
+                                                    itemUrl:
+                                                        item.itemWebUrl ||
+                                                        item.itemUrl ||
+                                                        "",
+                                                    itemLocation:
+                                                        item.itemLocation
+                                                            ? [
+                                                                  item
+                                                                      .itemLocation
+                                                                      .city,
+                                                                  item
+                                                                      .itemLocation
+                                                                      .stateOrProvince,
+                                                                  item
+                                                                      .itemLocation
+                                                                      .country,
+                                                              ]
+                                                                  .filter(
+                                                                      Boolean,
+                                                                  )
+                                                                  .join(", ")
+                                                            : item.itemLocation,
+                                                    endDate:
+                                                        item.itemEndDate ||
+                                                        item.endDate,
+                                                }),
+                                            );
                                         }
                                     }
                                 }
                             } catch (e) {
-                                console.error("Sold Batch Enrichment Error:", e);
+                                console.error(
+                                    "Sold Batch Enrichment Error:",
+                                    e,
+                                );
                             }
                         }
                         setSoldResults(soldItems);
@@ -167,9 +230,15 @@ export default function EbaySearchPage() {
                 // Enrich Active Results with Batch Details
                 if (data.length > 0) {
                     try {
-                        const ids = data.map(i => i.itemId).filter(Boolean).join(",");
+                        const ids = data
+                            .map((i) => i.itemId)
+                            .filter(Boolean)
+                            .join(",");
                         if (ids) {
-                            const resBatch = await fetch(`/api/ebay/batch?ids=${ids}`, { headers });
+                            const resBatch = await fetch(
+                                `/api/ebay/batch?ids=${ids}`,
+                                { headers },
+                            );
                             if (resBatch.ok) {
                                 const enriched = await resBatch.json();
                                 if (Array.isArray(enriched)) {
@@ -177,14 +246,34 @@ export default function EbaySearchPage() {
                                         ...item,
                                         itemId: item.itemId,
                                         title: item.title,
-                                        price: item.price?.value || item.price || "0",
-                                        currency: item.price?.currency || item.currency || "USD",
-                                        imageUrl: item.image?.imageUrl || item.imageUrl || "",
-                                        itemUrl: item.itemWebUrl || item.itemUrl || "",
+                                        price:
+                                            item.price?.value ||
+                                            item.price ||
+                                            "0",
+                                        currency:
+                                            item.price?.currency ||
+                                            item.currency ||
+                                            "USD",
+                                        imageUrl:
+                                            item.image?.imageUrl ||
+                                            item.imageUrl ||
+                                            "",
+                                        itemUrl:
+                                            item.itemWebUrl ||
+                                            item.itemUrl ||
+                                            "",
                                         itemLocation: item.itemLocation
-                                            ? [item.itemLocation.city, item.itemLocation.stateOrProvince, item.itemLocation.country].filter(Boolean).join(", ")
+                                            ? [
+                                                  item.itemLocation.city,
+                                                  item.itemLocation
+                                                      .stateOrProvince,
+                                                  item.itemLocation.country,
+                                              ]
+                                                  .filter(Boolean)
+                                                  .join(", ")
                                             : item.itemLocation,
-                                        endDate: item.itemEndDate || item.endDate,
+                                        endDate:
+                                            item.itemEndDate || item.endDate,
                                     }));
                                 }
                             }
@@ -207,32 +296,56 @@ export default function EbaySearchPage() {
                 setLoadingMore(false);
             }
         },
-        [query, service, psa, minPrice, maxPrice, listingType, excludeJp, onlyUs, offset]
+        [
+            query,
+            service,
+            psa,
+            minPrice,
+            maxPrice,
+            listingType,
+            excludeJp,
+            onlyUs,
+            offset,
+        ],
     );
 
     const filteredActiveResults = useMemo(() => {
         if (!hideUnmatched) return activeResults;
-        return activeResults.filter(item => {
+        return activeResults.filter((item) => {
             const grader = item.gradeInfo?.grader?.toUpperCase() || "";
             if (service && service !== "all") {
                 const target = service.toUpperCase();
-                if (target === "BGS") return grader.includes("BGS") || grader.includes("BECKETT");
+                if (target === "BGS")
+                    return grader.includes("BGS") || grader.includes("BECKETT");
                 return grader.includes(target);
             }
-            return grader.includes("PSA") || grader.includes("CGC") || grader.includes("BGS") || grader.includes("BECKETT") || grader.includes("SGC");
+            return (
+                grader.includes("PSA") ||
+                grader.includes("CGC") ||
+                grader.includes("BGS") ||
+                grader.includes("BECKETT") ||
+                grader.includes("SGC")
+            );
         });
     }, [activeResults, hideUnmatched, service]);
 
     const filteredSoldResults = useMemo(() => {
         if (!hideUnmatched) return soldResults;
-        return soldResults.filter(item => {
+        return soldResults.filter((item) => {
             const grader = item.gradeInfo?.grader?.toUpperCase() || "";
             if (service && service !== "all") {
                 const target = service.toUpperCase();
-                if (target === "BGS") return grader.includes("BGS") || grader.includes("BECKETT");
+                if (target === "BGS")
+                    return grader.includes("BGS") || grader.includes("BECKETT");
                 return grader.includes(target);
             }
-            return grader.includes("PSA") || grader.includes("CGC") || grader.includes("BGS") || grader.includes("BECKETT") || grader.includes("SGC");
+            return (
+                grader.includes("PSA") ||
+                grader.includes("CGC") ||
+                grader.includes("BGS") ||
+                grader.includes("BECKETT") ||
+                grader.includes("SGC")
+            );
         });
     }, [soldResults, hideUnmatched, service]);
 
@@ -240,7 +353,7 @@ export default function EbaySearchPage() {
         if (!hideAbnormal) return filteredSoldResults;
 
         const getNumericPrice = (p: any) => {
-            if (typeof p === 'number') return p;
+            if (typeof p === "number") return p;
             if (!p) return 0;
             const cleanStr = p.toString().replace(/[^0-9.]/g, "");
             return parseFloat(cleanStr) || 0;
@@ -255,36 +368,53 @@ export default function EbaySearchPage() {
 
         // Ensure results are sorted by date for sample-based window logic
         const sortedResults = [...filteredSoldResults].sort((a, b) => {
-            const dateA = new Date(a.endDate || (a as any).soldTime || (a as any).soldDate || (a as any).timestamp).getTime();
-            const dateB = new Date(b.endDate || (b as any).soldTime || (b as any).soldDate || (b as any).timestamp).getTime();
+            const dateA = new Date(
+                a.endDate ||
+                    (a as any).soldTime ||
+                    (a as any).soldDate ||
+                    (a as any).timestamp,
+            ).getTime();
+            const dateB = new Date(
+                b.endDate ||
+                    (b as any).soldTime ||
+                    (b as any).soldDate ||
+                    (b as any).timestamp,
+            ).getTime();
             return dateA - dateB;
         });
 
-        return sortedResults.filter((item, index, self) => {
-            const itemPrice = getNumericPrice(item.price);
-            if (itemPrice === 0) return true;
+        return sortedResults
+            .filter((item, index, self) => {
+                const itemPrice = getNumericPrice(item.price);
+                if (itemPrice === 0) return true;
 
-            // Only take N samples BEFORE the current index
-            const start = Math.max(0, index - EBAY_OUTLIER_WINDOW_SAMPLES);
-            const end = index - 1;
+                // Only take N samples BEFORE the current index
+                const start = Math.max(0, index - EBAY_OUTLIER_WINDOW_SAMPLES);
+                const end = index - 1;
 
-            const neighbors = [];
-            if (end >= start) {
-                for (let i = start; i <= end; i++) {
-                    neighbors.push(self[i]);
+                const neighbors = [];
+                if (end >= start) {
+                    for (let i = start; i <= end; i++) {
+                        neighbors.push(self[i]);
+                    }
                 }
-            }
 
-            if (neighbors.length > 0) {
-                const pricesInWindow = neighbors.map(other => getNumericPrice(other.price)).filter(p => p > 0);
-                if (pricesInWindow.length === 0) return true;
+                if (neighbors.length > 0) {
+                    const pricesInWindow = neighbors
+                        .map((other) => getNumericPrice(other.price))
+                        .filter((p) => p > 0);
+                    if (pricesInWindow.length === 0) return true;
 
-                const avgPriceInWindow = neighbors.map(other => getNumericPrice(other.price)).filter(p => p > 0).reduce((sum, p, _, arr) => sum + p / arr.length, 0);
-                return itemPrice <= avgPriceInWindow * threshold;
-            }
+                    const avgPriceInWindow = neighbors
+                        .map((other) => getNumericPrice(other.price))
+                        .filter((p) => p > 0)
+                        .reduce((sum, p, _, arr) => sum + p / arr.length, 0);
+                    return itemPrice <= avgPriceInWindow * threshold;
+                }
 
-            return true;
-        }).reverse();
+                return true;
+            })
+            .reverse();
     }, [filteredSoldResults, hideAbnormal, threshold]);
 
     const handleSearchRef = useRef(handleSearch);
@@ -298,22 +428,19 @@ export default function EbaySearchPage() {
         }
     }, [doSearchTrigger]);
 
-    // Auto-search on mount if query exists
-    useEffect(() => {
-        if (query) {
-            handleSearch();
-        }
-    }, []); // Run once on mount
-
     const handleSaveSearch = async () => {
         setSaving(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const {
+                data: { session },
+            } = await supabase.auth.getSession();
             const res = await fetch("/api/ebay/save-search", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: session ? `Bearer ${session.access_token}` : "",
+                    Authorization: session
+                        ? `Bearer ${session.access_token}`
+                        : "",
                 },
                 body: JSON.stringify({
                     query,
@@ -333,14 +460,14 @@ export default function EbaySearchPage() {
             }
 
             notifications.show({
-                title: "Success",
-                message: "Search saved successfully!",
+                title: t("saveSuccess"),
+                message: t("saveSuccess"),
                 color: "green",
             });
             setRefreshTrigger((n) => n + 1);
         } catch (err: any) {
             notifications.show({
-                title: "Error",
+                title: t("saveError"),
                 message: err.message,
                 color: "red",
             });
@@ -349,11 +476,14 @@ export default function EbaySearchPage() {
         }
     };
 
-
     return (
         <Container size="xl" py="xl">
             <Stack gap="xl">
-                <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" style={{ alignItems: "start" }}>
+                <SimpleGrid
+                    cols={{ base: 1, md: 3 }}
+                    spacing="lg"
+                    style={{ alignItems: "start" }}
+                >
                     <Stack gap="md">
                         <EbayActiveFilters
                             query={query}
@@ -379,7 +509,7 @@ export default function EbaySearchPage() {
                         />
                         <EbaySearchList
                             refreshTrigger={refreshTrigger}
-                            onSelect={(s) => {
+                            onSelect={(s: any) => {
                                 setQuery(s.query);
                                 setService(s.service);
                                 setPsa(s.psa);
@@ -389,7 +519,7 @@ export default function EbaySearchPage() {
                                 setExcludeJp(s.excludeJp);
                                 setOnlyUs(s.onlyUs);
                             }}
-                            onExecute={(s) => {
+                            onExecute={(s: any) => {
                                 setQuery(s.query);
                                 setService(s.service);
                                 setPsa(s.psa);
@@ -398,7 +528,7 @@ export default function EbaySearchPage() {
                                 setListingType(s.listingType);
                                 setExcludeJp(s.excludeJp);
                                 setOnlyUs(s.onlyUs);
-                                setDoSearchTrigger(n => n + 1);
+                                handleSearch();
                             }}
                         />
                         {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
@@ -410,17 +540,25 @@ export default function EbaySearchPage() {
                     </Stack>
                     <div style={{ gridColumn: "span 2" }}>
                         <Stack gap="xl">
-                            <PriceTrendAnalysis
+                            <MarketTrendAnalysis
                                 results={cleanSoldResults}
                                 highlightedDate={hoveredDate}
                                 query={lastSearchParams?.query || query}
                                 service={lastSearchParams?.service || service}
                                 grade={lastSearchParams?.psa || psa}
-                                minPrice={lastSearchParams?.minPrice ?? minPrice}
-                                maxPrice={lastSearchParams?.maxPrice ?? maxPrice}
-                                excludeJp={lastSearchParams?.excludeJp ?? excludeJp}
+                                minPrice={
+                                    lastSearchParams?.minPrice ?? minPrice
+                                }
+                                maxPrice={
+                                    lastSearchParams?.maxPrice ?? maxPrice
+                                }
+                                excludeJp={
+                                    lastSearchParams?.excludeJp ?? excludeJp
+                                }
                                 onlyUs={lastSearchParams?.onlyUs ?? onlyUs}
-                                listingType={lastSearchParams?.listingType || listingType}
+                                listingType={
+                                    lastSearchParams?.listingType || listingType
+                                }
                             />
 
                             {error && (
@@ -434,15 +572,24 @@ export default function EbaySearchPage() {
                             {loading ? (
                                 <Center py={100}>
                                     <Stack align="center">
-                                        <Loader color="orange" size="xl" type="dots" />
+                                        <Loader
+                                            color="orange"
+                                            size="xl"
+                                            type="dots"
+                                        />
                                         <Text c="dimmed" size="sm">
-                                            Hunting for the best deals on eBay...
+                                            {t("loading")}
                                         </Text>
                                     </Stack>
                                 </Center>
                             ) : (
                                 <>
-                                    <Group justify="flex-end" mb="md" gap="xl" align="center">
+                                    <Group
+                                        justify="flex-end"
+                                        mb="md"
+                                        gap="xl"
+                                        align="center"
+                                    >
                                         {displayMode === "sold" && (
                                             <>
                                                 {hideAbnormal && (
@@ -452,58 +599,95 @@ export default function EbaySearchPage() {
                                                             max={5.0}
                                                             step={0.1}
                                                             value={threshold}
-                                                            onChange={setThreshold}
-                                                            label={(value) => `${value.toFixed(1)}x`}
+                                                            onChange={
+                                                                setThreshold
+                                                            }
+                                                            label={(value) =>
+                                                                `${value.toFixed(1)}x`
+                                                            }
                                                             color="red"
                                                             size="sm"
                                                         />
                                                     </div>
                                                 )}
                                                 <Switch
-                                                    label={`Hide Abnormal Prices (${threshold.toFixed(1)}x)`}
+                                                    label={`${t("hideAbnormal")} (${threshold.toFixed(1)}x)`}
                                                     checked={hideAbnormal}
-                                                    onChange={(event) => setHideAbnormal(event.currentTarget.checked)}
+                                                    onChange={(event) =>
+                                                        setHideAbnormal(
+                                                            event.currentTarget
+                                                                .checked,
+                                                        )
+                                                    }
                                                     size="xs"
                                                     color="red"
                                                 />
                                                 <Switch
-                                                    label="Hide Unmatched Services"
+                                                    label={t("hideUnmatched")}
                                                     checked={hideUnmatched}
-                                                    onChange={(event) => setHideUnmatched(event.currentTarget.checked)}
+                                                    onChange={(event) =>
+                                                        setHideUnmatched(
+                                                            event.currentTarget
+                                                                .checked,
+                                                        )
+                                                    }
                                                     size="xs"
                                                     color="orange"
                                                 />
                                             </>
                                         )}
-                                        {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
+                                        {process.env
+                                            .NEXT_PUBLIC_DEVELOPER_MODE ===
+                                            "true" && (
                                             <SegmentedControl
                                                 size="xs"
                                                 color="orange"
                                                 value={displayMode}
-                                                onChange={(value: any) => setDisplayMode(value)}
+                                                onChange={(value: any) =>
+                                                    setDisplayMode(value)
+                                                }
                                                 data={[
-                                                    { label: "Active Results", value: "active" },
-                                                    { label: "Sold Results", value: "sold" },
+                                                    {
+                                                        label: t(
+                                                            "activeResults",
+                                                        ),
+                                                        value: "active",
+                                                    },
+                                                    {
+                                                        label: t("soldResults"),
+                                                        value: "sold",
+                                                    },
                                                 ]}
                                             />
                                         )}
                                     </Group>
 
                                     <EbayActiveResults
-                                        results={displayMode === "active" ? filteredActiveResults : cleanSoldResults}
+                                        results={
+                                            displayMode === "active"
+                                                ? filteredActiveResults
+                                                : cleanSoldResults
+                                        }
                                         loadingMore={loadingMore}
                                         onLoadMore={() => handleSearch(true)}
                                         onHover={setHoveredDate}
                                     />
 
-                                    {activeResults.length === 0 && !error && !loading && (
-                                        <Center py={100}>
-                                            <Stack align="center" gap="xs">
-                                                <IconBolt size={48} color="#ddd" />
-                                                <Text c="dimmed">No results found for your search filters.</Text>
-                                            </Stack>
-                                        </Center>
-                                    )}
+                                    {activeResults.length === 0 &&
+                                        !error &&
+                                        !loading && (
+                                            <Center py={100}>
+                                                <Stack align="center" gap="xs">
+                                                    <IconBolt
+                                                        size={48}
+                                                        color="#ddd"
+                                                    />
+                                                    <Text c="dimmed">
+                                                        {t("noResults")}
+                                                    </Text>
+                                                </Stack>
+                                            </Center>
+                                        )}
                                 </>
                             )}
                         </Stack>

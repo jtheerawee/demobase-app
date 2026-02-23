@@ -7,71 +7,80 @@ import { SignInButton } from "./SignInButton";
 import { DevTokenBadge } from "./DevTokenBadge";
 
 async function signOut() {
-  "use server";
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/");
+    "use server";
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    redirect("/");
 }
 
 export async function Navbar() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const t = await getTranslations("Navbar");
-
-  let accessToken: string | undefined;
-  if (process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && user) {
+    const supabase = await createClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    accessToken = session?.access_token;
-  }
+        data: { user },
+    } = await supabase.auth.getUser();
+    const t = await getTranslations("Navbar");
 
-  return (
-    <Box
-      component="nav"
-      style={{ borderBottom: "1px solid var(--mantine-color-gray-3)" }}
-    >
-      <Container size="xl">
-        <Group justify="space-between" h={60}>
-          <Link href="/" style={{ textDecoration: "none" }}>
-            <Text
-              fw={900}
-              c="orange"
-              style={{
-                fontSize: "1.875rem",
-                fontFamily: `'${process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit"}', sans-serif`,
-              }}
-            >
-              {process.env.NEXT_PUBLIC_APP_NAME ?? "DemoBase"}
-            </Text>
-          </Link>
+    let accessToken: string | undefined;
+    if (process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && user) {
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        accessToken = session?.access_token;
+    }
 
-          <Group gap="sm">
-            {accessToken && <DevTokenBadge token={accessToken} />}
+    return (
+        <Box
+            component="nav"
+            style={{ borderBottom: "1px solid var(--mantine-color-gray-3)" }}
+        >
+            <Container size="xl">
+                <Group justify="space-between" h={60}>
+                    <Link href="/" style={{ textDecoration: "none" }}>
+                        <Text
+                            fw={900}
+                            c="orange"
+                            style={{
+                                fontSize: "1.875rem",
+                                fontFamily: `'${process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit"}', sans-serif`,
+                            }}
+                        >
+                            {process.env.NEXT_PUBLIC_APP_NAME ?? "DemoBase"}
+                        </Text>
+                    </Link>
 
-            {user && (
-              <Avatar
-                src={user.user_metadata?.avatar_url}
-                alt={user.user_metadata?.full_name ?? user.email ?? ""}
-                radius="xl"
-                size="sm"
-              />
-            )}
+                    <Group gap="sm">
+                        {accessToken && <DevTokenBadge token={accessToken} />}
 
-            {user ? (
-              <form action={signOut}>
-                <Button type="submit" variant="light" color="red" size="sm">
-                  {t("signOut")}
-                </Button>
-              </form>
-            ) : (
-              <SignInButton label={t("signIn")} />
-            )}
-          </Group>
-        </Group>
-      </Container>
-    </Box>
-  );
+                        {user && (
+                            <Avatar
+                                src={user.user_metadata?.avatar_url}
+                                alt={
+                                    user.user_metadata?.full_name ??
+                                    user.email ??
+                                    ""
+                                }
+                                radius="xl"
+                                size="sm"
+                            />
+                        )}
+
+                        {user ? (
+                            <form action={signOut}>
+                                <Button
+                                    type="submit"
+                                    variant="light"
+                                    color="red"
+                                    size="sm"
+                                >
+                                    {t("signOut")}
+                                </Button>
+                            </form>
+                        ) : (
+                            <SignInButton label={t("signIn")} />
+                        )}
+                    </Group>
+                </Group>
+            </Container>
+        </Box>
+    );
 }

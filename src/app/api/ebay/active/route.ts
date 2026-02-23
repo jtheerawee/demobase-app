@@ -8,16 +8,15 @@ export async function GET(request: NextRequest) {
     const qs = searchParams ? `?${searchParams}` : "";
 
     try {
-        const res = await fetch(
-            `${CARD_API}/api/ebay/active${qs}`,
-            { headers: { Authorization: authorization } },
-        );
+        const res = await fetch(`${CARD_API}/api/ebay/active${qs}`, {
+            headers: { Authorization: authorization },
+        });
 
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));
             return NextResponse.json(
                 { error: errorData.error || "Failed to fetch from card-api" },
-                { status: res.status }
+                { status: res.status },
             );
         }
 
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
         console.error("Proxy Error:", error);
         return NextResponse.json(
             { error: "Internal Server Error during proxy" },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }
