@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Card, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Badge, Card, Center, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { IconTrendingUp } from "@tabler/icons-react";
 import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -17,8 +17,9 @@ function filterByDays(items: EbayItem[], days: number): EbayItem[] {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return items.filter((item) => {
-        if (!item.endTime) return false;
-        const date = new Date(item.endTime);
+        const dateStr = item.endTime || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
         return !Number.isNaN(date.getTime()) && date >= cutoff;
     });
 }
@@ -61,13 +62,17 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
     }, [safeResults]);
 
     const stats = useMemo(() => {
-        if (safeResults.length === 0) return null;
+        const defaultStats = { min: 0, max: 0, avg: 0, median: 0, median14: 0, median30: 0, avg14: 0, avg30: 0, count: 0 };
+        if (safeResults.length === 0) return defaultStats;
 
         const prices = safeResults
-            .map((item) => parseFloat(item.price.replace(/,/g, "")))
+            .map((item) => {
+                const p = String(item.price || "0").replace(/[^0-9.]/g, "");
+                return parseFloat(p);
+            })
             .filter((price) => !Number.isNaN(price));
 
-        if (prices.length === 0) return null;
+        if (prices.length === 0) return defaultStats;
 
         const min = Math.min(...prices);
         const max = Math.max(...prices);
@@ -75,12 +80,18 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
         const median = calculateMedian(prices);
 
         const items14 = filterByDays(safeResults, 14);
-        const prices14 = items14.map((item) => parseFloat(item.price.replace(/,/g, ""))).filter((p) => !Number.isNaN(p));
+        const prices14 = items14.map((item) => {
+            const p = String(item.price || "0").replace(/[^0-9.]/g, "");
+            return parseFloat(p);
+        }).filter((p) => !Number.isNaN(p));
         const median14 = calculateMedian(prices14);
         const avg14 = prices14.length > 0 ? prices14.reduce((a, b) => a + b, 0) / prices14.length : 0;
 
         const items30 = filterByDays(safeResults, 30);
-        const prices30 = items30.map((item) => parseFloat(item.price.replace(/,/g, ""))).filter((p) => !Number.isNaN(p));
+        const prices30 = items30.map((item) => {
+            const p = String(item.price || "0").replace(/[^0-9.]/g, "");
+            return parseFloat(p);
+        }).filter((p) => !Number.isNaN(p));
         const median30 = calculateMedian(prices30);
         const avg30 = prices30.length > 0 ? prices30.reduce((a, b) => a + b, 0) / prices30.length : 0;
 
@@ -93,14 +104,15 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
         const groupedByDate: Record<string, number[]> = {};
 
         safeResults.forEach((item) => {
-            if (!item.endTime) return;
-            const date = new Date(item.endTime);
+            const dateStr = item.endTime || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
+            if (!dateStr) return;
+            const date = new Date(dateStr);
             if (Number.isNaN(date.getTime())) return;
 
             const dateKey = date.toISOString().split("T")[0];
             if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
-
-            const price = parseFloat(item.price.replace(/,/g, ""));
+            const pRaw = String(item.price || "0").replace(/[^0-9.]/g, "");
+            const price = parseFloat(pRaw);
             if (!Number.isNaN(price)) {
                 groupedByDate[dateKey].push(price);
             }
@@ -131,7 +143,6 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
         return Math.min(...chartData.map((d) => d.price));
     }, [chartData]);
 
-    if (safeResults.length === 0 || !stats) return null;
 
     return (
         <Stack gap="md" mb="xl">
@@ -216,13 +227,13 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
                 </Grid.Col>
             </Grid>
 
-            {chartData.length > 1 && (
-                <Paper withBorder p="md" radius="md" bg="gray.0">
-                    <Stack gap="xs">
-                        <Text size="xs" fw={700} c="dimmed">
-                            Price Trend ({stats.count} listings)
-                        </Text>
-                        <div style={{ height: 200, width: "100%" }}>
+            <Paper withBorder p="md" radius="md" bg="gray.0">
+                <Stack gap="xs">
+                    <Text size="xs" fw={700} c="dimmed">
+                        Price Trend ({stats.count} listings)
+                    </Text>
+                    <div style={{ height: 200, width: "100%" }}>
+                        {chartData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e9ecef" />
@@ -276,10 +287,17 @@ export function PriceTrendAnalysis({ results, exchangeRate, highlightedDate }: P
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
-                        </div>
-                    </Stack>
-                </Paper>
-            )}
+                        ) : (
+                            <Center h="100%">
+                                <Stack align="center" gap={4}>
+                                    <Text size="sm" c="dimmed" fw={500}>No historical data available for chart</Text>
+                                    <Text size="xs" c="dimmed">Searching for "Sold" items to build price history...</Text>
+                                </Stack>
+                            </Center>
+                        )}
+                    </div>
+                </Stack>
+            </Paper>
         </Stack>
     );
 }

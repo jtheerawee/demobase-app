@@ -1,10 +1,12 @@
 import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 
 import {
   ColorSchemeScript,
   MantineProvider,
   mantineHtmlProps,
 } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import type { Metadata } from "next";
@@ -38,6 +40,7 @@ export default async function LocaleLayout({
       <body>
         <MantineProvider theme={{ fontFamily: `'${fontFamily}', sans-serif` }}>
           <NextIntlClientProvider messages={messages}>
+            <Notifications />
             <div style={{ maxWidth: "80%", margin: "0 auto" }}>
               <Navbar />
               {children}

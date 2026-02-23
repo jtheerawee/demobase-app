@@ -3,7 +3,9 @@
 import {
     Center,
     Container,
+    Group,
     Loader,
+    SegmentedControl,
     SimpleGrid,
     Stack,
     Text,
@@ -12,15 +14,18 @@ import { IconBolt } from "@tabler/icons-react";
 import { EbayActiveFilters } from "@/components/EbayActiveFilters";
 import { EbayActiveResults } from "@/components/EbayActiveResults";
 import { EbaySearchList } from "@/components/EbaySearchList";
+import { EbayApiInspector } from "@/components/EbayApiInspector";
 import { PriceTrendAnalysis } from "@/components/PriceTrendAnalysis";
 import { useCallback, useEffect, useState } from "react";
 import type { EbayItem } from "@/services/ebayService";
 import { createClient } from "@/utils/supabase/client";
+import { notifications } from "@mantine/notifications";
 
+const EBAY_ITEMS_PER_PAGE = parseInt(process.env.NEXT_PUBLIC_EBAY_ITEMS_PER_PAGE || "8", 8);
 
 export default function EbaySearchPage() {
     const supabase = createClient();
-    const [query, setQuery] = useState("charizard 050");
+    const [query, setQuery] = useState("pikachu 198");
     const [service, setService] = useState("psa");
     const [psa, setPsa] = useState<string>("10");
     const [minPrice, setMinPrice] = useState<number | string>("");
@@ -28,13 +33,19 @@ export default function EbaySearchPage() {
     const [listingType, setListingType] = useState<string>("auction");
     const [excludeJp, setExcludeJp] = useState(false);
     const [onlyUs, setOnlyUs] = useState(false);
-    const [results, setResults] = useState<EbayItem[]>([]);
+    const [activeResults, setActiveResults] = useState<EbayItem[]>([]);
+    const [soldResults, setSoldResults] = useState<EbayItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [offset, setOffset] = useState(0);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+    // Debug raw data
+    const [activeRaw, setActiveRaw] = useState<any>(null);
+    const [soldRaw, setSoldRaw] = useState<any>(null);
+    const [displayMode, setDisplayMode] = useState<"active" | "sold">("active");
 
     const handleSearch = useCallback(
         async (isLoadMore = false) => {
@@ -46,7 +57,7 @@ export default function EbaySearchPage() {
             setError(null);
 
             try {
-                const currentOffset = isLoadMore ? offset + 10 : 0;
+                const currentOffset = isLoadMore ? offset + EBAY_ITEMS_PER_PAGE : 0;
                 let url = `/api/ebay/active?q=${encodeURIComponent(query)}&offset=${currentOffset}`;
                 if (service && service !== "---") url += `&service=${service}`;
                 if (psa && service !== "---") url += `&grade=${psa}`;
@@ -58,25 +69,52 @@ export default function EbaySearchPage() {
                 if (onlyUs) url += `&onlyUs=true`;
 
                 const { data: { session } } = await supabase.auth.getSession();
-                const res = await fetch(url, {
-                    headers: {
-                        Authorization: session ? `Bearer ${session.access_token}` : "",
-                    },
-                });
-                if (!res.ok) throw new Error("Search failed");
-                const raw = await res.json();
-                // Normalize: API may return an array or { items: [...] }
-                const data: EbayItem[] = Array.isArray(raw)
-                    ? raw
-                    : Array.isArray(raw?.items)
-                        ? raw.items
+                const headers = {
+                    Authorization: session ? `Bearer ${session.access_token}` : "",
+                };
+
+                // 1. Fetch Active
+                const resActive = await fetch(url, { headers });
+                if (!resActive.ok) throw new Error("Active search failed");
+                const rawActive = await resActive.json();
+                setActiveRaw(rawActive);
+
+                // 2. Fetch Sold (if not loading more)
+                if (!isLoadMore) {
+                    let soldUrl = `/api/ebay/sold?q=${encodeURIComponent(query)}`;
+                    if (service && service !== "---") soldUrl += `&service=${service}`;
+                    if (psa && service !== "---") soldUrl += `&grade=${psa}`;
+                    if (minPrice) soldUrl += `&minPrice=${minPrice}`;
+                    if (maxPrice) soldUrl += `&maxPrice=${maxPrice}`;
+                    if (excludeJp) soldUrl += `&excludeJp=true`;
+                    if (onlyUs) soldUrl += `&onlyUs=true`;
+
+                    const resSold = await fetch(soldUrl, { headers });
+                    if (resSold.ok) {
+                        const rawSold = await resSold.json();
+                        setSoldRaw(rawSold);
+                        const soldItems: EbayItem[] = Array.isArray(rawSold)
+                            ? rawSold
+                            : Array.isArray(rawSold?.items)
+                                ? rawSold.items
+                                : [];
+                        setSoldResults(soldItems);
+                    } else {
+                        setSoldResults([]);
+                    }
+                }
+
+                const data: EbayItem[] = Array.isArray(rawActive)
+                    ? rawActive
+                    : Array.isArray(rawActive?.items)
+                        ? rawActive.items
                         : [];
 
                 if (isLoadMore) {
-                    setResults((prev) => [...prev, ...data]);
+                    setActiveResults((prev) => [...prev, ...data]);
                     setOffset(currentOffset);
                 } else {
-                    setResults(data);
+                    setActiveResults(data);
                 }
             } catch (err: any) {
                 setError(err.message);
@@ -87,6 +125,13 @@ export default function EbaySearchPage() {
         },
         [query, service, psa, minPrice, maxPrice, listingType, excludeJp, onlyUs, offset]
     );
+
+    // Auto-search on mount if query exists
+    useEffect(() => {
+        if (query) {
+            handleSearch();
+        }
+    }, []); // Run once on mount
 
     const handleSaveSearch = async () => {
         setSaving(true);
@@ -115,28 +160,28 @@ export default function EbaySearchPage() {
                 throw new Error(data.error || "Failed to save search");
             }
 
-            alert("Search saved successfully!");
+            notifications.show({
+                title: "Success",
+                message: "Search saved successfully!",
+                color: "green",
+            });
             setRefreshTrigger((n) => n + 1);
         } catch (err: any) {
-            alert(err.message);
+            notifications.show({
+                title: "Error",
+                message: err.message,
+                color: "red",
+            });
         } finally {
             setSaving(false);
         }
     };
 
-    useEffect(() => {
-        const delaySearch = setTimeout(() => {
-            handleSearch(false);
-        }, 500); // Debounce keyword typing
-        return () => clearTimeout(delaySearch);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, service, psa, minPrice, maxPrice, listingType, excludeJp, onlyUs]);
 
     return (
         <Container size="xl" py="xl">
             <Stack gap="xl">
                 <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" style={{ alignItems: "start" }}>
-                    {/* Left: Filters — 1 of 3 columns */}
                     <Stack gap="md">
                         <EbayActiveFilters
                             query={query}
@@ -173,46 +218,70 @@ export default function EbaySearchPage() {
                                 setOnlyUs(s.onlyUs);
                             }}
                         />
+                        {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
+                            <EbayApiInspector
+                                activeRaw={activeRaw}
+                                soldRaw={soldRaw}
+                            />
+                        )}
                     </Stack>
-                    {/* Right: Market Analysis — 2 of 3 columns */}
                     <div style={{ gridColumn: "span 2" }}>
-                        <PriceTrendAnalysis results={results} />
+                        <Stack gap="xl">
+                            <PriceTrendAnalysis results={soldResults} />
+
+                            {error && (
+                                <Center py="xl">
+                                    <Text color="red" fw={500}>
+                                        {error}
+                                    </Text>
+                                </Center>
+                            )}
+
+                            {loading ? (
+                                <Center py={100}>
+                                    <Stack align="center">
+                                        <Loader color="orange" size="xl" type="bars" />
+                                        <Text c="dimmed" size="sm">
+                                            Hunting for the best deals on eBay...
+                                        </Text>
+                                    </Stack>
+                                </Center>
+                            ) : (
+                                <>
+                                    {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
+                                        <Group justify="flex-end" mb="md">
+                                            <SegmentedControl
+                                                size="xs"
+                                                color="orange"
+                                                value={displayMode}
+                                                onChange={(value: any) => setDisplayMode(value)}
+                                                data={[
+                                                    { label: "Active Results", value: "active" },
+                                                    { label: "Sold Results", value: "sold" },
+                                                ]}
+                                            />
+                                        </Group>
+                                    )}
+
+                                    <EbayActiveResults
+                                        results={displayMode === "active" ? activeResults : soldResults}
+                                        loadingMore={loadingMore}
+                                        onLoadMore={() => handleSearch(true)}
+                                    />
+
+                                    {activeResults.length === 0 && !error && !loading && (
+                                        <Center py={100}>
+                                            <Stack align="center" gap="xs">
+                                                <IconBolt size={48} color="#ddd" />
+                                                <Text c="dimmed">No results found for your search filters.</Text>
+                                            </Stack>
+                                        </Center>
+                                    )}
+                                </>
+                            )}
+                        </Stack>
                     </div>
                 </SimpleGrid>
-
-                {error && (
-                    <Center py="xl">
-                        <Text color="red" fw={500}>
-                            {error}
-                        </Text>
-                    </Center>
-                )}
-
-                {loading ? (
-                    <Center py={100}>
-                        <Stack align="center">
-                            <Loader color="orange" size="xl" type="bars" />
-                            <Text c="dimmed" size="sm">
-                                Hunting for the best deals on eBay...
-                            </Text>
-                        </Stack>
-                    </Center>
-                ) : (
-                    <EbayActiveResults
-                        results={results}
-                        loadingMore={loadingMore}
-                        onLoadMore={() => handleSearch(true)}
-                    />
-                )}
-
-                {!loading && results.length === 0 && !error && (
-                    <Center py={100}>
-                        <Stack align="center" gap="xs">
-                            <IconBolt size={48} color="#ddd" />
-                            <Text c="dimmed">No results found for your search filters.</Text>
-                        </Stack>
-                    </Center>
-                )}
             </Stack>
         </Container>
     );

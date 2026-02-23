@@ -95,7 +95,8 @@ CREATE TABLE public.ebay_searches (
     exclude_jp      boolean not null default false,
     only_us         boolean not null default false,
     created_at      TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
+    updated_at      TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, keyword, service, grade)
 );
 
 -- ENABLE RLS

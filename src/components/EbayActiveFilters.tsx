@@ -17,7 +17,7 @@ import {
     TextInput,
     Tooltip,
 } from "@mantine/core";
-import { IconCode, IconCoin, IconPlus, IconSearch } from "@tabler/icons-react";
+import { IconCode, IconPlus, IconSearch } from "@tabler/icons-react";
 
 interface EbayActiveFiltersProps {
     query: string;
@@ -126,7 +126,7 @@ export function EbayActiveFilters({
                 <SimpleGrid cols={1} spacing="md">
                     <TextInput
                         label="Search Keywords"
-                        placeholder="e.g. Charizard 050"
+                        placeholder="e.g. pikachu 198"
                         value={query}
                         onChange={(e) => onQueryChange(e.currentTarget.value)}
                         leftSection={<IconSearch size={16} />}
@@ -160,7 +160,6 @@ export function EbayActiveFilters({
                             placeholder="0"
                             value={minPrice}
                             onChange={onMinPriceChange}
-                            leftSection={<IconCoin size={16} />}
                             styles={{ input: { borderRadius: "8px" } }}
                         />
                         <NumberInput
@@ -168,7 +167,6 @@ export function EbayActiveFilters({
                             placeholder="9999"
                             value={maxPrice}
                             onChange={onMaxPriceChange}
-                            leftSection={<IconCoin size={16} />}
                             styles={{ input: { borderRadius: "8px" } }}
                         />
                     </Group>

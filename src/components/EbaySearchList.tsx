@@ -10,7 +10,7 @@ import {
     Text,
     Tooltip,
 } from "@mantine/core";
-import { IconPlayerPlay, IconTrash } from "@tabler/icons-react";
+import { IconRefresh, IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -157,7 +157,7 @@ export function EbaySearchList({ onSelect, refreshTrigger }: EbaySearchListProps
                                     color="orange"
                                     onClick={() => handleSelect(s)}
                                 >
-                                    <IconPlayerPlay size={13} />
+                                    <IconRefresh size={13} />
                                 </ActionIcon>
                             </Tooltip>
                             <Tooltip label="Delete" withArrow>

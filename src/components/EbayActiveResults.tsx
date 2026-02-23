@@ -36,18 +36,20 @@ interface EbayActiveResultsProps {
     results: EbayItem[];
     loadingMore: boolean;
     onLoadMore: () => void;
+    cols?: number;
 }
 
 export function EbayActiveResults({
     results,
     loadingMore,
     onLoadMore,
+    cols = 4,
 }: EbayActiveResultsProps) {
     if (results.length === 0) return null;
 
     return (
         <>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: 5 }} spacing="lg">
+            <SimpleGrid cols={{ base: 1, sm: 2, md: cols }} spacing="lg">
                 {results.map((item, index) => {
                     const timeLeft = getTimeLeft(item.endTime);
                     return (
