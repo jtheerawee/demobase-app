@@ -7,6 +7,7 @@ import {
     Loader,
     SegmentedControl,
     SimpleGrid,
+    Slider,
     Stack,
     Switch,
     Text,
@@ -51,6 +52,7 @@ export default function EbaySearchPage() {
     const [displayMode, setDisplayMode] = useState<"active" | "sold">("active");
     const [hideUnmatched, setHideUnmatched] = useState(process.env.NEXT_PUBLIC_HIDE_UNMATCHED_SERVICES === "true");
     const [hideAbnormal, setHideAbnormal] = useState(process.env.NEXT_PUBLIC_HIDE_ABNORMAL_PRICES === "true");
+    const [threshold, setThreshold] = useState(EBAY_OUTLIER_THRESHOLD);
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
 
     const handleSearch = useCallback(
@@ -260,13 +262,13 @@ export default function EbaySearchPage() {
                 const pricesInWindow = neighbors.map(other => getNumericPrice(other.price)).filter(p => p > 0);
                 if (pricesInWindow.length === 0) return true;
 
-                const avgPriceInWindow = pricesInWindow.reduce((sum, p) => sum + p, 0) / pricesInWindow.length;
-                return itemPrice <= avgPriceInWindow * EBAY_OUTLIER_THRESHOLD;
+                const avgPriceInWindow = neighbors.map(other => getNumericPrice(other.price)).filter(p => p > 0).reduce((sum, p, _, arr) => sum + p / arr.length, 0);
+                return itemPrice <= avgPriceInWindow * threshold;
             }
 
             return true;
-        });
-    }, [filteredSoldResults, hideAbnormal]);
+        }).reverse();
+    }, [filteredSoldResults, hideAbnormal, threshold]);
 
     // Auto-search on mount if query exists
     useEffect(() => {
@@ -390,21 +392,39 @@ export default function EbaySearchPage() {
                                 </Center>
                             ) : (
                                 <>
-                                    <Group justify="flex-end" mb="md" gap="xl">
-                                        <Switch
-                                            label={`Hide Abnormal Prices (${EBAY_OUTLIER_THRESHOLD}x)`}
-                                            checked={hideAbnormal}
-                                            onChange={(event) => setHideAbnormal(event.currentTarget.checked)}
-                                            size="xs"
-                                            color="red"
-                                        />
-                                        <Switch
-                                            label="Hide Unmatched Services"
-                                            checked={hideUnmatched}
-                                            onChange={(event) => setHideUnmatched(event.currentTarget.checked)}
-                                            size="xs"
-                                            color="orange"
-                                        />
+                                    <Group justify="flex-end" mb="md" gap="xl" align="center">
+                                        {displayMode === "sold" && (
+                                            <>
+                                                {hideAbnormal && (
+                                                    <div style={{ width: 120 }}>
+                                                        <Slider
+                                                            min={1.0}
+                                                            max={5.0}
+                                                            step={0.1}
+                                                            value={threshold}
+                                                            onChange={setThreshold}
+                                                            label={(value) => `${value.toFixed(1)}x`}
+                                                            color="red"
+                                                            size="sm"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <Switch
+                                                    label={`Hide Abnormal Prices (${threshold.toFixed(1)}x)`}
+                                                    checked={hideAbnormal}
+                                                    onChange={(event) => setHideAbnormal(event.currentTarget.checked)}
+                                                    size="xs"
+                                                    color="red"
+                                                />
+                                                <Switch
+                                                    label="Hide Unmatched Services"
+                                                    checked={hideUnmatched}
+                                                    onChange={(event) => setHideUnmatched(event.currentTarget.checked)}
+                                                    size="xs"
+                                                    color="orange"
+                                                />
+                                            </>
+                                        )}
                                         {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
                                             <SegmentedControl
                                                 size="xs"
