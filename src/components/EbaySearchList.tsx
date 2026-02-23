@@ -10,7 +10,7 @@ import {
     Text,
     Tooltip,
 } from "@mantine/core";
-import { IconRefresh, IconTrash } from "@tabler/icons-react";
+import { IconTrash } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -145,21 +145,20 @@ export function EbaySearchList({ onSelect, refreshTrigger }: EbaySearchListProps
                                 {s.only_us && (
                                     <Badge size="xs" variant="light" color="blue" radius="sm">US</Badge>
                                 )}
+                                {s.min_price != null && (
+                                    <Badge size="xs" variant="outline" color="green" radius="sm">
+                                        &gt; ${s.min_price}
+                                    </Badge>
+                                )}
+                                {s.max_price != null && (
+                                    <Badge size="xs" variant="outline" color="red" radius="sm">
+                                        &lt; ${s.max_price}
+                                    </Badge>
+                                )}
                             </Group>
                         </Stack>
 
-                        {/* Actions */}
                         <Group gap={4} wrap="nowrap">
-                            <Tooltip label="Load search" withArrow>
-                                <ActionIcon
-                                    size="sm"
-                                    variant="subtle"
-                                    color="orange"
-                                    onClick={() => handleSelect(s)}
-                                >
-                                    <IconRefresh size={13} />
-                                </ActionIcon>
-                            </Tooltip>
                             <Tooltip label="Delete" withArrow>
                                 <ActionIcon
                                     size="sm"

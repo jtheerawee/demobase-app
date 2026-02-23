@@ -18,7 +18,7 @@ import { EbayActiveResults } from "@/components/EbayActiveResults";
 import { EbaySearchList } from "@/components/EbaySearchList";
 import { EbayApiInspector } from "@/components/EbayApiInspector";
 import { PriceTrendAnalysis } from "@/components/PriceTrendAnalysis";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { EbayItem } from "@/services/ebayService";
 import { createClient } from "@/utils/supabase/client";
 import { notifications } from "@mantine/notifications";
@@ -54,6 +54,7 @@ export default function EbaySearchPage() {
     const [hideAbnormal, setHideAbnormal] = useState(process.env.NEXT_PUBLIC_HIDE_ABNORMAL_PRICES === "true");
     const [threshold, setThreshold] = useState(EBAY_OUTLIER_THRESHOLD);
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
+    const [doSearchTrigger, setDoSearchTrigger] = useState(0);
 
     const handleSearch = useCallback(
         async (isLoadMore = false) => {
@@ -270,6 +271,17 @@ export default function EbaySearchPage() {
         }).reverse();
     }, [filteredSoldResults, hideAbnormal, threshold]);
 
+    const handleSearchRef = useRef(handleSearch);
+    useEffect(() => {
+        handleSearchRef.current = handleSearch;
+    }, [handleSearch]);
+
+    useEffect(() => {
+        if (doSearchTrigger > 0) {
+            handleSearchRef.current();
+        }
+    }, [doSearchTrigger]);
+
     // Auto-search on mount if query exists
     useEffect(() => {
         if (query) {
@@ -360,6 +372,7 @@ export default function EbaySearchPage() {
                                 setListingType(s.listingType);
                                 setExcludeJp(s.excludeJp);
                                 setOnlyUs(s.onlyUs);
+                                setDoSearchTrigger(n => n + 1);
                             }}
                         />
                         {process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
