@@ -2,7 +2,7 @@ import { APP_CONFIG } from "@/constants/app";
 import { saveScrapedCards, saveScrapedCollections, computeMissedCollections, computeMissedCards } from "./persistence";
 import type { ScraperOptions } from "./types";
 
-export async function scrapeMTGCards({ url, context, send, collectionId, deepScrape }: ScraperOptions) {
+export async function scrapeMTGCards({ url, context, send, collectionId, deepScrape, language }: ScraperOptions) {
     console.log(`[Scraper] Starting MTG card scrape. collectionId:`, collectionId);
     send({ type: "step", message: "MTG Gatherer detected. Starting card extraction..." });
     let activeWorkers = 0;
@@ -41,7 +41,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                     // It's okay if it fails, the evaluate will just return 0 items
                 }
 
-                const pageResults = await workerPage.evaluate((sc: string) => {
+                const pageResults = await workerPage.evaluate((sc: string, langCode: string) => {
                     // Card links follow: /{SET}/{lang}/{cardNo}/{card-slug}
                     const pattern = new RegExp(`^/${sc}/([a-z]{2}-[a-z]{2})/(\\d+)/(.+)$`, "i");
                     const links = document.querySelectorAll(`a[href^="/${sc}/"]`);
@@ -53,7 +53,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                             const match = href.match(pattern);
                             if (!match) return null;
 
-                            const [, lang, cardNo, slug] = match;
+                            const [, , cardNo, slug] = match;
                             const img = a.querySelector("img") as HTMLImageElement | null;
 
                             const altText = img?.alt || "";
@@ -61,12 +61,18 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                                 || img?.title?.split(",")[0]?.trim()
                                 || slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
 
+                            // If language is JP, replace en-us with ja-jp in the URL
+                            let finalHref = href;
+                            if (langCode === "jp") {
+                                finalHref = href.replace("/en-us/", "/ja-jp/");
+                            }
+
                             const imageUrl = img?.src || "";
 
                             return {
                                 name,
                                 imageUrl,
-                                cardUrl: `https://gatherer.wizards.com${href}`,
+                                cardUrl: `https://gatherer.wizards.com${finalHref}`,
                                 cardNo,
                                 alt: name,
                             };
@@ -74,7 +80,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                         .filter((c): c is NonNullable<typeof c> => c !== null);
 
                     return { items };
-                }, setCode);
+                }, setCode, language || "en");
 
                 const pageCards = pageResults.items;
 
@@ -133,7 +139,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                     // Empty page at the end of collection
                 }
 
-                const pageCardsRaw = await workerPage.evaluate(() => {
+                const pageCardsRaw = await workerPage.evaluate((langCode: string) => {
                     const rows = document.querySelectorAll("tr.cardItem");
                     if (rows.length === 0) return [];
 
@@ -171,12 +177,24 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                             .filter(Boolean)
                             .join("");
 
+                        let finalCardUrl = mid ? `https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=${mid}` : href;
+                        let finalImageUrl = mid
+                            ? `https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${mid}&type=card`
+                            : `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&name=${encodeURIComponent(name)}`;
+
+                        if (langCode === "jp") {
+                            if (mid) {
+                                finalCardUrl += "&language=Japanese";
+                                finalImageUrl += "&language=Japanese";
+                            } else {
+                                finalCardUrl = finalCardUrl.replace("/en-us/", "/ja-jp/");
+                            }
+                        }
+
                         return {
                             name,
-                            imageUrl: mid
-                                ? `https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${mid}&type=card`
-                                : `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&name=${encodeURIComponent(name)}`,
-                            cardUrl: mid ? `https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=${mid}` : href,
+                            imageUrl: finalImageUrl,
+                            cardUrl: finalCardUrl,
                             rarity,
                             manaCost,
                             manaValue: manaValueExtracted ? parseInt(manaValueExtracted) : undefined,
@@ -186,7 +204,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                             alt: name
                         };
                     });
-                });
+                }, language || "en");
 
                 if (pageCardsRaw.length === 0) {
                     send({ type: "step", message: `No more cards found at page ${p}.` });
