@@ -1,7 +1,7 @@
 "use client";
 
-import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { ActionIcon, Group, Stack, Text, Title, Badge } from "@mantine/core";
+import { IconArrowLeft, IconCamera } from "@tabler/icons-react";
 import { Link } from "@/i18n/navigation";
 import type { ReactNode } from "react";
 
@@ -43,6 +43,18 @@ export function PageHeader({
                     )}
                 </Stack>
             </Group>
+
+            <Badge
+                variant="gradient"
+                gradient={{ from: 'grape', to: 'violet', deg: 45 }}
+                size="lg"
+                radius="sm"
+                tt="none"
+                leftSection={<IconCamera size={16} />}
+                style={{ cursor: "default" }}
+            >
+                Card Scanner Coming Soon
+            </Badge>
         </Group>
     );
 }
