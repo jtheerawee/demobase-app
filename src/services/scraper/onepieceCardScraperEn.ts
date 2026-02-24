@@ -35,7 +35,6 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
             if (targets.length === 0) return { items: [], status: "No card elements (dl or img.lazy) found", nameLabelsFound: 0 };
 
             let nameLabelsFound = 0;
-            const seenCardNos = new Map<string, number>();
             const items = targets.map((el) => {
                 const img = (isImageOnly ? el : el.querySelector("img")) as HTMLImageElement;
                 const nameLabel = isImageOnly ? null : el.querySelector('.cardName, .name');
@@ -57,39 +56,25 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
                 }
 
                 // Extract Card Number from filename (e.g., OP07-001)
-                let baseCardNo = "N/A";
+                let cardNo = "N/A";
                 if (imageUrl) {
                     const filename = imageUrl.split('/').pop()?.split('?')[0] || "";
                     const match = filename.match(/([A-Z0-9]+-[A-Z0-9]+)/i);
                     if (match) {
-                        baseCardNo = match[1].toUpperCase();
+                        cardNo = match[1].toUpperCase();
                     } else {
                         const altMatch = name.match(/\[([A-Z0-9]+-[A-Z0-9]+)\]/i);
-                        if (altMatch) baseCardNo = altMatch[1].toUpperCase();
+                        if (altMatch) cardNo = altMatch[1].toUpperCase();
                     }
                 }
-
-                // Detect duplicates: track count per base card number so each occurrence gets a unique suffix
-                const count = seenCardNos.get(baseCardNo) ?? 0;
-                seenCardNos.set(baseCardNo, count + 1);
-                const cardNo = count === 0 ? baseCardNo : `${baseCardNo}-p${count}`;
 
                 const anchor = (isImageOnly ? el.closest("a") : el.querySelector("a")) as HTMLAnchorElement;
                 const detailId = anchor?.getAttribute("data-src") || "";
 
-                // Construct card URL using hash format (e.g. #group_1-1)
+                // Use cardNo as the unique URL fragment — the #group_1-1 hash is only set
+                // by fancybox JS at click time and is not readable via static scraping.
                 const pageUrl = window.location.origin + window.location.pathname + window.location.search;
-                let cardUrl = "";
-                // Parallel arts share the same detailId/anchor as the base card — force a unique URL
-                if (count > 0) {
-                    cardUrl = `${pageUrl.split('#')[0]}#${cardNo}`;
-                } else if (detailId && detailId.startsWith('#')) {
-                    cardUrl = `${pageUrl.split('#')[0]}${detailId}`;
-                } else if (anchor?.href && !anchor.href.startsWith('javascript')) {
-                    cardUrl = anchor.href;
-                } else {
-                    cardUrl = `${pageUrl.split('#')[0]}#${cardNo}`;
-                }
+                const cardUrl = `${pageUrl.split('#')[0]}#${cardNo}`;
 
                 return {
                     name,
@@ -130,20 +115,6 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
                 send({ type: "step", message: `Page loaded. Reading all card details from DOM...` });
 
                 const allCardDetails = await deepPage.evaluate(() => {
-                    const baseUrl = window.location.origin + window.location.pathname + window.location.search;
-
-                    // Build a map from cardNo → hash (from a[data-src] anchors on the page)
-                    const hashMap: Record<string, string> = {};
-                    Array.from(document.querySelectorAll('a[data-src]')).forEach(a => {
-                        const hash = a.getAttribute('data-src') || '';
-                        if (!hash.startsWith('#')) return;
-                        const img = a.querySelector('img') as HTMLImageElement;
-                        const imgSrc = img?.getAttribute('data-src') || img?.src || '';
-                        const filename = imgSrc.split('/').pop()?.split('?')[0] || '';
-                        const m = filename.match(/([A-Z0-9]+-[A-Z0-9]+)/i);
-                        if (m) hashMap[m[1].toUpperCase()] = `${baseUrl.split('#')[0]}${hash}`;
-                    });
-
                     // All card data is embedded as hidden dl.modalCol elements with id = cardNo
                     const dlElements = Array.from(document.querySelectorAll('dl[id]'));
                     return dlElements.map(dl => {
@@ -165,23 +136,18 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
                             imageUrl = imageUrl.split('?')[0].replace(/_p\d+\./, '.');
                         }
 
-                        const cardUrl = hashMap[cardNo] || "";
-                        return { cardNo, rarity, name, imageUrl, rawInfo, cardUrl };
+                        return { cardNo, rarity, name, imageUrl, rawInfo };
                     });
                 });
 
                 send({ type: "step", message: `Found ${allCardDetails.length} card detail entries in DOM.` });
 
-                // Map details back into sharedCardList
-                // dl[id] uses the base cardNo (e.g. OP07-001), so strip -p suffix when matching
+                // Map details back into sharedCardList by direct cardNo match
                 let updated = 0;
                 for (const detail of allCardDetails) {
                     const matches = sharedCardList
                         .map((c, i) => ({ c, i }))
-                        .filter(({ c }) => {
-                            const baseNo = c.cardNo.replace(/-p$/i, '');
-                            return baseNo === detail.cardNo;
-                        });
+                        .filter(({ c }) => c.cardNo === detail.cardNo);
 
                     if (matches.length === 0) continue;
 
@@ -190,11 +156,7 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
                     for (const { c: card, i: idx } of matches) {
                         if (detail.rarity) card.rarity = detail.rarity;
                         if (detail.name && detail.name !== "One Piece Card") card.name = detail.name;
-                        // Parallel card: keep its own imageUrl (different art), don't overwrite
-                        const isParallel = card.cardNo !== detail.cardNo;
-                        if (detail.imageUrl && !isParallel) card.imageUrl = detail.imageUrl;
-                        // Update cardUrl for base cards only; parallel arts keep their unique -pN URL
-                        if (detail.cardUrl && !isParallel) card.cardUrl = detail.cardUrl;
+                        if (detail.imageUrl) card.imageUrl = detail.imageUrl;
                         card.isDeepScraped = true;
                         send({ type: "cardUpdate", index: idx, details: { rarity: card.rarity, name: card.name, imageUrl: card.imageUrl, cardUrl: card.cardUrl, isDeepScraped: true } });
                     }
@@ -202,7 +164,7 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
                 }
 
                 const noRarity = sharedCardList.filter(c => !c.rarity).length;
-                send({ type: "step", message: `✅ Deep scrape complete. Updated ${updated} card numbers (including parallels). Cards still missing rarity: ${noRarity}` });
+                send({ type: "step", message: `✅ Deep scrape complete. Updated ${updated} card numbers. Cards still missing rarity: ${noRarity}` });
             } finally {
                 await deepPage.close();
             }
@@ -211,14 +173,22 @@ export async function scrapeOnepieceCardsEn({ url, context, send, deepScrape, co
         }
 
         if (collectionId && sharedCardList.length > 0) {
-            // All cards now have unique cardNos (parallel arts get -p suffix), no dedup needed
-            const parallels = sharedCardList.filter(c => c.cardNo.endsWith('-p')).length;
-            send({ type: "step", message: `Final Step: Persisting ${sharedCardList.length} cards (${parallels} parallel arts) to database...` });
-            const result = await saveScrapedCards(sharedCardList, collectionId);
+            // Dedup by cardNo keeping first occurrence (base card), then drop cards without rarity
+            const seenNos = new Set<string>();
+            const uniqueCards = sharedCardList.filter(c => {
+                if (seenNos.has(c.cardNo)) return false;
+                seenNos.add(c.cardNo);
+                return true;
+            });
+            const cardsToSave = uniqueCards.filter(c => c.rarity && c.rarity !== "");
+            const skipped = uniqueCards.length - cardsToSave.length;
+
+            send({ type: "step", message: `Final Step: Persisting ${cardsToSave.length} cards${skipped > 0 ? ` (${skipped} skipped — no rarity)` : ""} to database...` });
+            const result = await saveScrapedCards(cardsToSave, collectionId);
             if (result) {
                 const { added, matched } = result;
                 send({ type: "stats", category: "cards", added, matched, missed: 0 });
-                send({ type: "step", message: `✨ Scrape Complete! Saved ${sharedCardList.length} cards — ✅ ${added} new, 🔁 ${matched} matched.` });
+                send({ type: "step", message: `✨ Scrape Complete! Saved ${cardsToSave.length} cards — ✅ ${added} new, 🔁 ${matched} matched.` });
             }
         } else if (sharedCardList.length === 0) {
             send({ type: "step", message: "Scrape finished with 0 cards found for this series." });
