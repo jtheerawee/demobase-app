@@ -128,25 +128,26 @@ export async function scrapeOnepieceCardsEn({
         }
 
         let cardNo = "N/A";
-        if (imageUrl) {
-          const filename = imageUrl.split("/").pop()?.split("?")[0] || "";
-          const m = filename.match(/([A-Z0-9]+-[A-Z0-9]+)/i);
+        const filename = imageUrl ? (imageUrl.split("/").pop()?.split("?")[0] || "") : "";
+        if (filename) {
+          const m = filename.match(/([A-Z]{1,4}\d*-\d+)/i);
           if (m) cardNo = m[1].toUpperCase();
         }
 
-        return { name, cardNo, rarity, imageUrl };
+        return { name, cardNo, rarity, imageUrl, debugFilename: filename };
       });
 
       // Stop when modal has no valid card data
       if (!details || details.cardNo === "N/A" || !details.rarity) {
         send({
           type: "step",
-          message: `[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}")`,
+          message: `[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}", file="${details?.debugFilename}")`,
         });
         break;
       }
 
-      cards.push({ ...details, cardUrl, isDeepScraped: true, isBeingScraped: false });
+      const { debugFilename, ...cardDetails } = details;
+      cards.push({ ...cardDetails, cardUrl, isDeepScraped: true, isBeingScraped: false });
       send({ type: "step", message: `[${N}/${totalAnchors}] ${details.cardNo}: ${details.name} | Rarity="${details.rarity}"` });
 
       // Close modal before clicking next card
