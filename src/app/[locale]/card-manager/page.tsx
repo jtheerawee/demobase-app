@@ -1,23 +1,48 @@
 "use client";
 
-import { Container, Stack, Group, Card, Image, Text, Grid, Modal } from "@mantine/core";
+import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select } from "@mantine/core";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
 import { CollectedCardsList } from "@/components/CardManager/CollectedCardsList";
 import { CardManagerSearch } from "@/components/CardManager/CardManagerSearch";
 import { CardManagerResult, SearchedCard } from "@/components/CardManager/CardManagerResult";
+import { LANGUAGE_OPTIONS, FRANCHISE_OPTIONS } from "@/constants/languages";
 
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [debouncedQuery] = useDebouncedValue(searchQuery, 400);
     const [results, setResults] = useState<SearchedCard[]>([]);
     const [loading, setLoading] = useState(false);
     const [addingId, setAddingId] = useState<number | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+    // Initial load from localStorage
+    useEffect(() => {
+        const savedFranchise = localStorage.getItem("manager_selected_franchise") || "all";
+        const savedLanguage = localStorage.getItem("manager_selected_language") || "all";
+        setSelectedFranchise(savedFranchise);
+        setSelectedLanguage(savedLanguage);
+    }, []);
+
+    // Save to localStorage when changed
+    useEffect(() => {
+        if (selectedFranchise) localStorage.setItem("manager_selected_franchise", selectedFranchise);
+        if (selectedLanguage) localStorage.setItem("manager_selected_language", selectedLanguage);
+    }, [selectedFranchise, selectedLanguage]);
+
+    const languageOptions = useMemo(() => {
+        if (!selectedFranchise || selectedFranchise === "all") return [{ value: "all", label: "All Languages" }];
+        return [
+            { value: "all", label: "All Languages" },
+            ...(LANGUAGE_OPTIONS[selectedFranchise] || [])
+        ];
+    }, [selectedFranchise]);
 
     useEffect(() => {
         if (debouncedQuery.length >= APP_CONFIG.SEARCH_MIN_CHARS) {
@@ -25,12 +50,17 @@ export default function CardManagerPage() {
         } else {
             setResults([]);
         }
-    }, [debouncedQuery]);
+    }, [debouncedQuery, selectedFranchise, selectedLanguage]);
 
     const handleSearch = async (query: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/card-manager/search?q=${encodeURIComponent(query)}`);
+            const params = new URLSearchParams({
+                q: query,
+                franchise: selectedFranchise || "all",
+                language: selectedLanguage || "all"
+            });
+            const res = await fetch(`/api/card-manager/search?${params.toString()}`);
             const data = await res.json();
             if (data.success) {
                 setResults(data.cards);
@@ -95,6 +125,27 @@ export default function CardManagerPage() {
                                 <Stack gap="md" h="100%">
                                     <Group justify="space-between">
                                         <Text fw={700} size="lg">Search Database</Text>
+                                        <Group gap="xs">
+                                            <Select
+                                                size="xs"
+                                                placeholder="Franchise"
+                                                value={selectedFranchise}
+                                                onChange={(val) => {
+                                                    setSelectedFranchise(val);
+                                                    setSelectedLanguage("all");
+                                                }}
+                                                data={[{ value: "all", label: "All Franchises" }, ...FRANCHISE_OPTIONS]}
+                                                style={{ width: 140 }}
+                                            />
+                                            <Select
+                                                size="xs"
+                                                placeholder="Language"
+                                                value={selectedLanguage}
+                                                onChange={setSelectedLanguage}
+                                                data={languageOptions}
+                                                style={{ width: 140 }}
+                                            />
+                                        </Group>
                                     </Group>
 
                                     <CardManagerSearch

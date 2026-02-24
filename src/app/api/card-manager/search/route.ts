@@ -5,6 +5,8 @@ import { APP_CONFIG } from "@/constants/app";
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
+    const franchise = searchParams.get("franchise");
+    const language = searchParams.get("language");
 
     if (!query || query.length < APP_CONFIG.SEARCH_MIN_CHARS) {
         return NextResponse.json({ success: true, cards: [] });
@@ -24,18 +26,27 @@ export async function GET(request: Request) {
                 card_no, 
                 rarity,
                 collection_id,
-                scraped_collections (
+                scraped_collections!inner (
                     name,
-                    collection_code
+                    collection_code,
+                    franchise,
+                    language
                 )
             `);
+
+        if (franchise && franchise !== "all") {
+            supabaseQuery = supabaseQuery.eq("scraped_collections.franchise", franchise);
+        }
+        if (language && language !== "all") {
+            supabaseQuery = supabaseQuery.eq("scraped_collections.language", language);
+        }
 
         // Apply AND logic for each term: (name ILIKE %term% OR card_no ILIKE %term%)
         terms.forEach(term => {
             supabaseQuery = supabaseQuery.or(`name.ilike.%${term}%,card_no.ilike.%${term}%`);
         });
 
-        const { data, error } = await supabaseQuery.limit(50);
+        const { data, error } = await supabaseQuery.limit(100);
 
         if (error) {
             console.error("[API Search] Error fetching cards:", error);
