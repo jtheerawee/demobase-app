@@ -6,9 +6,11 @@ import { IconDownload } from "@tabler/icons-react";
 interface CardScraperInputsProps {
     value?: string | null;
     onChange?: (value: string | null) => void;
+    onDownload?: () => void;
+    loading?: boolean;
 }
 
-export function CardScraperInputs({ value, onChange }: CardScraperInputsProps) {
+export function CardScraperInputs({ value, onChange, onDownload, loading }: CardScraperInputsProps) {
     return (
         <Stack gap="md">
             <Select
@@ -27,6 +29,9 @@ export function CardScraperInputs({ value, onChange }: CardScraperInputsProps) {
                 variant="filled"
                 color="blue"
                 fullWidth
+                onClick={onDownload}
+                loading={loading}
+                disabled={!value}
             >
                 Download Collection
             </Button>

@@ -8,6 +8,7 @@ export interface ScraperOptions {
     context: any; // BrowserContext
     send: (data: unknown) => void;
     collectionId?: number | string;
+    skipSave?: boolean;
 }
 
 export interface ScraperResult {

@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         }
 
         const deepScrape = body.deepScrape !== false;
+        const skipSave = body.skipSave === true;
         const encoder = new TextEncoder();
 
         return new Response(
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
                         });
 
                         let scrapedIndex = 0;
-                        if (type === "collections" && franchise && language) {
+                        if (!skipSave && type === "collections" && franchise && language) {
                             send({ type: "step", message: "Determining next scraping index..." });
                             const supabase = await createClient();
                             const { data } = await supabase
@@ -103,6 +104,7 @@ export async function POST(request: Request) {
                             language,
                             scrapedIndex,
                             collectionId,
+                            skipSave,
                         };
 
                         if (url.includes("gatherer.wizards.com")) {

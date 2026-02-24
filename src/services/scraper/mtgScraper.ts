@@ -280,7 +280,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
     }
 }
 
-export async function scrapeMTGCollections({ url, context, send, franchise, language, scrapedIndex }: ScraperOptions) {
+export async function scrapeMTGCollections({ url, context, send, franchise, language, scrapedIndex, skipSave }: ScraperOptions) {
     send({ type: "step", message: "MTG Gatherer detected. Fetching sets..." });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
@@ -343,7 +343,7 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
             send({ type: "chunk", items: pageSets, startIndex: allDiscoveredSets.length });
             allDiscoveredSets.push(...pageSets);
 
-            if (franchise && language && scrapedIndex !== undefined && pageSets.length > 0) {
+            if (!skipSave && franchise && language && scrapedIndex !== undefined && pageSets.length > 0) {
                 try {
                     const savedData = await saveScrapedCollections(pageSets, {
                         franchise,
