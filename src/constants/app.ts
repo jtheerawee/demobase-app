@@ -1,0 +1,13 @@
+export const APP_CONFIG = {
+    // App
+    APP_NAME: "DemoBase.app",
+
+    // Scaper
+    COLLECTION_CONCURRENCY_LIMIT: 4,
+    CARD_CONCURRENCY_LIMIT: 10,
+    NUM_COLLECTIONS_TO_DOWNLOAD_CARDS_LIMIT: 5,
+    SCRAPER_GRID_COLS: 10,
+
+    // MTG
+    MTG_URL_EN: "https://gatherer.wizards.com/sets",
+} as const;
