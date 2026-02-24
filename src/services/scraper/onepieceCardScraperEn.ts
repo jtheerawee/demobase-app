@@ -25,15 +25,15 @@ export async function scrapeOnepieceCardsEn({
     await page.goto(baseUrl, { waitUntil: "networkidle", timeout: 60000 });
     await page.waitForTimeout(2000);
 
-    // Find card anchors using a cascade of fancybox selector patterns
-    const { totalAnchors, anchorSelector } = await page.evaluate(() => {
+    // Discover total card count using a cascade of fancybox selector patterns
+    const totalAnchors = await page.evaluate(() => {
       const candidates: [string, number][] = [
         ["a[data-fancybox]", document.querySelectorAll("a[data-fancybox]").length],
         ['a[data-src^="#"]', document.querySelectorAll('a[data-src^="#"]').length],
         ["dl a", document.querySelectorAll("dl a").length],
       ];
-      const [selector, count] = candidates.find(([, n]) => n > 0) ?? ["", 0];
-      return { totalAnchors: count, anchorSelector: selector };
+      const [, count] = candidates.find(([, n]) => n > 0) ?? ["", 0];
+      return count;
     });
 
     if (totalAnchors === 0) {
@@ -46,25 +46,26 @@ export async function scrapeOnepieceCardsEn({
     for (let N = 1; N <= totalAnchors; N++) {
       const cardUrl = `${baseUrl}#group_1-${N}`;
 
-      // Click the Nth card anchor using the discovered selector
-      const clicked = await page.evaluate(({ idx, selector }: { idx: number; selector: string }) => {
-        const anchors = document.querySelectorAll(selector);
-        const el = anchors[idx] as HTMLElement | undefined;
-        if (!el) return false;
-        el.click();
-        return true;
-      }, { idx: N - 1, selector: anchorSelector });
+      // Click the Nth anchor to trigger fancybox
+      const clicked = await page.evaluate(({ idx, candidates }: { idx: number; candidates: string[] }) => {
+        for (const sel of candidates) {
+          const anchors = document.querySelectorAll(sel);
+          const el = anchors[idx] as HTMLElement | undefined;
+          if (el) { el.click(); return true; }
+        }
+        return false;
+      }, { idx: N - 1, candidates: ["a[data-fancybox]", 'a[data-src^="#"]', "dl a"] });
 
       if (!clicked) {
         send({ type: "step", message: `[${N}] Could not click anchor — stopping.` });
         break;
       }
 
-      // Wait for fancybox modal to be visible
+      // Wait for modal to be visible
       try {
         await page.waitForSelector(
           ".fancybox-slide--current .cardDetail, .fancybox-content, .fancybox-inner",
-          { state: "visible", timeout: 8000 }
+          { state: "visible", timeout: 10000 }
         );
       } catch {
         send({ type: "step", message: `[${N}] No modal appeared — stopping.` });

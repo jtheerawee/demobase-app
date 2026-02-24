@@ -38,9 +38,17 @@ export async function scrapeOnepieceCollectionsEn({ url, context, send, franchis
                 const baseUrl = window.location.origin + window.location.pathname;
                 const collectionUrl = `${baseUrl}?series=${value}`;
 
+                // Extract pack code from brackets e.g. "BOOSTER PACK -ROYAL BLOOD- [OP-10]" → "OP-10"
+                const codeMatch = name.match(/\[([A-Z0-9\-]+)\]\s*$/);
+                const collectionCode = codeMatch ? codeMatch[1] : value;
+
+                // Extract short name from dashes e.g. "BOOSTER PACK -ROYAL BLOOD- [OP-10]" → "ROYAL BLOOD"
+                const shortNameMatch = name.match(/-([^-]+)-\s*\[/);
+                const displayName = shortNameMatch ? shortNameMatch[1].trim() : name;
+
                 return {
-                    name,
-                    collectionCode: value,
+                    name: displayName,
+                    collectionCode,
                     imageUrl: "",
                     collectionUrl,
                 };
