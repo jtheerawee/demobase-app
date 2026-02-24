@@ -223,7 +223,7 @@ export default function CardScraperPage() {
             url: targetUrl,
             type: "collections",
             franchise: selectedFranchise,
-            language: "en",
+            language: selectedLanguage ?? "en",
             skipSave: false, // Now saving to database
         };
 
