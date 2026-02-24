@@ -19,6 +19,7 @@ CREATE TABLE public.users (
     id          UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email       TEXT,
     avatar_url  TEXT,
+    role        SMALLINT DEFAULT 0, -- 0: user, 1: moderator, 2: admin
     created_at  TIMESTAMPTZ DEFAULT NOW(),
     last_login  TIMESTAMPTZ DEFAULT NOW()
 );

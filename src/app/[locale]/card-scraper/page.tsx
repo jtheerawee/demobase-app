@@ -10,7 +10,7 @@ import { IconDatabaseExport } from "@tabler/icons-react";
 import { useState } from "react";
 
 export default function CardScraperPage() {
-    const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null);
+    const [selectedFranchise, setSelectedFranchise] = useState<string | null>("mtg");
 
     return (
         <Container size="xl" py="md">

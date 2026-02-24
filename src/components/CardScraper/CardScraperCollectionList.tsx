@@ -64,41 +64,27 @@ export function CardScraperCollectionList({ selectedFranchise }: CardScraperColl
                 </Group>
 
                 <ScrollArea h={400} offsetScrollbars>
-                    <Stack gap="lg">
-                        {filteredGroups.map((group) => (
-                            <Stack key={group.franchise} gap="xs">
-                                <Text size="xs" fw={700} tt="uppercase" c="dimmed" lts={1}>
-                                    {group.franchise.replace("-", " ")}
-                                </Text>
-                                <Stack gap="xs">
-                                    {group.collections.map((item) => (
-                                        <Card key={item.id} withBorder padding="sm" radius="sm">
-                                            <Group justify="space-between" align="center">
-                                                <Stack gap={0}>
-                                                    <Text size="sm" fw={600}>
-                                                        {item.name}
-                                                    </Text>
-                                                    <Text size="xs" c="dimmed">
-                                                        {item.count} items • {item.updatedAt}
-                                                    </Text>
-                                                </Stack>
-                                                <Group gap={4}>
-                                                    <ActionIcon variant="subtle" color="blue" size="sm">
-                                                        <IconExternalLink size={14} />
-                                                    </ActionIcon>
-                                                    <ActionIcon variant="subtle" color="red" size="sm">
-                                                        <IconTrash size={14} />
-                                                    </ActionIcon>
-                                                </Group>
-                                            </Group>
-                                        </Card>
-                                    ))}
-                                </Stack>
-                            </Stack>
+                    <Stack gap="xs">
+                        {filteredGroups.flatMap(group => group.collections).map((item) => (
+                            <Card key={item.id} withBorder padding="sm" radius="sm">
+                                <Group justify="space-between" align="center" wrap="nowrap">
+                                    <Stack gap={0} style={{ flex: 1 }}>
+                                        <Text size="sm" fw={600} lineClamp={1}>
+                                            {item.name}
+                                        </Text>
+                                        <Text size="xs" c="dimmed">
+                                            {item.count} items • {item.updatedAt}
+                                        </Text>
+                                    </Stack>
+                                    <ActionIcon variant="subtle" color="red" size="sm">
+                                        <IconTrash size={16} />
+                                    </ActionIcon>
+                                </Group>
+                            </Card>
                         ))}
-                        {filteredGroups.length === 0 && (
+                        {totalCount === 0 && (
                             <Text size="sm" c="dimmed" ta="center" py="xl">
-                                No collections found for this franchise
+                                No collections found
                             </Text>
                         )}
                     </Stack>
