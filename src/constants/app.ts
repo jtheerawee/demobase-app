@@ -21,8 +21,7 @@ export const APP_CONFIG = {
 
   // One piece
   ONEPIECE_URL_EN: "https://en.onepiece-cardgame.com/cardlist",
-  ONEPIECE_URL_JP:
-    "https://asia-th.onepiece-cardgame.com/cardlist/?series=569114",
+  ONEPIECE_URL_JP: "https://asia-th.onepiece-cardgame.com/cardlist",
 
   // Search
   SEARCH_MIN_CHARS: 3,
