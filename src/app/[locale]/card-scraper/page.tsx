@@ -178,13 +178,15 @@ export default function CardScraperPage() {
 
         setCardLoading(true);
         setCards([]);
+        setSteps([]);
+        setScraperStats(DEFAULT_STATS);
         setError(null);
 
         const requestData = {
             url: targetCollection.collectionUrl,
             type: "cards",
             franchise: selectedFranchise,
-            language: "en",
+            language: selectedLanguage ?? "en",
             skipSave: false,
             deepScrape: true,
             collectionId: targetCollection.id,
@@ -460,6 +462,7 @@ export default function CardScraperPage() {
                             loading={cardLoading}
                             onDeleteCard={handleDeleteCard}
                             onDeleteAllCards={handleDeleteAllCards}
+                            onDownloadCards={handleDownloadCards}
                             canDownload={!!selectedCollection}
                         />
                     </div>

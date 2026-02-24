@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, SimpleGrid, Image, Text, Stack, Group, Badge, ScrollArea, ActionIcon, Box } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconDownload } from "@tabler/icons-react";
 
 interface CardItem {
     id: string | number;
@@ -17,6 +17,7 @@ interface CardScraperCardListProps {
     loading?: boolean;
     onDeleteCard?: (id: string | number) => void;
     onDeleteAllCards?: () => void;
+    onDownloadCards?: () => void;
     canDownload?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function CardScraperCardList({
     loading,
     onDeleteCard,
     onDeleteAllCards,
+    onDownloadCards,
     canDownload
 }: CardScraperCardListProps) {
     return (
@@ -36,17 +38,27 @@ export function CardScraperCardList({
                         Scraped Cards {collectionCode ? `(${collectionCode})` : ""}
                     </Text>
                     <Group gap="xs">
-                        {cards.length > 0 && (
-                            <ActionIcon
-                                variant="light"
-                                color="red"
-                                size="sm"
-                                onClick={onDeleteAllCards}
-                                title="Delete all cards in this collection"
-                            >
-                                <IconTrash size={14} />
-                            </ActionIcon>
-                        )}
+                        <ActionIcon
+                            variant="light"
+                            color="green"
+                            size="sm"
+                            onClick={() => onDownloadCards?.()}
+                            title="Scrape cards for this collection"
+                            loading={loading}
+                            disabled={!canDownload}
+                        >
+                            <IconDownload size={14} />
+                        </ActionIcon>
+                        <ActionIcon
+                            variant="light"
+                            color="red"
+                            size="sm"
+                            onClick={onDeleteAllCards}
+                            title="Delete all cards in this collection"
+                            disabled={cards.length === 0}
+                        >
+                            <IconTrash size={14} />
+                        </ActionIcon>
                         <Badge variant="light" color="gray">
                             {cards.length} Cards
                         </Badge>
