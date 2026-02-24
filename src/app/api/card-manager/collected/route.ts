@@ -137,15 +137,20 @@ export async function PATCH(request: Request) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const { id, quantity } = await request.json();
+        const { id, quantity, condition, variant } = await request.json();
 
-        if (!id || quantity === undefined || quantity < 1) {
+        if (!id) {
             return NextResponse.json({ success: false, error: "Invalid data" }, { status: 400 });
         }
 
+        const updateData: any = {};
+        if (quantity !== undefined && quantity >= 1) updateData.quantity = quantity;
+        if (condition !== undefined) updateData.condition = condition;
+        if (variant !== undefined) updateData.variant = variant;
+
         const { error } = await supabase
             .from("collected_cards")
-            .update({ quantity })
+            .update(updateData)
             .eq("id", id)
             .eq("user_id", user.id);
 

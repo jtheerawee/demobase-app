@@ -1,23 +1,14 @@
 "use client";
 
-import { Container, Stack, TextInput, Group, Card, Image, Text, Badge, ScrollArea, SimpleGrid, Loader, ActionIcon, Grid, CloseButton, Modal } from "@mantine/core";
+import { Container, Stack, Group, Card, Image, Text, Grid, Modal } from "@mantine/core";
 import { PageHeader } from "@/components/PageHeader";
-import { IconLayoutDashboard, IconSearch, IconExternalLink, IconPlus } from "@tabler/icons-react";
+import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
 import { CollectedCardsList } from "@/components/CardManager/CollectedCardsList";
-
-interface SearchedCard {
-    id: number;
-    name: string;
-    imageUrl: string;
-    cardUrl: string;
-    cardNo: string;
-    rarity: string;
-    collectionName: string;
-    collectionCode: string;
-}
+import { CardManagerSearch } from "@/components/CardManager/CardManagerSearch";
+import { CardManagerResult, SearchedCard } from "@/components/CardManager/CardManagerResult";
 
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
@@ -90,39 +81,24 @@ export default function CardManagerPage() {
                 />
 
                 <Grid gutter="md" align="flex-start" style={{ height: 'calc(100vh - 180px)' }}>
-                    {/* Left Sidebar: Collected Cards (1/3) */}
-                    <Grid.Col span={{ base: 12, md: 4 }} h="100%">
+                    {/* Left Sidebar: Collected Cards (1/4) */}
+                    <Grid.Col span={{ base: 12, md: 3 }} h="100%">
                         <CollectedCardsList ref={listRef} onImageClick={setPreviewImage} />
                     </Grid.Col>
 
-                    {/* Right Content: Search (2/3) */}
-                    <Grid.Col span={{ base: 12, md: 8 }} h="100%">
+                    {/* Right Content: Search (3/4) */}
+                    <Grid.Col span={{ base: 12, md: 9 }} h="100%">
                         <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
                             <Stack gap="md" h="100%">
                                 <Group justify="space-between">
                                     <Text fw={700} size="lg">Search Database</Text>
                                 </Group>
 
-                                <Group justify="center" w="100%">
-                                    <TextInput
-                                        placeholder={`Type card name (min ${APP_CONFIG.SEARCH_MIN_CHARS} chars)...`}
-                                        size="md"
-                                        w="100%"
-                                        leftSection={<IconSearch size={18} />}
-                                        rightSection={
-                                            loading ? (
-                                                <Loader size="xs" />
-                                            ) : searchQuery !== "" ? (
-                                                <CloseButton
-                                                    onClick={() => setSearchQuery("")}
-                                                    style={{ display: searchQuery ? 'block' : 'none' }}
-                                                />
-                                            ) : null
-                                        }
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.currentTarget.value)}
-                                    />
-                                </Group>
+                                <CardManagerSearch
+                                    query={searchQuery}
+                                    setQuery={setSearchQuery}
+                                    loading={loading}
+                                />
 
                                 {results.length > 0 && (
                                     <Text size="sm" fw={600} c="dimmed">
@@ -130,72 +106,14 @@ export default function CardManagerPage() {
                                     </Text>
                                 )}
 
-                                <ScrollArea flex={1} offsetScrollbars type="always">
-                                    <SimpleGrid cols={{ base: 1, sm: 1, md: 2, lg: APP_CONFIG.SEARCH_RESULTS_PER_ROW }} spacing="xs">
-                                        {results.map((card) => (
-                                            <Card key={card.id} withBorder padding={6} radius="xs" h={120} style={{ position: 'relative' }}>
-                                                <Group gap="xs" wrap="nowrap" align="center">
-                                                    <Image
-                                                        src={card.imageUrl}
-                                                        fallbackSrc="https://placehold.co/100x140?text=No+Image"
-                                                        alt={card.name}
-                                                        radius="xs"
-                                                        w={70}
-                                                        h={108}
-                                                        style={{ objectFit: 'contain', cursor: 'pointer' }}
-                                                        onClick={() => setPreviewImage(card.imageUrl)}
-                                                    />
-                                                    <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                                                        <Group justify="space-between" wrap="nowrap" gap={4}>
-                                                            <Text size="xs" fw={700} lineClamp={1}>
-                                                                {card.name}
-                                                            </Text>
-                                                            <Group gap={2}>
-                                                                <ActionIcon
-                                                                    variant="subtle"
-                                                                    color="blue"
-                                                                    size="xs"
-                                                                    component="a"
-                                                                    href={card.cardUrl}
-                                                                    target="_blank"
-                                                                >
-                                                                    <IconExternalLink size={12} />
-                                                                </ActionIcon>
-                                                                <ActionIcon
-                                                                    variant="light"
-                                                                    color="grape"
-                                                                    size="xs"
-                                                                    title="Add to collection"
-                                                                    onClick={() => handleAddToCollection(card)}
-                                                                    loading={addingId === card.id}
-                                                                >
-                                                                    <IconPlus size={12} />
-                                                                </ActionIcon>
-                                                            </Group>
-                                                        </Group>
-
-                                                        <Text size="10px" c="dimmed" lineClamp={1}>
-                                                            Set: {card.collectionName}
-                                                        </Text>
-
-                                                        <Group gap={4} mt="auto">
-                                                            <Badge size="10px" variant="light" color="blue" radius="xs" px={4} h={18}>
-                                                                No: {card.cardNo || "---"}
-                                                            </Badge>
-                                                            <Badge size="10px" variant="outline" color="gray" radius="xs" px={4} h={18}>
-                                                                {card.rarity || "---"}
-                                                            </Badge>
-                                                        </Group>
-                                                    </Stack>
-                                                </Group>
-                                            </Card>
-                                        ))}
-                                    </SimpleGrid>
-
-                                    {results.length === 0 && !loading && searchQuery.length >= APP_CONFIG.SEARCH_MIN_CHARS && (
-                                        <Text ta="center" py="xl" c="dimmed">No cards found matching "{searchQuery}"</Text>
-                                    )}
-                                </ScrollArea>
+                                <CardManagerResult
+                                    results={results}
+                                    loading={loading}
+                                    query={searchQuery}
+                                    addingId={addingId}
+                                    onAddToCollection={handleAddToCollection}
+                                    onImageClick={setPreviewImage}
+                                />
                             </Stack>
                         </Card>
                     </Grid.Col>
@@ -218,7 +136,7 @@ export default function CardManagerPage() {
                     <Image
                         src={previewImage}
                         alt="Card Preview"
-                        style={{ maxHeight: '85vh', width: 'auto' }}
+                        style={{ maxHeight: '85vh', width: 'auto', cursor: 'pointer' }}
                         onClick={() => setPreviewImage(null)}
                     />
                 )}
