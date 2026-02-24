@@ -7,10 +7,13 @@ export const APP_CONFIG = {
     CARD_CONCURRENCY_LIMIT: 10,
     NUM_COLLECTIONS_TO_DOWNLOAD_CARDS_LIMIT: 5,
     SCRAPER_GRID_COLS: 10,
+    SCRAPER_PAGE_LOAD_DELAY_MS: 0,
 
     // MTG
     MTG_COLLECTION_URL: "https://gatherer.wizards.com/sets",
-    SCRAPER_PAGE_LOAD_DELAY_MS: 0,
+
+    // Pokemon
+    POKEMON_COLLECTION_URL: "https://www.pokemon.com/us/pokemon-tcg/pokemon-cards/",
     // Search
     SEARCH_MIN_CHARS: 3,
     SEARCH_RESULTS_PER_ROW: 3,

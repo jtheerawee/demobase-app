@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { chromium as playwright } from "playwright";
 import { APP_CONFIG } from "@/constants/app";
 import { scrapeMTGCards, scrapeMTGCollections } from "@/services/scraper/mtgScraper";
+import { scrapePokemonCards, scrapePokemonCollections } from "@/services/scraper/pokemonScraper";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(request: Request) {
@@ -27,7 +28,11 @@ export async function POST(request: Request) {
         }
 
         if (!url && type === "collections") {
-            url = APP_CONFIG.MTG_COLLECTION_URL;
+            if (franchise === "pokemon") {
+                url = APP_CONFIG.POKEMON_COLLECTION_URL;
+            } else {
+                url = APP_CONFIG.MTG_COLLECTION_URL;
+            }
         }
 
         if (!url) {
@@ -87,14 +92,20 @@ export async function POST(request: Request) {
                             skipSave,
                         };
 
-                        if (url.includes("gatherer.wizards.com")) {
+                        if (url.includes("gatherer.wizards.com") || franchise === "mtg") {
                             if (type === "cards") {
                                 await scrapeMTGCards(scraperOptions);
                             } else {
                                 await scrapeMTGCollections(scraperOptions);
                             }
+                        } else if (franchise === "pokemon") {
+                            if (type === "cards") {
+                                await scrapePokemonCards(scraperOptions);
+                            } else {
+                                await scrapePokemonCollections(scraperOptions);
+                            }
                         } else {
-                            send({ type: "step", message: "Unsupported URL. Only MTG Gatherer is currently implemented." });
+                            send({ type: "step", message: `Unsupported franchise: ${franchise}.` });
                         }
 
                         send({ type: "step", message: "Scraping session finished successfully." });
