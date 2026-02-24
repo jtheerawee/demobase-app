@@ -83,6 +83,7 @@ export async function scrapeOnepieceCardsJp({ url, context, send, deepScrape, co
 
                         const card = sharedCardList[cardIndex];
                         card.isBeingScraped = true;
+                        send({ type: "step", message: `[Worker ${workerId}] Opening modal for card ${cardIndex + 1}/${totalCards}: ${card.name}` });
 
                         try {
                             const selector = `a[data-src="${card.detailId}"]`;
