@@ -14,4 +14,19 @@ export const APP_CONFIG = {
     // Search
     SEARCH_MIN_CHARS: 3,
     SEARCH_RESULTS_PER_ROW: 3,
+
+    // Feature Toggles (Widgets)
+    ENABLED_WIDGETS: {
+        EBAY_ASSISTANCE: true,
+        CARD_SCRAPER: true,
+        CARD_MANAGER: true,
+
+        // Card Scraper Page
+        SCRAPER_RUNNING_STEPS: true,
+        SCRAPER_STATS: true,
+
+        // Card Manager Page
+        CARD_MANAGER_COLLECTION: true,
+        CARD_MANAGER_SEARCH: true,
+    },
 } as const;

@@ -12,8 +12,9 @@ export async function GET(request: Request) {
 
     try {
         const supabase = await createClient();
+        const terms = query.trim().split(/\s+/).filter(t => t.length > 0);
 
-        const { data, error } = await supabase
+        let supabaseQuery = supabase
             .from("scraped_cards")
             .select(`
                 id, 
@@ -27,9 +28,14 @@ export async function GET(request: Request) {
                     name,
                     collection_code
                 )
-            `)
-            .ilike("name", `%${query}%`)
-            .limit(50);
+            `);
+
+        // Apply AND logic for each term: (name ILIKE %term% OR card_no ILIKE %term%)
+        terms.forEach(term => {
+            supabaseQuery = supabaseQuery.or(`name.ilike.%${term}%,card_no.ilike.%${term}%`);
+        });
+
+        const { data, error } = await supabaseQuery.limit(50);
 
         if (error) {
             console.error("[API Search] Error fetching cards:", error);

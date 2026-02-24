@@ -494,8 +494,12 @@ export default function CardScraperPage() {
                                 setSelectedCollection(null);
                             }}
                         />
-                        <CardScraperRunningSteps steps={steps} />
-                        <CardScraperStats stats={scraperStats} />
+                        {APP_CONFIG.ENABLED_WIDGETS.SCRAPER_RUNNING_STEPS && (
+                            <CardScraperRunningSteps steps={steps} />
+                        )}
+                        {APP_CONFIG.ENABLED_WIDGETS.SCRAPER_STATS && (
+                            <CardScraperStats stats={scraperStats} />
+                        )}
                     </Stack>
 
                     <div>

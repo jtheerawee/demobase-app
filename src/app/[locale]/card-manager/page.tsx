@@ -82,41 +82,45 @@ export default function CardManagerPage() {
 
                 <Grid gutter="md" align="flex-start" style={{ height: 'calc(100vh - 180px)' }}>
                     {/* Left Sidebar: Collected Cards (1/4) */}
-                    <Grid.Col span={{ base: 12, md: 3 }} h="100%">
-                        <CollectedCardsList ref={listRef} onImageClick={setPreviewImage} />
-                    </Grid.Col>
+                    {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_COLLECTION && (
+                        <Grid.Col span={{ base: 12, md: APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_SEARCH ? 3 : 12 }} h="100%">
+                            <CollectedCardsList ref={listRef} onImageClick={setPreviewImage} />
+                        </Grid.Col>
+                    )}
 
                     {/* Right Content: Search (3/4) */}
-                    <Grid.Col span={{ base: 12, md: 9 }} h="100%">
-                        <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
-                            <Stack gap="md" h="100%">
-                                <Group justify="space-between">
-                                    <Text fw={700} size="lg">Search Database</Text>
-                                </Group>
+                    {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_SEARCH && (
+                        <Grid.Col span={{ base: 12, md: APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_COLLECTION ? 9 : 12 }} h="100%">
+                            <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
+                                <Stack gap="md" h="100%">
+                                    <Group justify="space-between">
+                                        <Text fw={700} size="lg">Search Database</Text>
+                                    </Group>
 
-                                <CardManagerSearch
-                                    query={searchQuery}
-                                    setQuery={setSearchQuery}
-                                    loading={loading}
-                                />
+                                    <CardManagerSearch
+                                        query={searchQuery}
+                                        setQuery={setSearchQuery}
+                                        loading={loading}
+                                    />
 
-                                {results.length > 0 && (
-                                    <Text size="sm" fw={600} c="dimmed">
-                                        Found {results.length} cards
-                                    </Text>
-                                )}
+                                    {results.length > 0 && (
+                                        <Text size="sm" fw={600} c="dimmed">
+                                            Found {results.length} cards
+                                        </Text>
+                                    )}
 
-                                <CardManagerResult
-                                    results={results}
-                                    loading={loading}
-                                    query={searchQuery}
-                                    addingId={addingId}
-                                    onAddToCollection={handleAddToCollection}
-                                    onImageClick={setPreviewImage}
-                                />
-                            </Stack>
-                        </Card>
-                    </Grid.Col>
+                                    <CardManagerResult
+                                        results={results}
+                                        loading={loading}
+                                        query={searchQuery}
+                                        addingId={addingId}
+                                        onAddToCollection={handleAddToCollection}
+                                        onImageClick={setPreviewImage}
+                                    />
+                                </Stack>
+                            </Card>
+                        </Grid.Col>
+                    )}
                 </Grid>
             </Stack>
 
