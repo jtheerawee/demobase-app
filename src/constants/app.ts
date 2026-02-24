@@ -10,4 +10,5 @@ export const APP_CONFIG = {
 
     // MTG
     MTG_URL_EN: "https://gatherer.wizards.com/sets",
+    SCRAPER_PAGE_LOAD_DELAY_MS: 0,
 } as const;
