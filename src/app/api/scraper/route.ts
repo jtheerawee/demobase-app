@@ -29,7 +29,11 @@ export async function POST(request: Request) {
 
         if (!url && type === "collections") {
             if (franchise === "pokemon") {
-                url = APP_CONFIG.POKEMON_COLLECTION_URL;
+                if (language === "th") {
+                    url = APP_CONFIG.POKEMON_URL_TH;
+                } else {
+                    url = APP_CONFIG.POKEMON_URL_EN;
+                }
             } else {
                 url = APP_CONFIG.MTG_COLLECTION_URL;
             }
