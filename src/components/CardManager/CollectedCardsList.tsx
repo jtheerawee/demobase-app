@@ -16,11 +16,13 @@ const VARIANTS = ["NF", "F"];
 export interface CollectedCard {
     id: number;
     cardId: number;
+    collectionId?: number;
     name: string;
     imageUrl: string;
     cardNo: string;
     rarity: string;
     collectionName: string;
+    franchise?: string;
     quantity: number;
     variant?: string;
     condition?: string;
@@ -110,10 +112,13 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
     const handleExport = () => {
         if (collectedCards.length === 0) return;
 
-        const headers = ["Name", "Collection", "Card No", "Rarity", "Quantity", "Variant", "Condition"];
+        const headers = ["Franchise", "Collection", "Collection ID", "Card ID", "Name", "Card No", "Rarity", "Quantity", "Variant", "Condition"];
         const rows = collectedCards.map(c => [
-            `"${c.name}"`,
+            `"${c.franchise || "---"}"`,
             `"${c.collectionName}"`,
+            c.collectionId || "---",
+            c.cardId,
+            `"${c.name}"`,
             c.cardNo,
             c.rarity,
             c.quantity,
@@ -179,8 +184,16 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
                                             onClick={() => onImageClick?.(card.imageUrl)}
                                         />
                                         <Stack gap={0} style={{ flex: 1, minWidth: 0, height: '100%' }}>
-                                            <Text size="xs" fw={700} lineClamp={2}>{card.name}</Text>
-                                            <Text size="10px" c="dimmed" lineClamp={1}>{card.collectionName}</Text>
+                                            <Text size="xs" fw={700} lineClamp={1}>{card.name}</Text>
+                                            <Text size="10px" c="dimmed" lineClamp={1}>
+                                                {card.franchise ? `${card.franchise.toUpperCase()} • ` : ""}{card.collectionName}
+                                            </Text>
+
+                                            <Group gap={4} mt={2}>
+                                                <Text size="10px" fw={500} c="blue">#{card.cardNo}</Text>
+                                                <Text size="10px" c="dimmed">|</Text>
+                                                <Text size="10px" fw={500}>{card.rarity}</Text>
+                                            </Group>
 
                                             <Group gap={4} mt="auto" align="center" wrap="nowrap">
                                                 <Group gap={2} wrap="nowrap" bg="gray.1" px={4} py={2} style={{ borderRadius: '4px' }}>

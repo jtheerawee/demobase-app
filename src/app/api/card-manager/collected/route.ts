@@ -24,7 +24,9 @@ export async function GET() {
                     card_no,
                     rarity,
                     scraped_collections (
-                        name
+                        id,
+                        name,
+                        franchise
                     )
                 )
             `)
@@ -36,11 +38,13 @@ export async function GET() {
         const cards = data.map((item: any) => ({
             id: item.id,
             cardId: item.card_id,
+            collectionId: item.scraped_cards?.scraped_collections?.id,
             name: item.scraped_cards?.name,
             imageUrl: item.scraped_cards?.image_url,
             cardNo: item.scraped_cards?.card_no,
             rarity: item.scraped_cards?.rarity,
             collectionName: item.scraped_cards?.scraped_collections?.name,
+            franchise: item.scraped_cards?.scraped_collections?.franchise,
             quantity: item.quantity,
             variant: item.variant,
             condition: item.condition

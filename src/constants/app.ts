@@ -13,5 +13,5 @@ export const APP_CONFIG = {
     SCRAPER_PAGE_LOAD_DELAY_MS: 0,
     // Search
     SEARCH_MIN_CHARS: 3,
-    SEARCH_RESULTS_PER_ROW: 4,
+    SEARCH_RESULTS_PER_ROW: 3,
 } as const;
