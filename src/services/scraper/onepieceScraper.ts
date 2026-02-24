@@ -1,5 +1,7 @@
-import { scrapeOnepieceCardsEn, scrapeOnepieceCollectionsEn } from "@/services/scraper/onepieceScraperEn";
-import { scrapeOnepieceCardsJp, scrapeOnepieceCollectionsJp } from "@/services/scraper/onepieceScraperJp";
+import { scrapeOnepieceCardsEn } from "@/services/scraper/onepieceCardScraperEn";
+import { scrapeOnepieceCollectionsEn } from "@/services/scraper/onepieceCollectionScraperEn";
+import { scrapeOnepieceCardsJp } from "@/services/scraper/onepieceCardScraperJp";
+import { scrapeOnepieceCollectionsJp } from "@/services/scraper/onepieceCollectionScraperJp";
 import type { ScraperOptions } from "@/services/scraper/types";
 
 /**

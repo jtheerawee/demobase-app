@@ -1,5 +1,7 @@
-import { scrapePokemonCardsEn, scrapePokemonCollectionsEn } from "./pokemonScraperEn";
-import { scrapePokemonCardsTh, scrapePokemonCollectionsTh } from "./pokemonScraperTh";
+import { scrapePokemonCardsEn } from "./pokemonCardScraperEn";
+import { scrapePokemonCollectionsEn } from "./pokemonCollectionScraperEn";
+import { scrapePokemonCardsTh } from "./pokemonCardScraperTh";
+import { scrapePokemonCollectionsTh } from "./pokemonCollectionScraperTh";
 import type { ScraperOptions } from "./types";
 
 /**
