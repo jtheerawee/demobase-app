@@ -173,29 +173,45 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
                     ) : (
                         <Stack gap="sm">
                             {collectedCards.map((card) => (
-                                <Card key={card.id} withBorder padding={4} radius="xs" h={100}>
-                                    <Group gap="xs" wrap="nowrap" h="100%">
-                                        <Image
-                                            src={card.imageUrl}
-                                            w={60}
-                                            h={90}
-                                            radius="xs"
-                                            style={{ objectFit: 'contain', cursor: 'pointer' }}
-                                            onClick={() => onImageClick?.(card.imageUrl)}
-                                        />
-                                        <Stack gap={0} style={{ flex: 1, minWidth: 0, height: '100%' }}>
-                                            <Text size="xs" fw={700} lineClamp={1}>{card.name}</Text>
+                                <Card
+                                    key={card.id}
+                                    withBorder
+                                    padding="xs"
+                                    radius="sm"
+                                    h={115}
+                                    style={{
+                                        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                                        cursor: 'default'
+                                    }}
+                                >
+                                    <Group gap="sm" wrap="nowrap" h="100%" align="center">
+                                        <Box w={65} style={{ display: 'flex', justifyContent: 'center' }}>
+                                            <Image
+                                                src={card.imageUrl}
+                                                w={60}
+                                                h={85}
+                                                radius="xs"
+                                                style={{
+                                                    objectFit: 'contain',
+                                                    cursor: 'pointer',
+                                                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                                                }}
+                                                onClick={() => onImageClick?.(card.imageUrl)}
+                                            />
+                                        </Box>
+
+                                        <Stack gap={2} style={{ flex: 1, minWidth: 0, height: '100%', justifyContent: 'center' }}>
+                                            <Text size="xs" fw={700} lineClamp={1} style={{ lineHeight: 1.2 }}>{card.name}</Text>
                                             <Text size="10px" c="dimmed" lineClamp={1}>
                                                 {card.franchise ? `${card.franchise.toUpperCase()} • ` : ""}{card.collectionName}
                                             </Text>
 
-                                            <Group gap={4} mt={2}>
-                                                <Text size="10px" fw={500} c="blue">#{card.cardNo}</Text>
-                                                <Text size="10px" c="dimmed">|</Text>
-                                                <Text size="10px" fw={500}>{card.rarity}</Text>
+                                            <Group gap={6} mt={2} align="center">
+                                                <Text size="10px" fw={600} c="blue.7" bg="blue.0" px={4} style={{ borderRadius: '2px' }}>#{card.cardNo}</Text>
+                                                <Text size="10px" fw={500} bg="gray.1" px={4} style={{ borderRadius: '2px' }}>{card.rarity}</Text>
                                             </Group>
 
-                                            <Group gap={4} mt="auto" align="center" wrap="nowrap">
+                                            <Group gap={4} mt={4} align="center" wrap="nowrap">
                                                 <Group gap={2} wrap="nowrap" bg="gray.1" px={4} py={2} style={{ borderRadius: '4px' }}>
                                                     <ActionIcon
                                                         size="xs"

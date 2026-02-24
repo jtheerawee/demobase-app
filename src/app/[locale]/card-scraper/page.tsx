@@ -8,7 +8,8 @@ import { CardScraperInputs } from "@/components/CardScraper/CardScraperInputs";
 import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRunningSteps";
 import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardList";
 import { CardScraperStats, type ScraperStats } from "@/components/CardScraper/CardScraperStats";
-import { IconDatabaseExport, IconAlertCircle } from "@tabler/icons-react";
+import { IconDatabaseExport, IconAlertCircle, IconCheck } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 import { useState, useRef, useEffect } from "react";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -199,6 +200,13 @@ export default function CardScraperPage() {
 
         setCardLoading(false);
         if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
+
+        notifications.show({
+            title: "Bulk Scraping Complete",
+            message: `Successfully processed ${collections.length} collections.`,
+            color: "green",
+            icon: <IconCheck size={18} />
+        });
     };
 
     const handleDownloadCollections = async () => {
@@ -228,6 +236,13 @@ export default function CardScraperPage() {
             });
         });
         setCollectionLoading(false);
+
+        notifications.show({
+            title: "Collections Updated",
+            message: `Successfully scraped collections for ${selectedFranchise.toUpperCase()}.`,
+            color: "green",
+            icon: <IconCheck size={18} />
+        });
     };
 
     const handleDownloadCards = async (specificCollection?: any) => {
@@ -269,6 +284,13 @@ export default function CardScraperPage() {
                 if (freshCol) setSelectedCollection(freshCol);
             }
         }
+
+        notifications.show({
+            title: "Scraping Complete",
+            message: `Successfully scraped cards for ${targetCollection.name}.`,
+            color: "green",
+            icon: <IconCheck size={18} />
+        });
     };
 
     const handleDeleteCard = async (id: string | number) => {
@@ -425,7 +447,14 @@ export default function CardScraperPage() {
                 ]);
                 return;
             }
-            setError(err.message || "An unexpected error occurred");
+            const errorMessage = err.message || "An unexpected error occurred";
+            setError(errorMessage);
+            notifications.show({
+                title: "Scraping Failed",
+                message: errorMessage,
+                color: "red",
+                icon: <IconAlertCircle size={18} />
+            });
         } finally {
             abortControllerRef.current = null;
         }

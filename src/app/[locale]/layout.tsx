@@ -46,7 +46,7 @@ export default async function LocaleLayout({
                     theme={{ fontFamily: `'${fontFamily}', sans-serif` }}
                 >
                     <NextIntlClientProvider messages={messages}>
-                        <Notifications />
+                        <Notifications position="top-right" />
                         <div style={{ maxWidth: "80%", margin: "0 auto" }}>
                             <Navbar />
                             {children}
