@@ -1,6 +1,10 @@
 import { Container, SimpleGrid, Stack } from "@mantine/core";
 import { WidgetCard } from "@/components/WidgetCard";
-import { IconDatabaseExport, IconShoppingCart } from "@tabler/icons-react";
+import {
+    IconDatabaseExport,
+    IconLayoutDashboard,
+    IconShoppingCart,
+} from "@tabler/icons-react";
 
 export default async function HomePage() {
     return (
@@ -19,11 +23,21 @@ export default async function HomePage() {
                     />
                     <WidgetCard
                         title="Card Scraper"
-                        href="/scraper"
+                        href="/card-scraper"
                         icon={
                             <IconDatabaseExport
                                 size={24}
                                 color="var(--mantine-color-blue-6)"
+                            />
+                        }
+                    />
+                    <WidgetCard
+                        title="Card Manager"
+                        href="/card-manager"
+                        icon={
+                            <IconLayoutDashboard
+                                size={24}
+                                color="var(--mantine-color-grape-6)"
                             />
                         }
                     />

@@ -478,8 +478,8 @@ export default function EbaySearchPage() {
     };
 
     return (
-        <Container size="xl" py="xl">
-            <Stack gap="xl">
+        <Container size="xl" py="md">
+            <Stack gap="lg">
                 <PageHeader
                     title="eBay Assistance"
                     description="Analyze active and sold listings to find the best market prices."
