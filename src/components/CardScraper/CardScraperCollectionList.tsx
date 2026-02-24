@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea } from "@mantine/core";
-import { IconTrash, IconExternalLink, IconPackage } from "@tabler/icons-react";
+import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea, TextInput } from "@mantine/core";
+import { IconTrash, IconExternalLink, IconPackage, IconDownload, IconSearch } from "@tabler/icons-react";
+import { useState } from "react";
 
 interface CollectionItem {
     id: string | number;
@@ -16,12 +17,30 @@ interface CollectionItem {
 interface CardScraperCollectionListProps {
     collections?: CollectionItem[];
     onSelect?: (id: string | number) => void;
+    onDownloadItem?: (item: CollectionItem) => void;
+    onDownloadAll?: () => void;
     onDeleteAll?: () => void;
     loading?: boolean;
 }
 
-export function CardScraperCollectionList({ collections = [], onSelect, onDeleteAll, loading }: CardScraperCollectionListProps) {
+export function CardScraperCollectionList({
+    collections = [],
+    onSelect,
+    onDownloadItem,
+    onDownloadAll,
+    onDeleteAll,
+    loading
+}: CardScraperCollectionListProps) {
+    const [search, setSearch] = useState("");
     const totalCount = collections.length;
+
+    const filteredCollections = collections.filter(item => {
+        const query = search.toLowerCase();
+        return (
+            item.name.toLowerCase().includes(query) ||
+            (item.collectionCode && item.collectionCode.toLowerCase().includes(query))
+        );
+    });
 
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
@@ -30,16 +49,28 @@ export function CardScraperCollectionList({ collections = [], onSelect, onDelete
                     <Text fw={700}>Collections</Text>
                     <Group gap="xs">
                         {totalCount > 0 && (
-                            <ActionIcon
-                                variant="light"
-                                color="red"
-                                size="sm"
-                                onClick={onDeleteAll}
-                                title="Delete all collections"
-                                loading={loading}
-                            >
-                                <IconTrash size={16} />
-                            </ActionIcon>
+                            <>
+                                <ActionIcon
+                                    variant="light"
+                                    color="green"
+                                    size="sm"
+                                    onClick={onDownloadAll}
+                                    title="Download cards for all collections"
+                                    loading={loading}
+                                >
+                                    <IconDownload size={16} />
+                                </ActionIcon>
+                                <ActionIcon
+                                    variant="light"
+                                    color="red"
+                                    size="sm"
+                                    onClick={onDeleteAll}
+                                    title="Delete all collections"
+                                    loading={loading}
+                                >
+                                    <IconTrash size={16} />
+                                </ActionIcon>
+                            </>
                         )}
                         <Badge variant="light" color="blue">
                             {totalCount} Total
@@ -47,15 +78,24 @@ export function CardScraperCollectionList({ collections = [], onSelect, onDelete
                     </Group>
                 </Group>
 
+                <TextInput
+                    placeholder="Search by name or code..."
+                    leftSection={<IconSearch size={14} />}
+                    value={search}
+                    onChange={(e) => setSearch(e.currentTarget.value)}
+                    size="xs"
+                    radius="md"
+                />
+
                 <ScrollArea h={400} offsetScrollbars>
                     <Stack gap="xs">
-                        {collections.map((item) => (
+                        {filteredCollections.map((item) => (
                             <Card
                                 key={item.id}
                                 withBorder
                                 padding="sm"
                                 radius="sm"
-                                style={{ cursor: onSelect ? 'pointer' : 'default' }}
+                                style={{ cursor: 'pointer' }}
                                 onClick={() => onSelect?.(item.id)}
                             >
                                 <Group justify="space-between" align="center" wrap="nowrap">
@@ -75,6 +115,20 @@ export function CardScraperCollectionList({ collections = [], onSelect, onDelete
                                         </Text>
                                     </Stack>
                                     <Group gap={4}>
+                                        {onDownloadItem && (
+                                            <ActionIcon
+                                                variant="subtle"
+                                                color="green"
+                                                size="sm"
+                                                title="Download cards for this collection"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onDownloadItem(item);
+                                                }}
+                                            >
+                                                <IconDownload size={16} />
+                                            </ActionIcon>
+                                        )}
                                         {item.collectionUrl && (
                                             <ActionIcon
                                                 variant="subtle"

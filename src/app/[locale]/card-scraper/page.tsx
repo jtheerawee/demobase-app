@@ -67,6 +67,44 @@ export default function CardScraperPage() {
         }
     };
 
+    const handleDownloadAllCards = async () => {
+        if (collections.length === 0) return;
+        if (!confirm(`Are you sure you want to download cards for ALL ${collections.length} collections? This may take a long time.`)) return;
+
+        setCardLoading(true);
+        setError(null);
+
+        for (const col of collections) {
+            setSteps((prev) => [
+                ...prev,
+                {
+                    id: Date.now(),
+                    message: `Starting bulk download for: ${col.name}`,
+                    status: "running",
+                    timestamp: new Date().toLocaleTimeString(),
+                }
+            ]);
+
+            const requestData = {
+                url: col.collectionUrl,
+                type: "cards",
+                franchise: selectedFranchise,
+                language: "en",
+                skipSave: false,
+                deepScrape: true,
+                collectionId: col.id,
+            };
+
+            await runScraperStream(requestData, (items) => {
+                // We update step logs but don't necessarily need to show all cards in the list during bulk
+                // though it might be nice.
+            });
+        }
+
+        setCardLoading(false);
+        if (selectedFranchise) fetchExistingCollections(selectedFranchise);
+    };
+
     const handleDownloadCollections = async () => {
         if (!selectedFranchise) return;
 
@@ -98,27 +136,34 @@ export default function CardScraperPage() {
         setCollectionLoading(false);
     };
 
-    const handleDownloadCards = async () => {
-        if (!selectedCollection?.collectionUrl) return;
+    const handleDownloadCards = async (specificCollection?: any) => {
+        const targetCollection = specificCollection || selectedCollection;
+        if (!targetCollection?.collectionUrl) return;
+
+        // If it's a specific download, also select it to show in the cards list
+        if (specificCollection) {
+            setSelectedCollection(specificCollection);
+        }
 
         setCardLoading(true);
         setCards([]);
         setError(null);
 
         const requestData = {
-            url: selectedCollection.collectionUrl,
+            url: targetCollection.collectionUrl,
             type: "cards",
             franchise: selectedFranchise,
             language: "en",
-            skipSave: false, // Now saving to database
+            skipSave: false,
             deepScrape: true,
-            collectionId: selectedCollection.id, // Pass ID for persistence
+            collectionId: targetCollection.id,
         };
 
         await runScraperStream(requestData, (items) => {
             setCards((prev) => [...prev, ...items]);
         });
         setCardLoading(false);
+        if (selectedFranchise) fetchExistingCollections(selectedFranchise);
     };
 
     const runScraperStream = async (requestData: any, onItems: (items: any[]) => void) => {
@@ -279,6 +324,8 @@ export default function CardScraperPage() {
                             collections={collections}
                             loading={collectionLoading}
                             onDeleteAll={handleDeleteAll}
+                            onDownloadAll={handleDownloadAllCards}
+                            onDownloadItem={handleDownloadCards}
                             onSelect={async (id) => {
                                 const col = collections.find(c => c.id === id);
                                 setSelectedCollection(col);

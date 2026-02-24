@@ -75,25 +75,6 @@ export async function POST(request: Request) {
                                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                         });
 
-                        let scrapedIndex = 0;
-                        if (!skipSave && type === "collections" && franchise && language) {
-                            send({ type: "step", message: "Determining next scraping index..." });
-                            const supabase = await createClient();
-                            const { data } = await supabase
-                                .from("scraped_collections")
-                                .select("scraped_index")
-                                .eq("franchise", franchise)
-                                .eq("language", language)
-                                .order("scraped_index", { ascending: false })
-                                .limit(1);
-
-                            scrapedIndex = data && data.length > 0 ? (data[0].scraped_index ?? -1) + 1 : 1;
-                            send({
-                                type: "step",
-                                message: `Iteration Index: ${scrapedIndex} (Franchise: ${franchise}, Language: ${language})`,
-                            });
-                        }
-
                         const scraperOptions = {
                             url,
                             type,
@@ -102,7 +83,6 @@ export async function POST(request: Request) {
                             send,
                             franchise,
                             language,
-                            scrapedIndex,
                             collectionId,
                             skipSave,
                         };

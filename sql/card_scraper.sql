@@ -1,4 +1,10 @@
 -- ==========================================
+-- DROP EXISTING TABLES (CAUTION: Deletes all scraped data)
+-- ==========================================
+DROP TABLE IF EXISTS public.scraped_cards;
+DROP TABLE IF EXISTS public.scraped_collections;
+
+-- ==========================================
 -- SCRAPED COLLECTIONS TABLE
 -- ==========================================
 
@@ -6,7 +12,6 @@ CREATE TABLE public.scraped_collections (
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name            TEXT NOT NULL,
     collection_code TEXT,
-    scraped_index   INTEGER NOT NULL,
     image_url       TEXT,
     collection_url  TEXT NOT NULL UNIQUE,
     franchise       TEXT NOT NULL, -- 'mtg', 'pokemon', etc.
@@ -26,7 +31,6 @@ CREATE POLICY "Authenticated users can manage scraped collections" ON public.scr
 -- INDEXES
 CREATE INDEX idx_scraped_collections_franchise ON public.scraped_collections(franchise);
 CREATE INDEX idx_scraped_collections_url ON public.scraped_collections(collection_url);
-CREATE INDEX idx_scraped_collections_index ON public.scraped_collections(scraped_index);
 CREATE INDEX idx_scraped_collections_language ON public.scraped_collections(language);
 
 -- ==========================================

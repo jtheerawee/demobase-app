@@ -3,7 +3,7 @@ import { saveScrapedCards, saveScrapedCollections } from "./persistence";
 import type { ScraperOptions } from "./types";
 
 export async function scrapeMTGCards({ url, context, send, collectionId, deepScrape }: ScraperOptions) {
-    send({ type: "step", message: "MTG Gatherer detected. Starting single-pass scrape..." });
+    send({ type: "step", message: "MTG Gatherer detected. Starting card extraction..." });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
@@ -16,144 +16,94 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
     updateWorkers(1);
     const workerPage = await context.newPage();
     const allCards: any[] = [];
+    const uniqueCardUrls = new Set<string>();
 
     try {
         if (isModernSetUrl) {
-            // ── Modern set page: single-page card grid ──
-            send({ type: "step", message: "Modern set page detected. Loading full card grid..." });
-            await workerPage.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+            // ── Modern set page: paginated card grid ──
+            let p = 1;
+            while (true) {
+                const pageUrl = p === 1 ? url : (url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`);
+                send({ type: "step", message: `Modern set page: Loading page ${p}...` });
 
-            // Extract the set code from the URL for matching card links
-            const setCodeMatch = url.match(/\/sets\/([A-Za-z0-9]+)/);
-            const setCode = setCodeMatch ? setCodeMatch[1].toUpperCase() : "";
+                await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-            send({ type: "step", message: `Extracting cards for set ${setCode}...` });
+                // Extract the set code from the URL for matching card links
+                const setCodeMatch = url.match(/\/sets\/([A-Za-z0-9]+)/);
+                const setCode = setCodeMatch ? setCodeMatch[1].toUpperCase() : "";
 
-            const pageCards = await workerPage.evaluate((sc: string) => {
-                // Card links follow: /{SET}/{lang}/{cardNo}/{card-slug}
-                const pattern = new RegExp(`^/${sc}/([a-z]{2}-[a-z]{2})/(\\d+)/(.+)$`, "i");
-                const links = document.querySelectorAll(`a[href^="/${sc}/"]`);
+                const pageResults = await workerPage.evaluate((sc: string) => {
+                    // Card links follow: /{SET}/{lang}/{cardNo}/{card-slug}
+                    const pattern = new RegExp(`^/${sc}/([a-z]{2}-[a-z]{2})/(\\d+)/(.+)$`, "i");
+                    const links = document.querySelectorAll(`a[href^="/${sc}/"]`);
 
-                return Array.from(links)
-                    .map((el) => {
-                        const a = el as HTMLAnchorElement;
-                        const href = a.getAttribute("href") || "";
-                        const match = href.match(pattern);
-                        if (!match) return null;
+                    const items = Array.from(links)
+                        .map((el) => {
+                            const a = el as HTMLAnchorElement;
+                            const href = a.getAttribute("href") || "";
+                            const match = href.match(pattern);
+                            if (!match) return null;
 
-                        const [, lang, cardNo, slug] = match;
-                        const img = a.querySelector("img") as HTMLImageElement | null;
+                            const [, lang, cardNo, slug] = match;
+                            const img = a.querySelector("img") as HTMLImageElement | null;
 
-                        // Get card name from img alt (strip " card" suffix) or title
-                        const altText = img?.alt || "";
-                        const name = altText.replace(/ card$/i, "").trim()
-                            || img?.title?.split(",")[0]?.trim()
-                            || slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+                            const altText = img?.alt || "";
+                            const name = altText.replace(/ card$/i, "").trim()
+                                || img?.title?.split(",")[0]?.trim()
+                                || slug.replace(/-/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
 
-                        const imageUrl = img?.src || "";
+                            const imageUrl = img?.src || "";
 
-                        return {
-                            name,
-                            imageUrl,
-                            cardUrl: `https://gatherer.wizards.com${href}`,
-                            rarity: "",
-                            manaCost: "",
-                            manaValue: undefined as number | undefined,
-                            typeLine: "",
-                            artist: "",
-                            cardNo,
-                            alt: name,
-                        };
-                    })
-                    .filter((c): c is NonNullable<typeof c> => c !== null);
-            }, setCode);
+                            return {
+                                name,
+                                imageUrl,
+                                cardUrl: `https://gatherer.wizards.com${href}`,
+                                cardNo,
+                                alt: name,
+                            };
+                        })
+                        .filter((c): c is NonNullable<typeof c> => c !== null);
 
-            send({ type: "step", message: `Found ${pageCards.length} cards on modern set page.` });
+                    return { items };
+                }, setCode);
 
-            // Close the initial page used for grid extraction
-            await workerPage.close();
-            updateWorkers(-1);
+                const pageCards = pageResults.items;
 
-            if (pageCards.length > 0) {
-                // Deep scrape using parallel workers
-                const concurrency = Math.min(APP_CONFIG.CARD_CONCURRENCY_LIMIT || 10, pageCards.length);
-                send({ type: "step", message: `Launching ${concurrency} workers to deep scrape ${pageCards.length} cards...` });
+                if (pageCards.length === 0) {
+                    send({ type: "step", message: `No more cards found for set ${setCode} at page ${p + 1}.` });
+                    break;
+                }
 
-                let nextCardIndex = 0;
+                // Check for duplicates to prevent infinite loops if the site repeats data
+                const newCards = pageCards.filter((c: any) => !uniqueCardUrls.has(c.cardUrl));
+                if (newCards.length === 0) {
+                    send({ type: "step", message: `Page ${p + 1} returned only duplicate cards. Evolution complete.` });
+                    break;
+                }
+                newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
 
-                const deepScrapeWorker = async (workerId: number) => {
-                    updateWorkers(1);
-                    const wp = await context.newPage();
-                    try {
-                        while (true) {
-                            const idx = nextCardIndex++;
-                            if (idx >= pageCards.length) break;
+                send({ type: "step", message: `Found ${newCards.length} new cards on page ${p + 1}.` });
+                allCards.push(...newCards);
 
-                            const card = pageCards[idx];
-                            try {
-                                await wp.goto(card.cardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-
-                                const details = await wp.evaluate(() => {
-                                    const oracleText = Array.from(document.querySelectorAll("[data-testid='cardDetailsOracleText'], .textbox, [class*='oracleText']"))
-                                        .map(el => el.textContent?.trim())
-                                        .filter(Boolean)
-                                        .join("\n\n");
-
-                                    const flavorText = document.querySelector("[data-testid='cardDetailsFlavorText'], .flavortextbox, [class*='flavorText']")?.textContent?.trim() || "";
-                                    const ptEl = document.querySelector("[data-testid='cardDetailsPT']");
-                                    const pt = ptEl?.textContent?.trim() || "";
-                                    const [power, toughness] = pt.includes("/") ? pt.split("/").map(s => s.trim()) : ["", ""];
-                                    const typeEl = document.querySelector("[data-testid='cardDetailsTypeLine'], [class*='typeLine']");
-                                    const typeLine = typeEl?.textContent?.trim() || "";
-                                    const manaCostEl = document.querySelector("[data-testid='cardDetailsManaCost'], [class*='manaCost']");
-                                    const manaCost = manaCostEl?.textContent?.trim() || "";
-                                    const rarityEl = document.querySelector("[data-testid='cardDetailsRarity']");
-                                    const rarity = rarityEl?.textContent?.trim() || "";
-                                    const artistEl = document.querySelector("[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist']");
-                                    const artist = artistEl?.textContent?.trim() || "";
-
-                                    return { oracleText, flavorText, power, toughness, typeLine, manaCost, rarity, artist };
-                                });
-
-                                for (const [key, value] of Object.entries(details)) {
-                                    if (value) (card as any)[key] = value;
-                                }
-
-                                send({ type: "chunk", items: [card], startIndex: idx });
-                            } catch (err) {
-                                console.error(`[Worker ${workerId}] Failed to deep scrape ${card.name}:`, err);
-                                send({ type: "step", message: `Warning: Worker ${workerId} failed on ${card.name}` });
-                            }
-                        }
-                    } finally {
-                        await wp.close();
-                        updateWorkers(-1);
-                    }
-                };
-
-                const workers = Array.from({ length: concurrency }, async (_, i) => {
-                    const workerId = i + 1;
-                    if (i > 0) await new Promise(r => setTimeout(r, i * 200));
-                    return deepScrapeWorker(workerId);
-                });
-
-                await Promise.all(workers);
-                allCards.push(...pageCards);
+                p++;
+                if (p > 50) break; // Safety cap
             }
         } else {
             // ── Legacy checklist view: paginated table ──
-            let p = 1;
+            let p = 0;
             while (true) {
-                const pageUrl = url.includes("output=checklist")
-                    ? url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`
-                    : url.includes("?")
-                        ? `${url}&output=checklist&page=${p}`
-                        : `${url}?output=checklist&page=${p}`;
+                const pageUrl = p === 0
+                    ? (url.includes("output=checklist") ? url : (url.includes("?") ? `${url}&output=checklist` : `${url}?output=checklist`))
+                    : (url.includes("output=checklist")
+                        ? (url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`)
+                        : (url.includes("?")
+                            ? `${url}&output=checklist&page=${p}`
+                            : `${url}?output=checklist&page=${p}`));
 
-                send({ type: "step", message: `Navigating to cards page ${p}: ${pageUrl}` });
+                send({ type: "step", message: `Navigating to cards page ${p + 1}: ${pageUrl}` });
                 await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
-                const pageCards = await workerPage.evaluate(() => {
+                const pageCardsRaw = await workerPage.evaluate(() => {
                     const rows = document.querySelectorAll("tr.cardItem");
                     if (rows.length === 0) return [];
 
@@ -208,79 +158,112 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                     });
                 });
 
-                if (pageCards.length === 0) {
-                    send({ type: "step", message: `No more cards found at page ${p}.` });
+                if (pageCardsRaw.length === 0) {
+                    send({ type: "step", message: `No more cards found at page ${p + 1}.` });
                     break;
                 }
 
-                send({ type: "step", message: `Found ${pageCards.length} cards on page ${p}.` });
-
-                // Deep Scraping
-                send({ type: "step", message: `Deep Scraping ${pageCards.length} cards for Oracle text and details...` });
-                for (let i = 0; i < pageCards.length; i++) {
-                    const card = pageCards[i];
-                    if (!card.cardUrl) continue;
-
-                    try {
-                        await workerPage.goto(card.cardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-
-                        const details = await workerPage.evaluate(() => {
-                            const oracleText = Array.from(document.querySelectorAll(".textbox"))
-                                .map(el => el.textContent?.trim())
-                                .filter(Boolean)
-                                .join("\n\n");
-
-                            const flavorText = document.querySelector(".flavortextbox")?.textContent?.trim() || "";
-
-                            const ptLabel = Array.from(document.querySelectorAll(".label")).find(el => el.textContent?.includes("P/T:"));
-                            const pt = ptLabel?.nextElementSibling?.textContent?.trim() || "";
-                            const [power, toughness] = pt.includes("/") ? pt.split("/").map(s => s.trim()) : ["", ""];
-
-                            return { oracleText, flavorText, power, toughness };
-                        });
-
-                        Object.assign(card, details);
-
-                        if (i % 5 === 0) {
-                            send({ type: "chunk", items: [card], startIndex: allCards.length + i });
-                        }
-                    } catch (err) {
-                        console.error(`Failed to deep scrape ${card.name}:`, err);
-                        send({ type: "step", message: `Warning: Failed to get details for ${card.name}` });
-                    }
+                const newCards = pageCardsRaw.filter((c: any) => !uniqueCardUrls.has(c.cardUrl));
+                if (newCards.length === 0) {
+                    send({ type: "step", message: `Page ${p + 1} returned only duplicate cards. Evolution complete.` });
+                    break;
                 }
+                newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
 
-                allCards.push(...pageCards);
-                send({ type: "chunk", items: pageCards, startIndex: allCards.length - pageCards.length });
+                send({ type: "step", message: `Found ${newCards.length} new cards on page ${p + 1}.` });
+                allCards.push(...newCards);
 
                 p++;
                 if (p > 50) break;
             }
         }
 
-        send({ type: "step", message: `Total found: ${allCards.length} cards. Extraction complete.` });
-        send({ type: "meta", totalItems: allCards.length, totalPages: 1 });
+        if (allCards.length > 0) {
+            // ── Deep Scraping / Details Extraction ──
+            send({ type: "step", message: `Launching workers to deep scrape ${allCards.length} cards...` });
+            const concurrency = Math.min(APP_CONFIG.CARD_CONCURRENCY_LIMIT || 10, allCards.length);
+            let nextCardIndex = 0;
 
-        // Save to database
-        if (collectionId && allCards.length > 0) {
-            send({ type: "step", message: "Saving all cards to database..." });
-            try {
-                await saveScrapedCards(allCards, collectionId);
-                send({ type: "step", message: `Successfully saved ${allCards.length} cards.` });
-            } catch (error) {
-                console.error("Failed to save cards:", error);
-                send({ type: "step", message: "Warning: Failed to persist cards to database." });
+            const deepScrapeWorker = async (workerId: number) => {
+                updateWorkers(1);
+                const wp = await context.newPage();
+                try {
+                    while (true) {
+                        const idx = nextCardIndex++;
+                        if (idx >= allCards.length) break;
+
+                        const card = allCards[idx];
+                        try {
+                            await wp.goto(card.cardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+
+                            const details = await wp.evaluate(() => {
+                                // Match both modern and legacy detail layouts
+                                const oracleText = Array.from(document.querySelectorAll("[data-testid='cardDetailsOracleText'], .textbox, [class*='oracleText']"))
+                                    .map(el => el.textContent?.trim())
+                                    .filter(Boolean)
+                                    .join("\n\n");
+
+                                const flavorText = document.querySelector("[data-testid='cardDetailsFlavorText'], .flavortextbox, [class*='flavorText']")?.textContent?.trim() || "";
+
+                                const ptEl = document.querySelector("[data-testid='cardDetailsPT']");
+                                let pt = ptEl?.textContent?.trim() || "";
+                                if (!pt) {
+                                    const ptLabel = Array.from(document.querySelectorAll(".label")).find(el => el.textContent?.includes("P/T:"));
+                                    pt = ptLabel?.nextElementSibling?.textContent?.trim() || "";
+                                }
+                                const [power, toughness] = pt.includes("/") ? pt.split("/").map(s => s.trim()) : ["", ""];
+
+                                const typeEl = document.querySelector("[data-testid='cardDetailsTypeLine'], .typeLine, [class*='typeLine']");
+                                const typeLine = typeEl?.textContent?.trim() || "";
+
+                                const manaCostEl = document.querySelector("[data-testid='cardDetailsManaCost'], .manaCost, [class*='manaCost']");
+                                const manaCost = manaCostEl?.textContent?.trim() || "";
+
+                                const rarityEl = document.querySelector("[data-testid='cardDetailsRarity'], .rarity");
+                                const rarity = rarityEl?.textContent?.trim() || "";
+
+                                const artistEl = document.querySelector("[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist");
+                                const artist = artistEl?.textContent?.trim() || "";
+
+                                return { oracleText, flavorText, power, toughness, typeLine, manaCost, rarity, artist };
+                            });
+
+                            Object.assign(card, details);
+                            send({ type: "chunk", items: [card], startIndex: idx });
+                        } catch (err) {
+                            console.error(`[Worker ${workerId}] Failed: ${card.name}`, err);
+                        }
+                    }
+                } finally {
+                    await wp.close();
+                    updateWorkers(-1);
+                }
+            };
+
+            const workers = Array.from({ length: concurrency }, (_, i) => deepScrapeWorker(i + 1));
+            await Promise.all(workers);
+
+            // Save to database
+            if (collectionId) {
+                send({ type: "step", message: "Saving all cards to database..." });
+                try {
+                    await saveScrapedCards(allCards, collectionId);
+                    send({ type: "step", message: `Successfully saved ${allCards.length} cards.` });
+                } catch (error) {
+                    console.error("Failed to save cards:", error);
+                }
             }
         }
+
+        send({ type: "step", message: `Total extracted: ${allCards.length} cards.` });
+        send({ type: "meta", totalItems: allCards.length, totalPages: 1 });
     } finally {
-        if (!isModernSetUrl) {
-            await workerPage.close();
-            updateWorkers(-1);
-        }
+        await workerPage.close();
+        updateWorkers(-1);
     }
 }
 
-export async function scrapeMTGCollections({ url, context, send, franchise, language, scrapedIndex, skipSave }: ScraperOptions) {
+export async function scrapeMTGCollections({ url, context, send, franchise, language, skipSave }: ScraperOptions) {
     send({ type: "step", message: "MTG Gatherer detected. Fetching sets..." });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
@@ -296,14 +279,15 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
 
     try {
         while (true) {
-            const pageUrl = url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`;
+            const pageUrl = p === 1 ? url : (url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`);
             send({ type: "step", message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})` });
 
             await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
             send({ type: "step", message: `Searching for set links on page ${p}...` });
             const pageResults = await workerPage.evaluate((currentUrl: string) => {
-                const setLinks = document.querySelectorAll("a[href*='/sets/']");
+                // Try modern /sets/ paths first, then standard Gatherer set query params
+                const setLinks = document.querySelectorAll('a[href*="/sets/"], a[href*="set="]');
                 const rawItems = Array.from(setLinks).map((el: any) => ({
                     name: el.textContent?.trim() || "",
                     href: el.getAttribute("href") || "",
@@ -350,12 +334,11 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
             send({ type: "chunk", items: newSets, startIndex: allDiscoveredSets.length });
             allDiscoveredSets.push(...newSets);
 
-            if (!skipSave && franchise && language && scrapedIndex !== undefined && newSets.length > 0) {
+            if (!skipSave && franchise && language && newSets.length > 0) {
                 try {
                     const savedData = await saveScrapedCollections(newSets, {
                         franchise,
                         language,
-                        scrapedIndex,
                     });
                     send({ type: "savedCollections", items: savedData });
                     send({ type: "step", message: `Page ${p}: Successfully saved ${newSets.length} collections.` });

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
 
         let query = supabase
             .from("scraped_collections")
-            .select("id, name, collection_code, scraped_index, image_url, collection_url, scraped_cards(count)")
+            .select("id, name, collection_code, image_url, collection_url, scraped_cards(count)")
             .order("name", { ascending: true });
 
         if (franchise) {
@@ -32,7 +32,6 @@ export async function GET(request: Request) {
             id: col.id,
             name: col.name,
             collectionCode: col.collection_code,
-            scrapedIndex: col.scraped_index,
             imageUrl: col.image_url,
             collectionUrl: col.collection_url,
             cardCount: col.scraped_cards?.[0]?.count || 0,

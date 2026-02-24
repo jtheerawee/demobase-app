@@ -6,7 +6,6 @@ export async function saveScrapedCollections(
     context: {
         franchise: string;
         language: string;
-        scrapedIndex: number;
     }
 ) {
     if (collections.length === 0) return;
@@ -15,7 +14,6 @@ export async function saveScrapedCollections(
     const dataToInsert = collections.map((col) => ({
         name: col.name,
         collection_code: col.collectionCode,
-        scraped_index: context.scrapedIndex,
         image_url: col.imageUrl,
         collection_url: col.collectionUrl,
         franchise: context.franchise,
@@ -38,7 +36,6 @@ export async function saveScrapedCollections(
         collectionUrl: d.collection_url,
         imageUrl: d.image_url,
         collectionCode: d.collection_code,
-        scrapedIndex: d.scraped_index,
     }));
 }
 
