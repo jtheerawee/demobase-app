@@ -1,5 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
-import { saveScrapedCards, saveScrapedCollections } from "./persistence";
+import { saveScrapedCards, saveScrapedCollections, computeMissedCollections, computeMissedCards } from "./persistence";
 import type { ScraperOptions } from "./types";
 
 export async function scrapeMTGCards({ url, context, send, collectionId, deepScrape }: ScraperOptions) {
@@ -262,12 +262,19 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 try {
                     const result = await saveScrapedCards(allCards, collectionId);
                     if (result) {
-                        const { added, matched, missed } = result;
+                        const { added, matched } = result;
                         send({
                             type: "step",
-                            message: `Cards saved: ${allCards.length} scraped — ✅ ${added} new, 🔁 ${matched} matched${missed > 0 ? `, ⚠️ ${missed} missed (in DB but not scraped)` : ""}.`,
+                            message: `Cards saved: ${allCards.length} scraped — ✅ ${added} new, 🔁 ${matched} matched.`,
                         });
-                        send({ type: "stats", category: "cards", added, matched, missed });
+                        send({ type: "stats", category: "cards", added, matched, missed: 0 });
+                        // Compute real missed after full scrape
+                        const allCardUrls = new Set(allCards.map((c: any) => c.cardUrl).filter(Boolean));
+                        const missed = await computeMissedCards(allCardUrls, collectionId);
+                        if (missed > 0) {
+                            send({ type: "step", message: `⚠️ ${missed} cards are in DB but were not found in this scrape.` });
+                        }
+                        send({ type: "stats", category: "cards", added: 0, matched: 0, missed });
                     }
                 } catch (error) {
                     console.error("Failed to save cards:", error);
@@ -366,15 +373,15 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
                 try {
                     const result = await saveScrapedCollections(newSets, { franchise, language });
                     if (result) {
-                        const { saved, added, matched, missed } = result;
+                        const { saved, added, matched } = result;
                         totalAdded += added;
                         totalMatched += matched;
                         send({ type: "savedCollections", items: saved });
                         send({
                             type: "step",
-                            message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} matched${missed > 0 ? `, ⚠️ ${missed} missed (in DB but not scraped)` : ""}.`,
+                            message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} matched.`,
                         });
-                        send({ type: "stats", category: "collections", added, matched, missed });
+                        send({ type: "stats", category: "collections", added, matched, missed: 0 });
                     }
                 } catch (error) {
                     console.error(`Failed to save collections for page ${p}:`, error);
@@ -389,6 +396,17 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
             type: "step",
             message: `Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
         });
+        // Compute real missed after full scrape
+        if (!skipSave && franchise && language) {
+            const allCollectionUrls = new Set(
+                allDiscoveredSets.map((s: any) => s.collectionUrl).filter(Boolean)
+            );
+            const missed = await computeMissedCollections(allCollectionUrls, { franchise, language });
+            if (missed > 0) {
+                send({ type: "step", message: `⚠️ ${missed} collections are in DB but were not found in this scrape.` });
+            }
+            send({ type: "stats", category: "collections", added: 0, matched: 0, missed });
+        }
     } finally {
         await workerPage.close();
         updateWorkers(-1);

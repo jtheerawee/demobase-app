@@ -26,8 +26,8 @@ export async function saveScrapedCollections(
     const added = collections.filter((c) => !allExistingUrls.has(c.collectionUrl)).length;
     // matched: scraped AND already in DB
     const matched = collections.length - added;
-    // missed: in DB but NOT found in current scrape
-    const missed = [...allExistingUrls].filter((u) => !scrapedUrls.has(u)).length;
+    // missed is calculated after the full scrape run, not per-page
+    const missed = 0;
 
     const dataToInsert = collections.map((col) => ({
         name: col.name,
@@ -77,8 +77,8 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
     const added = cards.filter((c) => !allExistingUrls.has(c.cardUrl)).length;
     // matched: scraped AND already in DB
     const matched = cards.length - added;
-    // missed: in DB but NOT found in current scrape
-    const missed = [...allExistingUrls].filter((u) => !scrapedUrls.has(u)).length;
+    // missed is calculated after the full scrape run
+    const missed = 0;
 
     const dataToInsert = cards.map((card) => ({
         collection_id: collectionId,
@@ -97,4 +97,33 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
     }
 
     return { added, matched, missed };
+}
+
+/** Call once after all pages scraped to get real missed count for collections */
+export async function computeMissedCollections(
+    allScrapedUrls: Set<string>,
+    context: { franchise: string; language: string }
+): Promise<number> {
+    const supabase = await createClient();
+    const { data } = await supabase
+        .from("scraped_collections")
+        .select("collection_url")
+        .eq("franchise", context.franchise)
+        .eq("language", context.language);
+    const dbUrls = (data || []).map((e: any) => e.collection_url);
+    return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
+}
+
+/** Call once after all cards scraped to get real missed count for a collection */
+export async function computeMissedCards(
+    allScrapedUrls: Set<string>,
+    collectionId: number | string
+): Promise<number> {
+    const supabase = await createClient();
+    const { data } = await supabase
+        .from("scraped_cards")
+        .select("card_url")
+        .eq("collection_id", collectionId);
+    const dbUrls = (data || []).map((e: any) => e.card_url);
+    return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
 }
