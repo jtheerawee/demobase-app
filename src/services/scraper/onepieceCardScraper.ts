@@ -3,13 +3,13 @@ import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
 // ==========================================
-// ONE PIECE ENGLISH (EN) CARD SCRAPER LOGIC
+// ONE PIECE CARD SCRAPER LOGIC
 // ==========================================
 // Load the page once, then click each card anchor to open the fancybox modal.
 // The card URL is assigned as baseUrl#group_1-N based on click order.
 // Stop when modal has no valid card data.
 
-export async function scrapeOnepieceCardsEn({
+export async function scrapeOnepieceCards({
   url,
   context,
   collectionId,
@@ -18,7 +18,7 @@ export async function scrapeOnepieceCardsEn({
   const cards: any[] = [];
   const baseUrl = url.split("#")[0];
 
-  send({ type: "step", message: "Initializing One Piece EN card scraper..." });
+  send({ type: "step", message: "Initializing One Piece card scraper..." });
 
   const page = await context.newPage();
   try {
@@ -79,7 +79,7 @@ export async function scrapeOnepieceCardsEn({
           () => {
             const info = document.querySelector(
               ".fancybox-slide--current .infoCol, .fancybox-slide--current .info_col," +
-                ".fancybox-content .infoCol, .fancybox-content .info_col"
+              ".fancybox-content .infoCol, .fancybox-content .info_col"
             );
             return !!info?.textContent?.includes("|");
           },

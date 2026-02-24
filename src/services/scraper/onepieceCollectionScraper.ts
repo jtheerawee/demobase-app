@@ -2,11 +2,11 @@ import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
 // ==========================================
-// ONE PIECE ENGLISH (EN) COLLECTION SCRAPER
+// ONE PIECE COLLECTION SCRAPER
 // ==========================================
 
-export async function scrapeOnepieceCollectionsEn({ url, context, send, franchise, language }: ScraperOptions) {
-    send({ type: "step", message: "Discovering One Piece EN collections..." });
+export async function scrapeOnepieceCollections({ url, context, send, franchise, language }: ScraperOptions) {
+    send({ type: "step", message: "Discovering One Piece collections..." });
 
     const workerPage = await context.newPage();
     try {
@@ -56,14 +56,14 @@ export async function scrapeOnepieceCollectionsEn({ url, context, send, franchis
         });
 
         if (franchise && language && collections.length > 0) {
-            send({ type: "step", message: `Found ${collections.length} One Piece EN collections.` });
+            send({ type: "step", message: `Found ${collections.length} One Piece collections.` });
             send({ type: "chunk", items: collections, startIndex: 0 });
             const result = await saveScrapedCollections(collections, { franchise, language });
             if (result) {
                 const { saved, added, matched } = result;
                 send({ type: "savedCollections", items: saved });
                 send({ type: "stats", category: "collections", added, matched, missed: 0 });
-                send({ type: "step", message: `Successfully registered ${collections.length} One Piece EN collections — ✅ ${added} new, 🔁 ${matched} matched.` });
+                send({ type: "step", message: `Successfully registered ${collections.length} One Piece collections — ✅ ${added} new, 🔁 ${matched} matched.` });
             }
         } else {
             send({ type: "step", message: "No collections found in the series modal." });
