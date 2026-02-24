@@ -32,6 +32,13 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 const setCodeMatch = url.match(/\/sets\/([A-Za-z0-9]+)/);
                 const setCode = setCodeMatch ? setCodeMatch[1].toUpperCase() : "";
 
+                // Wait for the card list container to appear
+                try {
+                    await workerPage.waitForSelector(`a[href^="/${setCode}/"]`, { timeout: 5000 });
+                } catch (e: any) {
+                    // It's okay if it fails, the evaluate will just return 0 items
+                }
+
                 const pageResults = await workerPage.evaluate((sc: string) => {
                     // Card links follow: /{SET}/{lang}/{cardNo}/{card-slug}
                     const pattern = new RegExp(`^/${sc}/([a-z]{2}-[a-z]{2})/(\\d+)/(.+)$`, "i");
@@ -102,6 +109,12 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
 
                 send({ type: "step", message: `Navigating to cards page ${p}: ${pageUrl}` });
                 await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+                try {
+                    await workerPage.waitForSelector("tr.cardItem", { timeout: 5000 });
+                } catch (e: any) {
+                    // Empty page at the end of collection
+                }
 
                 const pageCardsRaw = await workerPage.evaluate(() => {
                     const rows = document.querySelectorAll("tr.cardItem");
@@ -283,6 +296,12 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
             send({ type: "step", message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})` });
 
             await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+            try {
+                await workerPage.waitForSelector('a[href*="/sets/"], a[href*="set="]', { timeout: 5000 });
+            } catch (e: any) {
+                // No sets on this page
+            }
 
             send({ type: "step", message: `Searching for set links on page ${p}...` });
             const pageResults = await workerPage.evaluate((currentUrl: string) => {
