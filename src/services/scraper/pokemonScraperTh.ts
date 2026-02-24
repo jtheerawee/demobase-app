@@ -190,8 +190,12 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
     if (collectionId && sharedCardList.length > 0) {
         send({ type: "step", message: "Saving Thai cards to database..." });
         try {
-            await saveScrapedCards(sharedCardList, collectionId);
-            send({ type: "step", message: `Successfully saved ${sharedCardList.length} cards.` });
+            const result = await saveScrapedCards(sharedCardList, collectionId);
+            if (result) {
+                const { added, matched } = result;
+                send({ type: "stats", category: "cards", added, matched, missed: 0 });
+                send({ type: "step", message: `Successfully saved ${sharedCardList.length} Thai cards — ✅ ${added} new, 🔁 ${matched} matched.` });
+            }
         } catch (error) {
             console.error("Failed to save Thai cards:", error);
             send({ type: "step", message: "Warning: Failed to persist cards to database." });
@@ -249,39 +253,40 @@ export async function scrapePokemonCollectionsTh({ url, context, send, franchise
                             const absoluteLink = relativeLink.startsWith("http")
                                 ? relativeLink
                                 : window.location.origin + (relativeLink.startsWith("/") ? "" : "/") + relativeLink;
-                            return { name, imageUrl, collectionUrl: absoluteLink };
+
+                            // Extract code from URL (e.g., /series/4578/ -> 4578)
+                            const codeMatch = absoluteLink.match(/\/series\/(\d+)/);
+                            const collectionCode = codeMatch ? codeMatch[1] : `TH-${name.replace(/\s+/g, "-")}`;
+
+                            return { name, imageUrl, collectionUrl: absoluteLink, collectionCode };
                         });
 
-                        let discoveredTotal = 0;
+                        let totalPages = 0;
                         const pageText = document.body.innerText;
                         const match =
                             pageText.match(/ทั้งหมด\s*(\d+)\s*หน้า/) ||
                             pageText.match(/(\d+)\s*หน้า/) ||
                             pageText.match(/\/ ทั้งหมด\s*(\d+)/);
-                        if (match) discoveredTotal = parseInt(match[1], 10);
-                        return { items, discoveredTotal };
+                        if (match) totalPages = parseInt(match[1], 10);
+                        return { items, totalPages };
                     });
 
                     if (pageData.items.length === 0) {
                         if (p === 1) {
                             shouldAbort = true;
                             totalPages = 0;
-                            send({ type: "meta", totalPages: 0 });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
-                            send({ type: "meta", totalPages });
                         }
                         break;
                     }
 
-                    if (pageData.discoveredTotal > 0 && totalPages === Infinity) {
-                        totalPages = pageData.discoveredTotal;
-                        send({ type: "meta", totalPages });
+                    if (pageData.totalPages > 0 && totalPages === Infinity) {
+                        totalPages = pageData.totalPages;
                     }
 
-                    const startIndex = sharedCollectionList.length;
                     sharedCollectionList.push(...pageData.items);
-                    send({ type: "chunk", items: pageData.items, startIndex });
+                    send({ type: "step", message: `Worker ${workerId} found ${pageData.items.length} sets on page ${p}.` });
                 } catch (pageErr) {
                     console.error(`[Scraper] Worker ${workerId} failed at collection page ${p}:`, pageErr);
                     send({ type: "step", message: `Worker ${workerId} failed at page ${p}. Retrying...` });
@@ -302,13 +307,18 @@ export async function scrapePokemonCollectionsTh({ url, context, send, franchise
     await Promise.all(paginationWorkers);
 
     if (franchise && language && sharedCollectionList.length > 0) {
+        // Now that we have all items, trigger the UI update (consistency with MTG)
+        send({ type: "meta", totalItems: sharedCollectionList.length });
+        send({ type: "chunk", items: sharedCollectionList, startIndex: 0 });
+
         send({ type: "step", message: "Saving discovered Thai collections to database..." });
         try {
             const result = await saveScrapedCollections(sharedCollectionList, { franchise, language });
             if (result) {
-                const { saved } = result;
+                const { saved, added, matched } = result;
                 send({ type: "savedCollections", items: saved });
-                send({ type: "step", message: `Successfully saved ${sharedCollectionList.length} collections.` });
+                send({ type: "stats", category: "collections", added, matched, missed: 0 });
+                send({ type: "step", message: `Successfully saved ${sharedCollectionList.length} collections — ✅ ${added} new, 🔁 ${matched} matched.` });
             }
         } catch (error) {
             console.error("Failed to save Thai collections:", error);

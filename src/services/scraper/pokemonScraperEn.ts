@@ -269,8 +269,12 @@ export async function scrapePokemonCardsEn({ url, context, send, deepScrape, col
     if (collectionId && sharedCardList.length > 0) {
         send({ type: "step", message: "Saving English cards to database..." });
         try {
-            await saveScrapedCards(sharedCardList, collectionId);
-            send({ type: "step", message: `Successfully saved ${sharedCardList.length} cards.` });
+            const result = await saveScrapedCards(sharedCardList, collectionId);
+            if (result) {
+                const { added, matched } = result;
+                send({ type: "stats", category: "cards", added, matched, missed: 0 });
+                send({ type: "step", message: `Successfully saved ${sharedCardList.length} English cards — ✅ ${added} new, 🔁 ${matched} matched.` });
+            }
         } catch (error) {
             console.error("Failed to save English cards:", error);
             send({ type: "step", message: "Warning: Failed to persist cards to database." });
@@ -296,13 +300,17 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
     }
 
     if (franchise && language && sharedCollectionList.length > 0) {
-        send({ type: "step", message: `Found ${sharedCollectionList.length} set keys in URL parameters.` });
+        // Send to UI immediately for feedback
+        send({ type: "chunk", items: sharedCollectionList, startIndex: 0 });
+
+        send({ type: "step", message: `Found ${sharedCollectionList.length} set keys in URL parameters. Registering...` });
         try {
             const result = await saveScrapedCollections(sharedCollectionList, { franchise, language });
             if (result) {
-                const { saved } = result;
+                const { saved, added, matched } = result;
                 send({ type: "savedCollections", items: saved });
-                send({ type: "step", message: `Successfully registered ${sharedCollectionList.length} English collections.` });
+                send({ type: "stats", category: "collections", added, matched, missed: 0 });
+                send({ type: "step", message: `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${added} new, 🔁 ${matched} matched.` });
             }
         } catch (error) {
             console.error("Failed to save English sets:", error);
