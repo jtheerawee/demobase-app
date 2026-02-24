@@ -8,9 +8,21 @@ export async function saveScrapedCollections(
         language: string;
     }
 ) {
-    if (collections.length === 0) return;
+    if (collections.length === 0) return { saved: [], added: 0, matched: 0 };
 
     const supabase = await createClient();
+    const urls = collections.map((col) => col.collectionUrl).filter(Boolean);
+
+    // Find which collections already exist in the DB
+    const { data: existing } = await supabase
+        .from("scraped_collections")
+        .select("collection_url")
+        .in("collection_url", urls);
+
+    const existingUrls = new Set((existing || []).map((e: any) => e.collection_url));
+    const added = collections.filter((c) => !existingUrls.has(c.collectionUrl)).length;
+    const matched = collections.length - added;
+
     const dataToInsert = collections.map((col) => ({
         name: col.name,
         collection_code: col.collectionCode,
@@ -31,12 +43,14 @@ export async function saveScrapedCollections(
     }
 
     // Map back to camelCase for frontend consistency
-    return data.map((d: any) => ({
+    const saved = data.map((d: any) => ({
         ...d,
         collectionUrl: d.collection_url,
         imageUrl: d.image_url,
         collectionCode: d.collection_code,
     }));
+
+    return { saved, added, matched };
 }
 
 export async function saveScrapedCards(cards: ScrapedCard[], collectionId: number | string) {

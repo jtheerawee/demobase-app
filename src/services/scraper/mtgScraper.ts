@@ -289,6 +289,8 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
     const allDiscoveredSets: any[] = [];
     const uniqueCollectionCodes = new Set<string>();
     let p = 1;
+    let totalAdded = 0;
+    let totalMatched = 0;
 
     try {
         while (true) {
@@ -355,12 +357,17 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
 
             if (!skipSave && franchise && language && newSets.length > 0) {
                 try {
-                    const savedData = await saveScrapedCollections(newSets, {
-                        franchise,
-                        language,
-                    });
-                    send({ type: "savedCollections", items: savedData });
-                    send({ type: "step", message: `Page ${p}: Successfully saved ${newSets.length} collections.` });
+                    const result = await saveScrapedCollections(newSets, { franchise, language });
+                    if (result) {
+                        const { saved, added, matched } = result;
+                        totalAdded += added;
+                        totalMatched += matched;
+                        send({ type: "savedCollections", items: saved });
+                        send({
+                            type: "step",
+                            message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} already existed.`,
+                        });
+                    }
                 } catch (error) {
                     console.error(`Failed to save collections for page ${p}:`, error);
                     send({ type: "step", message: `Warning: Failed to persist collections for page ${p}.` });
@@ -370,6 +377,10 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
             p++;
             if (p > 50) break;
         }
+        send({
+            type: "step",
+            message: `Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
+        });
     } finally {
         await workerPage.close();
         updateWorkers(-1);
