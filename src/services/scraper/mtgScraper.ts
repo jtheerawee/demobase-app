@@ -260,8 +260,15 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
             if (collectionId) {
                 send({ type: "step", message: "Saving all cards to database..." });
                 try {
-                    await saveScrapedCards(allCards, collectionId);
-                    send({ type: "step", message: `Successfully saved ${allCards.length} cards.` });
+                    const result = await saveScrapedCards(allCards, collectionId);
+                    if (result) {
+                        const { added, matched, missed } = result;
+                        send({
+                            type: "step",
+                            message: `Cards saved: ${allCards.length} scraped — ✅ ${added} new, 🔁 ${matched} matched${missed > 0 ? `, ⚠️ ${missed} missed (in DB but not scraped)` : ""}.`,
+                        });
+                        send({ type: "stats", category: "cards", added, matched, missed });
+                    }
                 } catch (error) {
                     console.error("Failed to save cards:", error);
                 }
@@ -359,14 +366,15 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
                 try {
                     const result = await saveScrapedCollections(newSets, { franchise, language });
                     if (result) {
-                        const { saved, added, matched } = result;
+                        const { saved, added, matched, missed } = result;
                         totalAdded += added;
                         totalMatched += matched;
                         send({ type: "savedCollections", items: saved });
                         send({
                             type: "step",
-                            message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} already existed.`,
+                            message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} matched${missed > 0 ? `, ⚠️ ${missed} missed (in DB but not scraped)` : ""}.`,
                         });
+                        send({ type: "stats", category: "collections", added, matched, missed });
                     }
                 } catch (error) {
                     console.error(`Failed to save collections for page ${p}:`, error);

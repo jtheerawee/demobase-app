@@ -25,7 +25,7 @@ export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsP
                     )}
                 </Group>
 
-                <ScrollArea h={200} offsetScrollbars>
+                <ScrollArea h={400} offsetScrollbars>
                     <Stack gap="xs">
                         {steps.length > 0 ? (
                             [...steps].reverse().map((step) => (

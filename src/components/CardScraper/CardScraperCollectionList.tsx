@@ -1,26 +1,17 @@
 "use client";
 
-import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea, TextInput } from "@mantine/core";
-import { IconTrash, IconExternalLink, IconPackage, IconDownload, IconSearch, IconX } from "@tabler/icons-react";
+import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea, TextInput, Tooltip } from "@mantine/core";
+import { IconDownload, IconTrash, IconSearch, IconX, IconSortAZ, IconSortZA, IconSortDescendingNumbers, IconSortAscendingNumbers, IconDatabaseImport } from "@tabler/icons-react";
 import { useState } from "react";
-
-interface CollectionItem {
-    id: string | number;
-    name: string;
-    cardCount?: number;
-    updatedAt?: string;
-    franchise?: string;
-    collectionCode?: string;
-    collectionUrl?: string;
-}
+import { CardScraperCollectionItem, type CollectionItem } from "./CardScraperCollectionItem";
 
 interface CardScraperCollectionListProps {
     collections?: CollectionItem[];
     selectedId?: string | number | null;
     onSelect?: (id: string | number) => void;
-    onDownloadItem?: (item: CollectionItem) => void;
-    onDownloadAll?: () => void;
-    onDeleteAll?: () => void;
+    onDownloadAllCollections?: () => void;
+    onDownloadAllCards?: () => void;
+    onDeleteAllCollections?: () => void;
     loading?: boolean;
 }
 
@@ -28,21 +19,44 @@ export function CardScraperCollectionList({
     collections = [],
     selectedId,
     onSelect,
-    onDownloadItem,
-    onDownloadAll,
-    onDeleteAll,
+    onDownloadAllCollections,
+    onDownloadAllCards,
+    onDeleteAllCollections,
     loading
 }: CardScraperCollectionListProps) {
     const [search, setSearch] = useState("");
+    const [sortBy, setSortBy] = useState<"name" | "cards">("name");
+    const [sortAsc, setSortAsc] = useState(true);
     const totalCount = collections.length;
 
-    const filteredCollections = collections.filter(item => {
-        const query = search.toLowerCase();
-        return (
-            item.name.toLowerCase().includes(query) ||
-            (item.collectionCode && item.collectionCode.toLowerCase().includes(query))
-        );
-    });
+    const handleSort = (field: "name" | "cards") => {
+        if (sortBy === field) {
+            setSortAsc((prev) => !prev);
+        } else {
+            setSortBy(field);
+            setSortAsc(field === "name"); // name: asc by default, cards: desc by default
+        }
+    };
+
+    const filteredCollections = collections
+        .filter(item => {
+            const query = search.toLowerCase();
+            return (
+                item.name.toLowerCase().includes(query) ||
+                (item.collectionCode && item.collectionCode.toLowerCase().includes(query))
+            );
+        })
+        .sort((a, b) => {
+            if (sortBy === "name") {
+                return sortAsc
+                    ? a.name.localeCompare(b.name)
+                    : b.name.localeCompare(a.name);
+            } else {
+                const ca = a.cardCount ?? 0;
+                const cb = b.cardCount ?? 0;
+                return sortAsc ? ca - cb : cb - ca;
+            }
+        });
 
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
@@ -50,30 +64,61 @@ export function CardScraperCollectionList({
                 <Group justify="space-between">
                     <Text fw={700}>Collections</Text>
                     <Group gap="xs">
-                        {totalCount > 0 && (
-                            <>
-                                <ActionIcon
-                                    variant="light"
-                                    color="green"
-                                    size="sm"
-                                    onClick={onDownloadAll}
-                                    title="Download cards for all collections"
-                                    loading={loading}
-                                >
-                                    <IconDownload size={16} />
-                                </ActionIcon>
-                                <ActionIcon
-                                    variant="light"
-                                    color="red"
-                                    size="sm"
-                                    onClick={onDeleteAll}
-                                    title="Delete all collections"
-                                    loading={loading}
-                                >
-                                    <IconTrash size={16} />
-                                </ActionIcon>
-                            </>
-                        )}
+                        <Tooltip label="Fetch collections from source" withArrow>
+                            <ActionIcon
+                                variant="light"
+                                color="violet"
+                                size="sm"
+                                onClick={onDownloadAllCollections}
+                                loading={loading}
+                            >
+                                <IconDatabaseImport size={16} />
+                            </ActionIcon>
+                        </Tooltip>
+                        <ActionIcon
+                            variant="light"
+                            color="red"
+                            size="sm"
+                            onClick={onDeleteAllCollections}
+                            title="Delete all collections"
+                            loading={loading}
+                            disabled={totalCount === 0}
+                        >
+                            <IconTrash size={16} />
+                        </ActionIcon>
+                        <Tooltip label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`} withArrow>
+                            <ActionIcon
+                                variant={sortBy === "name" ? "light" : "subtle"}
+                                color={sortBy === "name" ? "blue" : "gray"}
+                                size="sm"
+                                onClick={() => handleSort("name")}
+                                disabled={totalCount === 0}
+                            >
+                                {sortBy === "name" && !sortAsc ? <IconSortZA size={14} /> : <IconSortAZ size={14} />}
+                            </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label={`Sort by cards (${sortBy === "cards" ? (sortAsc ? "low→high" : "high→low") : "high→low"})`} withArrow>
+                            <ActionIcon
+                                variant={sortBy === "cards" ? "light" : "subtle"}
+                                color={sortBy === "cards" ? "blue" : "gray"}
+                                size="sm"
+                                onClick={() => handleSort("cards")}
+                                disabled={totalCount === 0}
+                            >
+                                {sortBy === "cards" && sortAsc ? <IconSortAscendingNumbers size={14} /> : <IconSortDescendingNumbers size={14} />}
+                            </ActionIcon>
+                        </Tooltip>
+                        <ActionIcon
+                            variant="light"
+                            color="green"
+                            size="sm"
+                            onClick={onDownloadAllCards}
+                            title="Download cards for all collections"
+                            loading={loading}
+                            disabled={totalCount === 0}
+                        >
+                            <IconDownload size={16} />
+                        </ActionIcon>
                         <Badge variant="light" color="blue">
                             {totalCount} Total
                         </Badge>
@@ -104,75 +149,17 @@ export function CardScraperCollectionList({
                 <ScrollArea h={600} offsetScrollbars>
                     <Stack gap="xs">
                         {filteredCollections.map((item) => (
-                            <Card
+                            <CardScraperCollectionItem
                                 key={item.id}
-                                withBorder
-                                padding="sm"
-                                radius="sm"
-                                style={{
-                                    cursor: 'pointer',
-                                    borderColor: selectedId === item.id ? 'var(--mantine-color-blue-filled)' : undefined,
-                                    backgroundColor: selectedId === item.id ? 'var(--mantine-color-blue-light)' : undefined,
-                                }}
-                                onClick={() => onSelect?.(item.id)}
-                            >
-                                <Group justify="space-between" align="center" wrap="nowrap">
-                                    <Stack gap={0} style={{ flex: 1 }}>
-                                        <Group gap={6}>
-                                            <Text size="sm" fw={600} lineClamp={1}>
-                                                {item.name}
-                                            </Text>
-                                            {item.collectionCode && (
-                                                <Badge size="xs" variant="outline" color="gray">
-                                                    {item.collectionCode}
-                                                </Badge>
-                                            )}
-                                        </Group>
-                                        <Text size="xs" c="dimmed">
-                                            {item.cardCount ?? 0} cards {item.updatedAt ? `• ${item.updatedAt}` : ''}
-                                        </Text>
-                                    </Stack>
-                                    <Group gap={4}>
-                                        {onDownloadItem && (
-                                            <ActionIcon
-                                                variant="subtle"
-                                                color="green"
-                                                size="sm"
-                                                title="Download cards for this collection"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onDownloadItem(item);
-                                                }}
-                                            >
-                                                <IconDownload size={16} />
-                                            </ActionIcon>
-                                        )}
-                                        {item.collectionUrl && (
-                                            <ActionIcon
-                                                variant="subtle"
-                                                color="blue"
-                                                size="sm"
-                                                component="a"
-                                                href={item.collectionUrl}
-                                                target="_blank"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <IconExternalLink size={16} />
-                                            </ActionIcon>
-                                        )}
-                                        <ActionIcon variant="subtle" color="red" size="sm" onClick={(e) => {
-                                            e.stopPropagation();
-                                            // TODO: handle delete
-                                        }}>
-                                            <IconTrash size={16} />
-                                        </ActionIcon>
-                                    </Group>
-                                </Group>
-                            </Card>
+                                item={item}
+                                selected={selectedId === item.id}
+                                onSelect={() => onSelect?.(item.id)}
+                                onDelete={() => { /* TODO: handle per-item delete */ }}
+                            />
                         ))}
                         {totalCount === 0 && !loading && (
                             <Text size="sm" c="dimmed" ta="center" py="xl">
-                                No collections found. Click "Download" to fetch.
+                                No collections found. Click &quot;Download&quot; to fetch.
                             </Text>
                         )}
                         {loading && (

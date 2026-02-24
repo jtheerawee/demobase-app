@@ -1,37 +1,64 @@
 "use client";
 
-import { Container, SimpleGrid, Stack, Alert } from "@mantine/core";
+import { Container, SimpleGrid, Stack, Alert, Modal, Button, Text, Group } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { PageHeader } from "@/components/PageHeader";
 import { CardScraperCollectionList } from "@/components/CardScraper/CardScraperCollectionList";
 import { CardScraperInputs } from "@/components/CardScraper/CardScraperInputs";
 import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRunningSteps";
 import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardList";
+import { CardScraperStats, type ScraperStats } from "@/components/CardScraper/CardScraperStats";
 import { IconDatabaseExport, IconAlertCircle } from "@tabler/icons-react";
 import { useState, useRef, useEffect } from "react";
 import { APP_CONFIG } from "@/constants/app";
 
+const DEFAULT_STATS: ScraperStats = {
+    collections: { added: 0, matched: 0, missed: 0 },
+    cards: { added: 0, matched: 0, missed: 0 },
+};
+
 export default function CardScraperPage() {
     const [selectedFranchise, setSelectedFranchise] = useState<string | null>("mtg");
+    const [selectedLanguage, setSelectedLanguage] = useState<string | null>("en");
     const [collections, setCollections] = useState<any[]>([]);
     const [cards, setCards] = useState<any[]>([]);
     const [steps, setSteps] = useState<any[]>([]);
+    const [scraperStats, setScraperStats] = useState<ScraperStats>(DEFAULT_STATS);
     const [collectionLoading, setCollectionLoading] = useState(false);
     const [cardLoading, setCardLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [selectedCollection, setSelectedCollection] = useState<any | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
+    const pendingActionRef = useRef<(() => void) | null>(null);
+    const [confirmOpened, { open: openConfirm, close: closeConfirm }] = useDisclosure(false);
+    const [confirmConfig, setConfirmConfig] = useState<{ title: string; message: string }>({
+        title: "",
+        message: "",
+    });
+
+    const askConfirm = (title: string, message: string, action: () => void) => {
+        setConfirmConfig({ title, message });
+        pendingActionRef.current = action;
+        openConfirm();
+    };
+
+    const handleConfirmed = () => {
+        closeConfirm();
+        pendingActionRef.current?.();
+        pendingActionRef.current = null;
+    };
 
     useEffect(() => {
         if (selectedFranchise) {
-            fetchExistingCollections(selectedFranchise);
+            fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
         }
-    }, [selectedFranchise]);
+    }, [selectedFranchise, selectedLanguage]);
 
-    const fetchExistingCollections = async (franchise: string) => {
+    const fetchExistingCollections = async (franchise: string, language: string) => {
         setCollectionLoading(true);
         try {
-            const res = await fetch(`/api/scraper/collections?franchise=${franchise}&language=en`);
+            const res = await fetch(`/api/scraper/collections?franchise=${franchise}&language=${language}`);
             const data = await res.json();
             if (data.success) {
                 setCollections(data.collections);
@@ -45,31 +72,34 @@ export default function CardScraperPage() {
 
     const handleDeleteAll = async () => {
         if (!selectedFranchise) return;
-        if (!confirm(`Are you sure you want to delete all ${selectedFranchise.toUpperCase()} collections? This will also delete all scraped cards.`)) return;
-
-        setCollectionLoading(true);
-        try {
-            const res = await fetch(`/api/scraper/collections?franchise=${selectedFranchise}&language=en`, {
-                method: "DELETE",
-            });
-            const data = await res.json();
-            if (data.success) {
-                setCollections([]);
-                setCards([]);
-                setSelectedCollection(null);
-            } else {
-                setError(data.error || "Failed to delete collections");
+        askConfirm(
+            `Delete all ${selectedFranchise.toUpperCase()} collections`,
+            `This will permanently delete all ${selectedFranchise.toUpperCase()} collections and every scraped card within them. This cannot be undone.`,
+            async () => {
+                setCollectionLoading(true);
+                try {
+                    const res = await fetch(`/api/scraper/collections?franchise=${selectedFranchise}&language=${selectedLanguage ?? "en"}`, {
+                        method: "DELETE",
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setCollections([]);
+                        setCards([]);
+                        setSelectedCollection(null);
+                    } else {
+                        setError(data.error || "Failed to delete collections");
+                    }
+                } catch (err: any) {
+                    setError(err.message || "An unexpected error occurred during deletion");
+                } finally {
+                    setCollectionLoading(false);
+                }
             }
-        } catch (err: any) {
-            setError(err.message || "An unexpected error occurred during deletion");
-        } finally {
-            setCollectionLoading(false);
-        }
+        );
     };
 
     const handleDownloadAllCards = async () => {
         if (collections.length === 0) return;
-        if (!confirm(`Are you sure you want to download cards for ALL ${collections.length} collections? This may take a long time.`)) return;
 
         setCardLoading(true);
         setError(null);
@@ -89,7 +119,7 @@ export default function CardScraperPage() {
                 url: col.collectionUrl,
                 type: "cards",
                 franchise: selectedFranchise,
-                language: "en",
+                language: selectedLanguage ?? "en",
                 skipSave: false,
                 deepScrape: true,
                 collectionId: col.id,
@@ -102,7 +132,7 @@ export default function CardScraperPage() {
         }
 
         setCardLoading(false);
-        if (selectedFranchise) fetchExistingCollections(selectedFranchise);
+        if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
     };
 
     const handleDownloadCollections = async () => {
@@ -114,6 +144,7 @@ export default function CardScraperPage() {
         setCards([]);
         setError(null);
         setSelectedCollection(null);
+        setScraperStats(DEFAULT_STATS);
 
         const targetUrl = selectedFranchise === "mtg" ? APP_CONFIG.MTG_URL_EN : "";
 
@@ -163,7 +194,7 @@ export default function CardScraperPage() {
             setCards((prev) => [...prev, ...items]);
         });
         setCardLoading(false);
-        if (selectedFranchise) fetchExistingCollections(selectedFranchise);
+        if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
     };
 
     const handleDeleteCard = async (id: string | number) => {
@@ -184,22 +215,26 @@ export default function CardScraperPage() {
 
     const handleDeleteAllCards = async () => {
         if (!selectedCollection?.id) return;
-        if (!confirm(`Are you sure you want to delete all cards for ${selectedCollection.collectionCode}?`)) return;
-
-        try {
-            const res = await fetch(`/api/scraper/cards?collectionId=${selectedCollection.id}`, {
-                method: "DELETE",
-            });
-            const data = await res.json();
-            if (data.success) {
-                setCards([]);
-                if (selectedFranchise) fetchExistingCollections(selectedFranchise);
-            } else {
-                setError(data.error || "Failed to delete cards");
+        askConfirm(
+            `Delete all cards for ${selectedCollection.collectionCode}`,
+            `This will permanently delete all scraped cards for the ${selectedCollection.collectionCode} collection. This cannot be undone.`,
+            async () => {
+                try {
+                    const res = await fetch(`/api/scraper/cards?collectionId=${selectedCollection.id}`, {
+                        method: "DELETE",
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setCards([]);
+                        if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
+                    } else {
+                        setError(data.error || "Failed to delete cards");
+                    }
+                } catch (err: any) {
+                    setError(err.message || "An unexpected error occurred during bulk card deletion");
+                }
             }
-        } catch (err: any) {
-            setError(err.message || "An unexpected error occurred during bulk card deletion");
-        }
+        );
     };
 
     const runScraperStream = async (requestData: any, onItems: (items: any[]) => void) => {
@@ -261,6 +296,15 @@ export default function CardScraperPage() {
                                 // Match by name or URL to update with DB IDs if needed
                                 return prev;
                             });
+                        } else if (msg.type === "stats") {
+                            setScraperStats((prev) => ({
+                                ...prev,
+                                [msg.category]: {
+                                    added: (prev[msg.category as keyof ScraperStats]?.added ?? 0) + msg.added,
+                                    matched: (prev[msg.category as keyof ScraperStats]?.matched ?? 0) + msg.matched,
+                                    missed: (prev[msg.category as keyof ScraperStats]?.missed ?? 0) + msg.missed,
+                                },
+                            }));
                         } else if (msg.type === "step") {
                             setSteps((prev) => {
                                 const newSteps = prev.map(s => ({ ...s, status: "completed" as const }));
@@ -314,6 +358,23 @@ export default function CardScraperPage() {
 
     return (
         <Container size="xl" py="md">
+            <Modal
+                opened={confirmOpened}
+                onClose={closeConfirm}
+                title={<Text fw={700} size="sm">{confirmConfig.title}</Text>}
+                size="sm"
+                radius="md"
+                centered
+            >
+                <Stack gap="md">
+                    <Text size="sm" c="dimmed">{confirmConfig.message}</Text>
+                    <Group justify="flex-end" gap="sm">
+                        <Button variant="default" size="sm" onClick={closeConfirm}>Cancel</Button>
+                        <Button color="red" size="sm" onClick={handleConfirmed}>Delete</Button>
+                    </Group>
+                </Stack>
+            </Modal>
+
             <Stack gap="lg">
                 <PageHeader
                     title="Card Scraper"
@@ -341,18 +402,25 @@ export default function CardScraperPage() {
                 <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
                     <Stack gap="md">
                         <CardScraperInputs
-                            value={selectedFranchise}
-                            onChange={(val) => {
+                            franchise={selectedFranchise}
+                            language={selectedLanguage}
+                            onFranchiseChange={(val) => {
                                 setSelectedFranchise(val);
+                                setSelectedLanguage("en");
                                 setCollections([]);
                                 setSteps([]);
                                 setCards([]);
                                 setSelectedCollection(null);
                             }}
-                            onDownload={handleDownloadCollections}
-                            loading={collectionLoading}
+                            onLanguageChange={(val) => {
+                                setSelectedLanguage(val);
+                                setCollections([]);
+                                setCards([]);
+                                setSelectedCollection(null);
+                            }}
                         />
                         <CardScraperRunningSteps steps={steps} />
+                        <CardScraperStats stats={scraperStats} />
                     </Stack>
 
                     <div>
@@ -360,9 +428,9 @@ export default function CardScraperPage() {
                             collections={collections}
                             selectedId={selectedCollection?.id}
                             loading={collectionLoading}
-                            onDeleteAll={handleDeleteAll}
-                            onDownloadAll={handleDownloadAllCards}
-                            onDownloadItem={handleDownloadCards}
+                            onDeleteAllCollections={handleDeleteAll}
+                            onDownloadAllCollections={handleDownloadCollections}
+                            onDownloadAllCards={handleDownloadAllCards}
                             onSelect={async (id) => {
                                 const col = collections.find(c => c.id === id);
                                 setSelectedCollection(col);

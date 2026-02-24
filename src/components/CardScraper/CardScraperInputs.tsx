@@ -1,22 +1,45 @@
 "use client";
 
-import { Button, Select, Stack } from "@mantine/core";
-import { IconDownload } from "@tabler/icons-react";
+import { Select, Stack } from "@mantine/core";
+import { useMemo } from "react";
+
+const LANGUAGE_OPTIONS: Record<string, { value: string; label: string }[]> = {
+    mtg: [
+        { value: "en", label: "English" },
+        { value: "jp", label: "Japanese" },
+    ],
+    pokemon: [
+        { value: "en", label: "English" },
+        { value: "jp", label: "Japanese" },
+        { value: "th", label: "Thai" },
+    ],
+    "one-piece": [
+        { value: "en", label: "English" },
+        { value: "jp", label: "Japanese" },
+    ],
+    lorcana: [
+        { value: "en", label: "English" },
+    ],
+};
 
 interface CardScraperInputsProps {
-    value?: string | null;
-    onChange?: (value: string | null) => void;
-    onDownload?: () => void;
-    loading?: boolean;
+    franchise?: string | null;
+    language?: string | null;
+    onFranchiseChange?: (value: string | null) => void;
+    onLanguageChange?: (value: string | null) => void;
 }
 
-export function CardScraperInputs({ value, onChange, onDownload, loading }: CardScraperInputsProps) {
+export function CardScraperInputs({ franchise, language, onFranchiseChange, onLanguageChange }: CardScraperInputsProps) {
+    const languageOptions = useMemo(() => {
+        return franchise ? (LANGUAGE_OPTIONS[franchise] ?? []) : [];
+    }, [franchise]);
+
     return (
-        <Stack gap="md">
+        <Stack gap="sm">
             <Select
                 placeholder="Choose a franchise"
-                value={value}
-                onChange={onChange}
+                value={franchise}
+                onChange={onFranchiseChange}
                 data={[
                     { value: "mtg", label: "MTG" },
                     { value: "pokemon", label: "Pokémon" },
@@ -24,17 +47,13 @@ export function CardScraperInputs({ value, onChange, onDownload, loading }: Card
                     { value: "lorcana", label: "Lorcana" },
                 ]}
             />
-            <Button
-                leftSection={<IconDownload size={16} />}
-                variant="filled"
-                color="blue"
-                fullWidth
-                onClick={onDownload}
-                loading={loading}
-                disabled={!value}
-            >
-                Download Collection
-            </Button>
+            <Select
+                placeholder="Choose a language"
+                value={language}
+                onChange={onLanguageChange}
+                data={languageOptions}
+                disabled={!franchise || languageOptions.length === 0}
+            />
         </Stack>
     );
 }

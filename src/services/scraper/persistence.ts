@@ -8,20 +8,26 @@ export async function saveScrapedCollections(
         language: string;
     }
 ) {
-    if (collections.length === 0) return { saved: [], added: 0, matched: 0 };
+    if (collections.length === 0) return { saved: [], added: 0, matched: 0, missed: 0 };
 
     const supabase = await createClient();
-    const urls = collections.map((col) => col.collectionUrl).filter(Boolean);
+    const scrapedUrls = new Set(collections.map((col) => col.collectionUrl).filter(Boolean));
 
-    // Find which collections already exist in the DB
-    const { data: existing } = await supabase
+    // Fetch ALL existing collections for this franchise from DB
+    const { data: allExisting } = await supabase
         .from("scraped_collections")
         .select("collection_url")
-        .in("collection_url", urls);
+        .eq("franchise", context.franchise)
+        .eq("language", context.language);
 
-    const existingUrls = new Set((existing || []).map((e: any) => e.collection_url));
-    const added = collections.filter((c) => !existingUrls.has(c.collectionUrl)).length;
+    const allExistingUrls = new Set((allExisting || []).map((e: any) => e.collection_url));
+
+    // added: scraped but NOT yet in DB
+    const added = collections.filter((c) => !allExistingUrls.has(c.collectionUrl)).length;
+    // matched: scraped AND already in DB
     const matched = collections.length - added;
+    // missed: in DB but NOT found in current scrape
+    const missed = [...allExistingUrls].filter((u) => !scrapedUrls.has(u)).length;
 
     const dataToInsert = collections.map((col) => ({
         name: col.name,
@@ -50,13 +56,30 @@ export async function saveScrapedCollections(
         collectionCode: d.collection_code,
     }));
 
-    return { saved, added, matched };
+    return { saved, added, matched, missed };
 }
 
 export async function saveScrapedCards(cards: ScrapedCard[], collectionId: number | string) {
-    if (cards.length === 0) return;
+    if (cards.length === 0) return { added: 0, matched: 0, missed: 0 };
 
     const supabase = await createClient();
+    const scrapedUrls = new Set(cards.map((c) => c.cardUrl).filter(Boolean));
+
+    // Fetch ALL existing cards for this collection from DB
+    const { data: allExisting } = await supabase
+        .from("scraped_cards")
+        .select("card_url")
+        .eq("collection_id", collectionId);
+
+    const allExistingUrls = new Set((allExisting || []).map((e: any) => e.card_url));
+
+    // added: scraped but NOT yet in DB
+    const added = cards.filter((c) => !allExistingUrls.has(c.cardUrl)).length;
+    // matched: scraped AND already in DB
+    const matched = cards.length - added;
+    // missed: in DB but NOT found in current scrape
+    const missed = [...allExistingUrls].filter((u) => !scrapedUrls.has(u)).length;
+
     const dataToInsert = cards.map((card) => ({
         collection_id: collectionId,
         name: card.name,
@@ -72,4 +95,6 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
         console.error("[Persistence] Error saving cards:", { error, dataToInsert });
         throw error;
     }
+
+    return { added, matched, missed };
 }
