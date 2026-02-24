@@ -62,12 +62,14 @@ export default function CardScraperPage() {
             const data = await res.json();
             if (data.success) {
                 setCollections(data.collections);
+                return data.collections;
             }
         } catch (err) {
             console.error("Failed to fetch collections:", err);
         } finally {
             setCollectionLoading(false);
         }
+        return null;
     };
 
     const fetchCards = async (collectionId: number | string) => {
@@ -181,6 +183,18 @@ export default function CardScraperPage() {
                 // Now streaming items into the UI so user can see progress
                 setCards((prev) => [...prev, ...items]);
             });
+
+            // Fresh pull from database to ensure metadata and details are correct
+            if (col.id) await fetchCards(col.id);
+
+            // After each collection is finished, refresh the collection list to see updated card counts
+            if (selectedFranchise) {
+                const updatedCols = await fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
+                if (updatedCols) {
+                    const freshCol = updatedCols.find((c: any) => c.id === col.id);
+                    if (freshCol) setSelectedCollection(freshCol);
+                }
+            }
         }
 
         setCardLoading(false);
@@ -244,8 +258,17 @@ export default function CardScraperPage() {
         await runScraperStream(requestData, (items) => {
             setCards((prev) => [...prev, ...items]);
         });
+
+        // Fresh pull from database after scraping is complete
+        if (targetCollection.id) await fetchCards(targetCollection.id);
         setCardLoading(false);
-        if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
+        if (selectedFranchise) {
+            const updatedCols = await fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
+            if (updatedCols) {
+                const freshCol = updatedCols.find((c: any) => c.id === targetCollection.id);
+                if (freshCol) setSelectedCollection(freshCol);
+            }
+        }
     };
 
     const handleDeleteCard = async (id: string | number) => {

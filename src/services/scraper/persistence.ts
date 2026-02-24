@@ -71,36 +71,61 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
     // Fetch ALL existing cards for this collection from DB
     const { data: allExisting } = await supabase
         .from("scraped_cards")
-        .select("card_url")
+        .select("card_url, name, card_no")
         .eq("collection_id", colId);
 
-    const allExistingUrls = new Set((allExisting || []).map((e: any) => e.card_url));
+    const existingKeys = new Set((allExisting || []).map((e: any) => {
+        // Multi-layered uniqueness: URL OR Name+No
+        const urlKey = e.card_url;
+        const compositeKey = `${e.name}|${e.card_no}`;
+        return [urlKey, compositeKey];
+    }).flat());
 
-    // added: scraped but NOT yet in DB
-    const added = cards.filter((c) => !allExistingUrls.has(c.cardUrl)).length;
+    // addedCards: the subset that needs deep scraping
+    // We only want to upsert cards that are:
+    // 1. New to the database
+    // 2. OR Exist but we now have rarity information (meaning we just deep-scraped them or found them in legacy view)
+    const cardsToUpsert = cards.filter((c) => {
+        const urlExists = existingKeys.has(c.cardUrl);
+        const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
+        const exists = urlExists || nameNoExists;
+
+        if (!exists) return true; // It's new, definitely save it
+        return c.rarity && c.rarity !== ""; // It exists, only save if we have rarity to update/keep
+    });
+
+    const addedCardsList = cards.filter((c) => {
+        const urlExists = existingKeys.has(c.cardUrl);
+        const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
+        return !urlExists && !nameNoExists;
+    });
+    const added = addedCardsList.length;
+
     // matched: scraped AND already in DB
     const matched = cards.length - added;
     // missed is calculated after the full scrape run
     const missed = 0;
 
-    const dataToInsert = cards.map((card) => ({
-        collection_id: colId,
-        name: card.name,
-        image_url: card.imageUrl,
-        card_url: card.cardUrl,
-        card_no: card.cardNo,
-        rarity: card.rarity || "",
-    }));
+    if (cardsToUpsert.length > 0) {
+        const dataToInsert = cardsToUpsert.map((card) => ({
+            collection_id: colId,
+            name: card.name,
+            image_url: card.imageUrl,
+            card_url: card.cardUrl,
+            card_no: card.cardNo,
+            rarity: card.rarity || "",
+        }));
 
-    const { error } = await supabase.from("scraped_cards").upsert(dataToInsert, { onConflict: "card_url" });
+        const { error } = await supabase.from("scraped_cards").upsert(dataToInsert, { onConflict: "card_url" });
 
-    if (error) {
-        console.error("[Persistence] Error saving cards:", { error, dataToInsert });
-        throw error;
+        if (error) {
+            console.error("[Persistence] Error saving cards:", { error, dataToInsert });
+            throw error;
+        }
     }
 
-    console.log(`[Persistence] Saving ${cards.length} cards for collection ${collectionId}...`, { added, matched, missed });
-    return { added, matched, missed };
+    console.log(`[Persistence] Processed ${cards.length} cards for collection ${collectionId}. (Upserted ${cardsToUpsert.length})`, { added, matched, missed });
+    return { added, matched, missed, addedCards: addedCardsList };
 }
 
 /** Call once after all pages scraped to get real missed count for collections */

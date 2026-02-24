@@ -17,6 +17,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
     updateWorkers(1);
     const workerPage = await context.newPage();
     const allCards: any[] = [];
+    const cardsToDeepScrape: any[] = [];
     const uniqueCardUrls = new Set<string>();
 
     try {
@@ -96,9 +97,10 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 // Save this page's cards immediately to get real-time stats
                 if (collectionId !== undefined && collectionId !== null) {
                     try {
-                        const result = await saveScrapedCards(newCards, collectionId);
+                        const result = await saveScrapedCards(newCards, collectionId) as any;
                         if (result) {
-                            const { added, matched } = result;
+                            const { added, matched, addedCards } = result;
+                            if (addedCards) cardsToDeepScrape.push(...addedCards);
                             console.log(`[Scraper] Sending incremental card stats for page ${p}:`, { added, matched });
                             send({ type: "stats", category: "cards", added, matched, missed: 0 });
                         }
@@ -204,9 +206,10 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 // Save this page's cards immediately to get real-time stats
                 if (collectionId !== undefined && collectionId !== null) {
                     try {
-                        const result = await saveScrapedCards(newCards, collectionId);
+                        const result = await saveScrapedCards(newCards, collectionId) as any;
                         if (result) {
-                            const { added, matched } = result;
+                            const { added, matched, addedCards } = result;
+                            if (addedCards) cardsToDeepScrape.push(...addedCards);
                             console.log(`[Scraper] Sending incremental card stats for page ${p}:`, { added, matched });
                             send({ type: "stats", category: "cards", added, matched, missed: 0 });
                         }
@@ -220,89 +223,94 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
             }
         }
 
-        if (allCards.length > 0) {
-            // ── Deep Scraping / Details Extraction ──
-            send({ type: "step", message: `Launching workers to deep scrape ${allCards.length} cards...` });
-            const concurrency = Math.min(APP_CONFIG.CARD_CONCURRENCY_LIMIT || 10, allCards.length);
-            let nextCardIndex = 0;
+        if (deepScrape && allCards.length > 0) {
+            const skipCount = allCards.length - cardsToDeepScrape.length;
+            if (skipCount > 0) {
+                send({ type: "step", message: `Skipping deep scrape for ${skipCount} cards already in database.` });
+            }
 
-            const deepScrapeWorker = async (workerId: number) => {
-                updateWorkers(1);
-                const wp = await context.newPage();
-                try {
-                    while (true) {
-                        const idx = nextCardIndex++;
-                        if (idx >= allCards.length) break;
+            if (cardsToDeepScrape.length > 0) {
+                // ── Deep Scraping / Details Extraction ──
+                send({ type: "step", message: `Launching workers to deep scrape ${cardsToDeepScrape.length} new cards...` });
+                const concurrency = Math.min(APP_CONFIG.CARD_CONCURRENCY_LIMIT || 10, cardsToDeepScrape.length);
+                let nextCardIndex = 0;
 
-                        const card = allCards[idx];
-                        try {
-                            await wp.goto(card.cardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+                const deepScrapeWorker = async (workerId: number) => {
+                    updateWorkers(1);
+                    const wp = await context.newPage();
+                    try {
+                        while (true) {
+                            const idx = nextCardIndex++;
+                            if (idx >= cardsToDeepScrape.length) break;
 
-                            const details = await wp.evaluate(() => {
-                                // Match both modern and legacy detail layouts
-                                const oracleText = Array.from(document.querySelectorAll("[data-testid='cardDetailsOracleText'], .textbox, [class*='oracleText']"))
-                                    .map(el => el.textContent?.trim())
-                                    .filter(Boolean)
-                                    .join("\n\n");
+                            const card = cardsToDeepScrape[idx];
+                            try {
+                                await wp.goto(card.cardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
 
-                                const flavorText = document.querySelector("[data-testid='cardDetailsFlavorText'], .flavortextbox, [class*='flavorText']")?.textContent?.trim() || "";
+                                const details = await wp.evaluate(() => {
+                                    // Match both modern and detail layouts
+                                    const oracleText = Array.from(document.querySelectorAll("[data-testid='cardDetailsOracleText'], .textbox, [class*='oracleText']"))
+                                        .map(el => el.textContent?.trim())
+                                        .filter(Boolean)
+                                        .join("\n\n");
 
-                                const ptEl = document.querySelector("[data-testid='cardDetailsPT']");
-                                let pt = ptEl?.textContent?.trim() || "";
-                                if (!pt) {
-                                    const ptLabel = Array.from(document.querySelectorAll(".label")).find(el => el.textContent?.includes("P/T:"));
-                                    pt = ptLabel?.nextElementSibling?.textContent?.trim() || "";
-                                }
-                                const [power, toughness] = pt.includes("/") ? pt.split("/").map(s => s.trim()) : ["", ""];
+                                    const flavorText = document.querySelector("[data-testid='cardDetailsFlavorText'], .flavortextbox, [class*='flavorText']")?.textContent?.trim() || "";
 
-                                const typeEl = document.querySelector("[data-testid='cardDetailsTypeLine'], .typeLine, [class*='typeLine']");
-                                const typeLine = typeEl?.textContent?.trim() || "";
+                                    const ptEl = document.querySelector("[data-testid='cardDetailsPT']");
+                                    let pt = ptEl?.textContent?.trim() || "";
+                                    if (!pt) {
+                                        const ptLabel = Array.from(document.querySelectorAll(".label")).find(el => el.textContent?.includes("P/T:"));
+                                        pt = ptLabel?.nextElementSibling?.textContent?.trim() || "";
+                                    }
+                                    const [power, toughness] = pt.includes("/") ? pt.split("/").map(s => s.trim()) : ["", ""];
 
-                                const manaCostEl = document.querySelector("[data-testid='cardDetailsManaCost'], .manaCost, [class*='manaCost']");
-                                const manaCost = manaCostEl?.textContent?.trim() || "";
+                                    const typeEl = document.querySelector("[data-testid='cardDetailsTypeLine'], .typeLine, [class*='typeLine']");
+                                    const typeLine = typeEl?.textContent?.trim() || "";
 
-                                const rarityEl = document.querySelector("[data-testid='cardDetailsRarity'], .rarity");
-                                const rarity = rarityEl?.textContent?.trim() || "";
+                                    const manaCostEl = document.querySelector("[data-testid='cardDetailsManaCost'], .manaCost, [class*='manaCost']");
+                                    const manaCost = manaCostEl?.textContent?.trim() || "";
 
-                                const artistEl = document.querySelector("[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist");
-                                const artist = artistEl?.textContent?.trim() || "";
+                                    const rarityEl = document.querySelector("[data-testid='cardDetailsRarity'], .rarity");
+                                    const rarity = rarityEl?.textContent?.trim() || "";
 
-                                return { oracleText, flavorText, power, toughness, typeLine, manaCost, rarity, artist };
-                            });
+                                    const artistEl = document.querySelector("[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist");
+                                    const artist = artistEl?.textContent?.trim() || "";
 
-                            Object.assign(card, details);
-                            send({ type: "chunk", items: [card], startIndex: idx });
-                        } catch (err) {
-                            console.error(`[Worker ${workerId}] Failed: ${card.name}`, err);
+                                    return { oracleText, flavorText, power, toughness, typeLine, manaCost, rarity, artist };
+                                });
+
+                                Object.assign(card, details);
+                                send({ type: "chunk", items: [card], startIndex: idx });
+                            } catch (err) {
+                                console.error(`[Worker ${workerId}] Failed: ${card.name}`, err);
+                            }
                         }
+                    } finally {
+                        await wp.close();
+                        updateWorkers(-1);
                     }
-                } finally {
-                    await wp.close();
-                    updateWorkers(-1);
-                }
-            };
+                };
 
-            const workers = Array.from({ length: concurrency }, (_, i) => deepScrapeWorker(i + 1));
-            await Promise.all(workers);
+                const workers = Array.from({ length: concurrency }, (_, i) => deepScrapeWorker(i + 1));
+                await Promise.all(workers);
 
-            // Final Save: persist all deep-scraped details
-            if (collectionId !== undefined && collectionId !== null) {
-                send({ type: "step", message: "Finalizing card details in database..." });
-                try {
-                    const result = await saveScrapedCards(allCards, collectionId);
-                    if (result) {
-                        // We already added stats incrementally per-page during discovery
-                        send({ type: "stats", category: "cards", added: 0, matched: 0, missed: 0 });
-                        // Compute real missed after full scrape
-                        const allCardUrls = new Set(allCards.map((c: any) => c.cardUrl).filter(Boolean));
-                        const missed = await computeMissedCards(allCardUrls, collectionId);
-                        if (missed > 0) {
-                            send({ type: "step", message: `⚠️ ${missed} cards are in DB but were not found in this scrape.` });
+                // Final Save: persist only deep-scraped details to prevent overwriting existing data with sparse objects
+                if (collectionId !== undefined && collectionId !== null) {
+                    send({ type: "step", message: "Finalizing card details in database..." });
+                    try {
+                        const result = await saveScrapedCards(cardsToDeepScrape, collectionId);
+                        if (result) {
+                            send({ type: "stats", category: "cards", added: 0, matched: 0, missed: 0 });
+                            const allCardUrls = new Set(allCards.map((c: any) => c.cardUrl).filter(Boolean));
+                            const missed = await computeMissedCards(allCardUrls, collectionId);
+                            if (missed > 0) {
+                                send({ type: "step", message: `⚠️ ${missed} cards are in DB but were not found in this scrape.` });
+                            }
+                            send({ type: "stats", category: "cards", added: 0, matched: 0, missed });
                         }
-                        send({ type: "stats", category: "cards", added: 0, matched: 0, missed });
+                    } catch (error) {
+                        console.error("Failed to save cards:", error);
                     }
-                } catch (error) {
-                    console.error("Failed to save cards:", error);
                 }
             }
         }
@@ -346,7 +354,6 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
 
             send({ type: "step", message: `Searching for set links on page ${p}...` });
             const pageResults = await workerPage.evaluate((currentUrl: string) => {
-                // Try modern /sets/ paths first, then standard Gatherer set query params
                 const setLinks = document.querySelectorAll('a[href*="/sets/"], a[href*="set="]');
                 const rawItems = Array.from(setLinks).map((el: any) => ({
                     name: el.textContent?.trim() || "",
@@ -376,7 +383,6 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
                 })
                 .filter((s: any) => s.name && s.name !== "Sets" && s.collectionCode);
 
-            // Check for new sets on this page
             const newSets = pageSets.filter((s: any) => !uniqueCollectionCodes.has(s.collectionCode));
 
             if (newSets.length === 0) {
@@ -421,7 +427,6 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
             type: "step",
             message: `Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
         });
-        // Compute real missed after full scrape
         if (!skipSave && franchise && language) {
             const allCollectionUrls = new Set(
                 allDiscoveredSets.map((s: any) => s.collectionUrl).filter(Boolean)
