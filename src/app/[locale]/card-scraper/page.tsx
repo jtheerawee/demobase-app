@@ -19,8 +19,8 @@ const DEFAULT_STATS: ScraperStats = {
 };
 
 export default function CardScraperPage() {
-    const [selectedFranchise, setSelectedFranchise] = useState<string | null>("mtg");
-    const [selectedLanguage, setSelectedLanguage] = useState<string | null>("en");
+    const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [collections, setCollections] = useState<any[]>([]);
     const [cards, setCards] = useState<any[]>([]);
     const [steps, setSteps] = useState<any[]>([]);
@@ -50,8 +50,21 @@ export default function CardScraperPage() {
         pendingActionRef.current = null;
     };
 
+    // 1. Load from localStorage on mount
+    useEffect(() => {
+        const savedFranchise = localStorage.getItem("scraper_selected_franchise") || "mtg";
+        const savedLanguage = localStorage.getItem("scraper_selected_language") || "en";
+        setSelectedFranchise(savedFranchise);
+        setSelectedLanguage(savedLanguage);
+    }, []);
+
+    // 2. Save to localStorage and fetch collections when selections change
     useEffect(() => {
         if (selectedFranchise) {
+            localStorage.setItem("scraper_selected_franchise", selectedFranchise);
+            if (selectedLanguage) {
+                localStorage.setItem("scraper_selected_language", selectedLanguage);
+            }
             fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
         }
     }, [selectedFranchise, selectedLanguage]);

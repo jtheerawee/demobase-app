@@ -41,7 +41,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                     // It's okay if it fails, the evaluate will just return 0 items
                 }
 
-                const pageResults = await workerPage.evaluate((sc: string, langCode: string) => {
+                const pageResults = await workerPage.evaluate(({ sc, langCode }: { sc: string, langCode: string }) => {
                     // Card links follow: /{SET}/{lang}/{cardNo}/{card-slug}
                     const pattern = new RegExp(`^/${sc}/([a-z]{2}-[a-z]{2})/(\\d+)/(.+)$`, "i");
                     const links = document.querySelectorAll(`a[href^="/${sc}/"]`);
@@ -80,7 +80,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                         .filter((c): c is NonNullable<typeof c> => c !== null);
 
                     return { items };
-                }, setCode, language || "en");
+                }, { sc: setCode, langCode: language || "en" });
 
                 const pageCards = pageResults.items;
 
@@ -139,7 +139,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                     // Empty page at the end of collection
                 }
 
-                const pageCardsRaw = await workerPage.evaluate((langCode: string) => {
+                const pageCardsRaw = await workerPage.evaluate(({ langCode }: { langCode: string }) => {
                     const rows = document.querySelectorAll("tr.cardItem");
                     if (rows.length === 0) return [];
 
@@ -204,7 +204,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                             alt: name
                         };
                     });
-                }, language || "en");
+                }, { langCode: language || "en" });
 
                 if (pageCardsRaw.length === 0) {
                     send({ type: "step", message: `No more cards found at page ${p}.` });
@@ -294,7 +294,11 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                                     const artistEl = document.querySelector("[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist");
                                     const artist = artistEl?.textContent?.trim() || "";
 
-                                    return { oracleText, flavorText, power, toughness, typeLine, manaCost, rarity, artist };
+                                    // Extract the localized image URL
+                                    const imgEl = document.querySelector("[data-testid='cardFrontImage'], #ctl00_ctl00_ctl00_MainContent_SubContent_SubContent_cardImage") as HTMLImageElement | null;
+                                    const imageUrl = imgEl?.src || "";
+
+                                    return { oracleText, flavorText, power, toughness, typeLine, manaCost, rarity, artist, imageUrl };
                                 });
 
                                 Object.assign(card, details);
