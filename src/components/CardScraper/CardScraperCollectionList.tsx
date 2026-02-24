@@ -135,7 +135,7 @@ export function CardScraperCollectionList({
                             <IconDownload size={16} />
                         </ActionIcon>
                         <Badge variant="light" color="blue">
-                            {totalCount} Total
+                            {totalCount} Cols
                         </Badge>
                     </Group>
                 </Group>

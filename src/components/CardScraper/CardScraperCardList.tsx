@@ -1,7 +1,8 @@
 "use client";
 
 import { Card, SimpleGrid, Image, Text, Stack, Group, Badge, ScrollArea, ActionIcon, Box } from "@mantine/core";
-import { IconTrash, IconDownload } from "@tabler/icons-react";
+import { IconTrash, IconDownload, IconExternalLink, IconRefresh, IconFilter, IconFilterOff, IconAlertTriangle } from "@tabler/icons-react";
+import { useState, useMemo } from "react";
 
 interface CardItem {
     id: string | number;
@@ -9,6 +10,7 @@ interface CardItem {
     cardNo?: string;
     rarity?: string;
     imageUrl: string;
+    cardUrl?: string;
 }
 
 interface CardScraperCardListProps {
@@ -18,6 +20,7 @@ interface CardScraperCardListProps {
     onDeleteCard?: (id: string | number) => void;
     onDeleteAllCards?: () => void;
     onDownloadCards?: () => void;
+    onRefresh?: () => void;
     canDownload?: boolean;
 }
 
@@ -28,8 +31,17 @@ export function CardScraperCardList({
     onDeleteCard,
     onDeleteAllCards,
     onDownloadCards,
+    onRefresh,
     canDownload
 }: CardScraperCardListProps) {
+    const [filterInvalid, setFilterInvalid] = useState(false);
+
+    const filteredCards = useMemo(() => {
+        if (!filterInvalid) return cards;
+        return cards.filter(c => !c.rarity);
+    }, [cards, filterInvalid]);
+
+    const invalidCount = useMemo(() => cards.filter(c => !c.rarity).length, [cards]);
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
             <Stack gap="md">
@@ -51,6 +63,27 @@ export function CardScraperCardList({
                         </ActionIcon>
                         <ActionIcon
                             variant="light"
+                            color="blue"
+                            size="sm"
+                            onClick={onRefresh}
+                            title="Refresh from database"
+                            loading={loading}
+                            disabled={!canDownload}
+                        >
+                            <IconRefresh size={14} />
+                        </ActionIcon>
+                        <ActionIcon
+                            variant={filterInvalid ? "filled" : "light"}
+                            color={filterInvalid ? "orange" : "gray"}
+                            size="sm"
+                            onClick={() => setFilterInvalid(!filterInvalid)}
+                            title={filterInvalid ? "Show all cards" : "Filter invalid cards (no rarity)"}
+                            disabled={invalidCount === 0 && !filterInvalid}
+                        >
+                            {filterInvalid ? <IconFilterOff size={14} /> : <IconFilter size={14} />}
+                        </ActionIcon>
+                        <ActionIcon
+                            variant="light"
                             color="red"
                             size="sm"
                             onClick={onDeleteAllCards}
@@ -59,54 +92,75 @@ export function CardScraperCardList({
                         >
                             <IconTrash size={14} />
                         </ActionIcon>
-                        <Badge variant="light" color="gray">
-                            {cards.length} Cards
+                        <Badge variant="light" color={filterInvalid ? "orange" : "gray"}>
+                            {filteredCards.length} {filterInvalid ? "Invalid" : "Cards"}
                         </Badge>
                     </Group>
                 </Group>
 
-                <ScrollArea h={600} offsetScrollbars>
-                    <SimpleGrid cols={2} spacing="xs">
-                        {cards.map((card, index) => (
-                            <Card key={card.id || index} withBorder padding="xs" radius="sm" style={{ position: 'relative' }}>
+                <ScrollArea h={600} offsetScrollbars pt="xs">
+                    <SimpleGrid cols={1} spacing="xs">
+                        {filteredCards.map((card, index) => (
+                            <Card key={card.id || index} withBorder padding={4} radius="xs" style={{ position: 'relative' }}>
                                 <ActionIcon
                                     variant="subtle"
                                     color="red"
-                                    size="sm"
+                                    size="xs"
                                     onClick={() => onDeleteCard?.(card.id)}
                                     style={{
                                         position: 'absolute',
-                                        top: 5,
-                                        right: 5,
+                                        top: 2,
+                                        right: 2,
                                         zIndex: 10,
                                         backgroundColor: 'rgba(255,255,255,0.8)'
                                     }}
                                 >
-                                    <IconTrash size={14} />
+                                    <IconTrash size={12} />
                                 </ActionIcon>
 
-                                <Stack gap="xs">
+                                {card.cardUrl && (
+                                    <ActionIcon
+                                        variant="subtle"
+                                        color="blue"
+                                        size="xs"
+                                        component="a"
+                                        href={card.cardUrl}
+                                        target="_blank"
+                                        style={{
+                                            position: 'absolute',
+                                            top: 2,
+                                            right: 22,
+                                            zIndex: 10,
+                                            backgroundColor: 'rgba(255,255,255,0.8)'
+                                        }}
+                                    >
+                                        <IconExternalLink size={12} />
+                                    </ActionIcon>
+                                )}
+
+                                <Group gap="xs" wrap="nowrap" align="center">
                                     <Image
                                         src={card.imageUrl}
-                                        fallbackSrc="https://placehold.co/200x280?text=No+Image"
+                                        fallbackSrc="https://placehold.co/100x140?text=No+Image"
                                         alt={card.name}
                                         radius="xs"
+                                        w={44}
                                         style={{ aspectRatio: '2.5 / 3.5', objectFit: 'contain' }}
                                     />
-                                    <Stack gap={2}>
+                                    <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                                         <Text size="xs" fw={700} lineClamp={1}>
                                             {card.name}
                                         </Text>
-                                        <Group justify="space-between" align="center">
-                                            <Text size="10px" c="dimmed">
-                                                {card.cardNo || "---"}
-                                            </Text>
-                                            <Badge size="xs" variant="outline" radius="xs">
+                                        <Group gap={4}>
+                                            <Badge size="9px" variant="light" color="blue" radius="xs" px={4} h={14}>
+                                                No: {card.cardNo || "---"}
+                                            </Badge>
+                                            <Badge size="9px" variant="outline" color="gray" radius="xs" px={4} h={14}>
                                                 {card.rarity || "---"}
                                             </Badge>
                                         </Group>
                                     </Stack>
-                                </Stack>
+                                </Group>
                             </Card>
                         ))}
                     </SimpleGrid>

@@ -70,6 +70,21 @@ export default function CardScraperPage() {
         }
     };
 
+    const fetchCards = async (collectionId: number | string) => {
+        setCardLoading(true);
+        try {
+            const res = await fetch(`/api/scraper/cards?collectionId=${collectionId}`);
+            const data = await res.json();
+            if (data.success) {
+                setCards(data.cards);
+            }
+        } catch (err) {
+            console.error("Failed to fetch cards:", err);
+        } finally {
+            setCardLoading(false);
+        }
+    };
+
     const handleDeleteAll = async () => {
         if (!selectedFranchise) return;
         askConfirm(
@@ -328,6 +343,7 @@ export default function CardScraperPage() {
                                 return prev;
                             });
                         } else if (msg.type === "stats") {
+                            console.log(`[Frontend] Received stats:`, msg);
                             setScraperStats((prev) => ({
                                 ...prev,
                                 [msg.category]: {
@@ -468,20 +484,7 @@ export default function CardScraperPage() {
                                 const col = collections.find(c => c.id === id);
                                 setSelectedCollection(col);
                                 setCards([]);
-
-                                // Automatically fetch cards from database if they exist
-                                if (id && typeof id === 'number') {
-                                    setCardLoading(true);
-                                    try {
-                                        const res = await fetch(`/api/scraper/cards?collectionId=${id}`);
-                                        const data = await res.json();
-                                        if (data.success) {
-                                            setCards(data.cards);
-                                        }
-                                    } finally {
-                                        setCardLoading(false);
-                                    }
-                                }
+                                if (id) fetchCards(id);
                             }}
                         />
                     </div>
@@ -494,6 +497,7 @@ export default function CardScraperPage() {
                             onDeleteCard={handleDeleteCard}
                             onDeleteAllCards={handleDeleteAllCards}
                             onDownloadCards={handleDownloadCards}
+                            onRefresh={() => selectedCollection?.id && fetchCards(selectedCollection.id)}
                             canDownload={!!selectedCollection}
                         />
                     </div>

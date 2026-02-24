@@ -20,7 +20,7 @@ export async function POST(request: Request) {
             type = body.type || "cards";
             franchise = body.franchise;
             language = body.language;
-            collectionId = body.collectionId;
+            collectionId = body.collectionId ? Number(body.collectionId) : undefined;
         } catch (e) {
             console.error("Failed to parse request body:", e);
             return NextResponse.json({ error: "Invalid request body" }, { status: 400 });

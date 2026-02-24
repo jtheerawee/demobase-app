@@ -84,12 +84,12 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
     const missed = 0;
 
     const dataToInsert = cards.map((card) => ({
-        collection_id: collectionId,
+        collection_id: colId,
         name: card.name,
         image_url: card.imageUrl,
         card_url: card.cardUrl,
         card_no: card.cardNo,
-        rarity: card.rarity,
+        rarity: card.rarity || "",
     }));
 
     const { error } = await supabase.from("scraped_cards").upsert(dataToInsert, { onConflict: "card_url" });

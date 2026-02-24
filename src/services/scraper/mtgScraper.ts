@@ -3,6 +3,7 @@ import { saveScrapedCards, saveScrapedCollections, computeMissedCollections, com
 import type { ScraperOptions } from "./types";
 
 export async function scrapeMTGCards({ url, context, send, collectionId, deepScrape }: ScraperOptions) {
+    console.log(`[Scraper] Starting MTG card scrape. collectionId:`, collectionId);
     send({ type: "step", message: "MTG Gatherer detected. Starting card extraction..." });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
@@ -93,7 +94,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 allCards.push(...newCards);
 
                 // Save this page's cards immediately to get real-time stats
-                if (collectionId) {
+                if (collectionId !== undefined && collectionId !== null) {
                     try {
                         const result = await saveScrapedCards(newCards, collectionId);
                         if (result) {
@@ -201,7 +202,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 allCards.push(...newCards);
 
                 // Save this page's cards immediately to get real-time stats
-                if (collectionId) {
+                if (collectionId !== undefined && collectionId !== null) {
                     try {
                         const result = await saveScrapedCards(newCards, collectionId);
                         if (result) {
@@ -285,7 +286,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
             await Promise.all(workers);
 
             // Final Save: persist all deep-scraped details
-            if (collectionId) {
+            if (collectionId !== undefined && collectionId !== null) {
                 send({ type: "step", message: "Finalizing card details in database..." });
                 try {
                     const result = await saveScrapedCards(allCards, collectionId);
