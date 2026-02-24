@@ -3,7 +3,7 @@ import { chromium as playwright } from "playwright";
 import { APP_CONFIG } from "@/constants/app";
 import { scrapeMTGCards, scrapeMTGCollections } from "@/services/scraper/mtgScraper";
 import { scrapePokemonCards, scrapePokemonCollections } from "@/services/scraper/pokemonScraper";
-import { createClient } from "@/utils/supabase/server";
+import { scrapeOnepieceCards, scrapeOnepieceCollections } from "@/services/scraper/onepieceScraper";
 
 export async function POST(request: Request) {
     let url: string = "";
@@ -33,6 +33,12 @@ export async function POST(request: Request) {
                     url = APP_CONFIG.POKEMON_URL_TH;
                 } else {
                     url = APP_CONFIG.POKEMON_URL_EN;
+                }
+            } else if (franchise === "one-piece") {
+                if (language === "jp") {
+                    url = APP_CONFIG.ONEPIECE_URL_JP;
+                } else {
+                    url = APP_CONFIG.ONEPIECE_URL_EN;
                 }
             } else {
                 url = APP_CONFIG.MTG_COLLECTION_URL;
@@ -107,6 +113,12 @@ export async function POST(request: Request) {
                                 await scrapePokemonCards(scraperOptions);
                             } else {
                                 await scrapePokemonCollections(scraperOptions);
+                            }
+                        } else if (franchise === "one-piece") {
+                            if (type === "cards") {
+                                await scrapeOnepieceCards(scraperOptions);
+                            } else {
+                                await scrapeOnepieceCollections(scraperOptions);
                             }
                         } else {
                             send({ type: "step", message: `Unsupported franchise: ${franchise}.` });

@@ -17,6 +17,10 @@ export const APP_CONFIG = {
     POKEMON_URL_JP: "https://www.tcgplayer.com/search/pokemon-japan/product?productLineName=pokemon-japan&view=grid&ProductTypeName=Cards&page=1",
     POKEMON_URL_TH: "https://asia.pokemon-card.com/th/card-search/",
 
+    // One piece
+    ONEPIECE_URL_EN: "https://en.onepiece-cardgame.com/cardlist",
+    ONEPIECE_URL_JP: "https://asia-th.onepiece-cardgame.com/cardlist/?series=569114",
+
     // Search
     SEARCH_MIN_CHARS: 3,
     SEARCH_RESULTS_PER_ROW: 3,
