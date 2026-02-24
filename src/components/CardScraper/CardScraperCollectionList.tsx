@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea, TextInput } from "@mantine/core";
-import { IconTrash, IconExternalLink, IconPackage, IconDownload, IconSearch } from "@tabler/icons-react";
+import { IconTrash, IconExternalLink, IconPackage, IconDownload, IconSearch, IconX } from "@tabler/icons-react";
 import { useState } from "react";
 
 interface CollectionItem {
@@ -16,6 +16,7 @@ interface CollectionItem {
 
 interface CardScraperCollectionListProps {
     collections?: CollectionItem[];
+    selectedId?: string | number | null;
     onSelect?: (id: string | number) => void;
     onDownloadItem?: (item: CollectionItem) => void;
     onDownloadAll?: () => void;
@@ -25,6 +26,7 @@ interface CardScraperCollectionListProps {
 
 export function CardScraperCollectionList({
     collections = [],
+    selectedId,
     onSelect,
     onDownloadItem,
     onDownloadAll,
@@ -81,13 +83,25 @@ export function CardScraperCollectionList({
                 <TextInput
                     placeholder="Search by name or code..."
                     leftSection={<IconSearch size={14} />}
+                    rightSection={
+                        search ? (
+                            <ActionIcon
+                                size="xs"
+                                color="gray"
+                                variant="subtle"
+                                onClick={() => setSearch("")}
+                            >
+                                <IconX size={12} />
+                            </ActionIcon>
+                        ) : null
+                    }
                     value={search}
                     onChange={(e) => setSearch(e.currentTarget.value)}
                     size="xs"
                     radius="md"
                 />
 
-                <ScrollArea h={400} offsetScrollbars>
+                <ScrollArea h={600} offsetScrollbars>
                     <Stack gap="xs">
                         {filteredCollections.map((item) => (
                             <Card
@@ -95,7 +109,11 @@ export function CardScraperCollectionList({
                                 withBorder
                                 padding="sm"
                                 radius="sm"
-                                style={{ cursor: 'pointer' }}
+                                style={{
+                                    cursor: 'pointer',
+                                    borderColor: selectedId === item.id ? 'var(--mantine-color-blue-filled)' : undefined,
+                                    backgroundColor: selectedId === item.id ? 'var(--mantine-color-blue-light)' : undefined,
+                                }}
                                 onClick={() => onSelect?.(item.id)}
                             >
                                 <Group justify="space-between" align="center" wrap="nowrap">
@@ -111,7 +129,7 @@ export function CardScraperCollectionList({
                                             )}
                                         </Group>
                                         <Text size="xs" c="dimmed">
-                                            {item.cardCount ?? 0} items {item.updatedAt ? `• ${item.updatedAt}` : ''}
+                                            {item.cardCount ?? 0} cards {item.updatedAt ? `• ${item.updatedAt}` : ''}
                                         </Text>
                                     </Stack>
                                     <Group gap={4}>

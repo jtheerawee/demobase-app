@@ -166,6 +166,42 @@ export default function CardScraperPage() {
         if (selectedFranchise) fetchExistingCollections(selectedFranchise);
     };
 
+    const handleDeleteCard = async (id: string | number) => {
+        try {
+            const res = await fetch(`/api/scraper/cards?id=${id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCards((prev) => prev.filter((card) => card.id !== id));
+            } else {
+                setError(data.error || "Failed to delete card");
+            }
+        } catch (err: any) {
+            setError(err.message || "An unexpected error occurred during card deletion");
+        }
+    };
+
+    const handleDeleteAllCards = async () => {
+        if (!selectedCollection?.id) return;
+        if (!confirm(`Are you sure you want to delete all cards for ${selectedCollection.collectionCode}?`)) return;
+
+        try {
+            const res = await fetch(`/api/scraper/cards?collectionId=${selectedCollection.id}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCards([]);
+                if (selectedFranchise) fetchExistingCollections(selectedFranchise);
+            } else {
+                setError(data.error || "Failed to delete cards");
+            }
+        } catch (err: any) {
+            setError(err.message || "An unexpected error occurred during bulk card deletion");
+        }
+    };
+
     const runScraperStream = async (requestData: any, onItems: (items: any[]) => void) => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
@@ -322,6 +358,7 @@ export default function CardScraperPage() {
                     <div>
                         <CardScraperCollectionList
                             collections={collections}
+                            selectedId={selectedCollection?.id}
                             loading={collectionLoading}
                             onDeleteAll={handleDeleteAll}
                             onDownloadAll={handleDownloadAllCards}
@@ -351,8 +388,10 @@ export default function CardScraperPage() {
                     <div>
                         <CardScraperCardList
                             cards={cards}
+                            collectionCode={selectedCollection?.collectionCode}
                             loading={cardLoading}
-                            onDownloadCards={handleDownloadCards}
+                            onDeleteCard={handleDeleteCard}
+                            onDeleteAllCards={handleDeleteAllCards}
                             canDownload={!!selectedCollection}
                         />
                     </div>

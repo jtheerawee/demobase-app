@@ -41,3 +41,34 @@ export async function GET(request: Request) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
+
+export async function DELETE(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    const collectionId = searchParams.get("collectionId");
+
+    if (!id && !collectionId) {
+        return NextResponse.json({ success: false, error: "Missing id or collectionId" }, { status: 400 });
+    }
+
+    try {
+        const supabase = await createClient();
+        let query = supabase.from("scraped_cards").delete();
+
+        if (id) {
+            query = query.eq("id", id);
+        } else if (collectionId) {
+            query = query.eq("collection_id", collectionId);
+        }
+
+        const { error } = await query;
+
+        if (error) {
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (err: any) {
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    }
+}
