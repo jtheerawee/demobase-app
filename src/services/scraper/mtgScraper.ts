@@ -90,9 +90,9 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
             }
         } else {
             // ── Legacy checklist view: paginated table ──
-            let p = 0;
+            let p = 1;
             while (true) {
-                const pageUrl = p === 0
+                const pageUrl = p === 1
                     ? (url.includes("output=checklist") ? url : (url.includes("?") ? `${url}&output=checklist` : `${url}?output=checklist`))
                     : (url.includes("output=checklist")
                         ? (url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`)
@@ -100,7 +100,7 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                             ? `${url}&output=checklist&page=${p}`
                             : `${url}?output=checklist&page=${p}`));
 
-                send({ type: "step", message: `Navigating to cards page ${p + 1}: ${pageUrl}` });
+                send({ type: "step", message: `Navigating to cards page ${p}: ${pageUrl}` });
                 await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
                 const pageCardsRaw = await workerPage.evaluate(() => {
