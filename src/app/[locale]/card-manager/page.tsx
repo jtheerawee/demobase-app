@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select } from "@mantine/core";
+import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge } from "@mantine/core";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -21,6 +21,7 @@ export default function CardManagerPage() {
     const [loading, setLoading] = useState(false);
     const [addingId, setAddingId] = useState<number | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [imgDimensions, setImgDimensions] = useState<{ w: number; h: number } | null>(null);
 
     // Initial load from localStorage
     useEffect(() => {
@@ -177,7 +178,10 @@ export default function CardManagerPage() {
 
             <Modal
                 opened={!!previewImage}
-                onClose={() => setPreviewImage(null)}
+                onClose={() => {
+                    setPreviewImage(null);
+                    setImgDimensions(null);
+                }}
                 size="auto"
                 padding={0}
                 centered
@@ -188,12 +192,39 @@ export default function CardManagerPage() {
                 }}
             >
                 {previewImage && (
-                    <Image
-                        src={previewImage}
-                        alt="Card Preview"
-                        style={{ maxHeight: '85vh', width: 'auto', cursor: 'pointer' }}
-                        onClick={() => setPreviewImage(null)}
-                    />
+                    <Stack gap={0} align="center" pos="relative">
+                        <Image
+                            src={previewImage}
+                            alt="Card Preview"
+                            style={{
+                                width: APP_CONFIG.PREVIEW_IMAGE_WIDTH,
+                                height: 'auto',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => {
+                                setPreviewImage(null);
+                                setImgDimensions(null);
+                            }}
+                            onLoad={(e) => {
+                                const img = e.currentTarget;
+                                setImgDimensions({ w: img.naturalWidth, h: img.naturalHeight });
+                            }}
+                        />
+                        {imgDimensions && (
+                            <Badge
+                                variant="filled"
+                                color="dark"
+                                size="sm"
+                                radius="xs"
+                                pos="absolute"
+                                bottom={8}
+                                right={8}
+                                style={{ opacity: 0.8, pointerEvents: 'none' }}
+                            >
+                                {imgDimensions.w} × {imgDimensions.h} px
+                            </Badge>
+                        )}
+                    </Stack>
                 )}
             </Modal>
         </Container>

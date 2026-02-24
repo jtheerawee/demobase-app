@@ -20,6 +20,7 @@ export const APP_CONFIG = {
     // Search
     SEARCH_MIN_CHARS: 3,
     SEARCH_RESULTS_PER_ROW: 3,
+    PREVIEW_IMAGE_WIDTH: 400,
 
     // Feature Toggles (Widgets)
     ENABLED_WIDGETS: {
