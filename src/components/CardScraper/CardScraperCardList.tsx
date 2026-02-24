@@ -3,6 +3,7 @@
 import { Card, SimpleGrid, Image, Text, Stack, Group, Badge, ScrollArea, ActionIcon, Box } from "@mantine/core";
 import { IconTrash, IconDownload, IconExternalLink, IconRefresh, IconFilter, IconFilterOff, IconAlertTriangle } from "@tabler/icons-react";
 import { useState, useMemo } from "react";
+import JSZip from "jszip";
 
 interface CardItem {
     id: string | number;
@@ -20,6 +21,7 @@ interface CardScraperCardListProps {
     onDeleteCard?: (id: string | number) => void;
     onDeleteAllCards?: () => void;
     onDownloadCards?: () => void;
+    onDownloadAllImages?: () => void;
     onRefresh?: () => void;
     canDownload?: boolean;
 }
@@ -31,10 +33,13 @@ export function CardScraperCardList({
     onDeleteCard,
     onDeleteAllCards,
     onDownloadCards,
+    onDownloadAllImages,
     onRefresh,
     canDownload
 }: CardScraperCardListProps) {
     const [filterInvalid, setFilterInvalid] = useState(false);
+    const [bulkDownloading, setBulkDownloading] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
     const filteredCards = useMemo(() => {
         if (!filterInvalid) return cards;
@@ -42,6 +47,67 @@ export function CardScraperCardList({
     }, [cards, filterInvalid]);
 
     const invalidCount = useMemo(() => cards.filter(c => !c.rarity).length, [cards]);
+
+    const downloadImage = async (card: CardItem) => {
+        try {
+            const response = await fetch(card.imageUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${card.cardNo || 'card'}-${card.name.replace(/\s+/g, '_')}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            window.open(card.imageUrl, '_blank');
+        }
+    };
+
+    const handleDownloadAll = async () => {
+        if (filteredCards.length === 0) return;
+        setBulkDownloading(true);
+        setDownloadProgress({ current: 0, total: filteredCards.length });
+
+        const zip = new JSZip();
+        const folderName = collectionCode || "cards";
+        const imgFolder = zip.folder(folderName);
+
+        for (let i = 0; i < filteredCards.length; i++) {
+            const card = filteredCards[i];
+            try {
+                const proxyUrl = `/api/image-proxy?url=${encodeURIComponent(card.imageUrl)}`;
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error("Failed to fetch image");
+                const blob = await response.blob();
+                const prefix = collectionCode ? `[${collectionCode}]-` : '';
+                const fileName = `${prefix}${card.cardNo || 'card'}-${card.name.replace(/\s+/g, '_')}.png`;
+                imgFolder?.file(fileName, blob);
+            } catch (error) {
+                console.error(`Error adding ${card.name} to zip:`, error);
+            }
+            setDownloadProgress({ current: i + 1, total: filteredCards.length });
+        }
+
+        try {
+            const content = await zip.generateAsync({ type: "blob" });
+            const url = window.URL.createObjectURL(content);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${folderName}.zip`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error generating zip:", error);
+        }
+
+        setBulkDownloading(false);
+        setDownloadProgress({ current: 0, total: 0 });
+    };
+
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
             <Stack gap="md">
@@ -58,6 +124,17 @@ export function CardScraperCardList({
                             title="Scrape cards for this collection"
                             loading={loading}
                             disabled={!canDownload}
+                        >
+                            <IconDownload size={14} />
+                        </ActionIcon>
+                        <ActionIcon
+                            variant="filled"
+                            color="green"
+                            size="sm"
+                            onClick={handleDownloadAll}
+                            title={bulkDownloading ? `Downloading ${downloadProgress.current}/${downloadProgress.total}...` : "Download all images as zip"}
+                            loading={bulkDownloading}
+                            disabled={filteredCards.length === 0}
                         >
                             <IconDownload size={14} />
                         </ActionIcon>
@@ -114,6 +191,7 @@ export function CardScraperCardList({
                                         zIndex: 10,
                                         backgroundColor: 'rgba(255,255,255,0.8)'
                                     }}
+                                    title="Delete Card"
                                 >
                                     <IconTrash size={12} />
                                 </ActionIcon>
@@ -133,6 +211,7 @@ export function CardScraperCardList({
                                             zIndex: 10,
                                             backgroundColor: 'rgba(255,255,255,0.8)'
                                         }}
+                                        title="View Source"
                                     >
                                         <IconExternalLink size={12} />
                                     </ActionIcon>
