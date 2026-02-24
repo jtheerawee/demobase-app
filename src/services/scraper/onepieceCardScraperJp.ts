@@ -16,21 +16,39 @@ export async function scrapeOnepieceCardsJp({ url, context, send, deepScrape, co
         send({ type: "step", message: `Navigating to: ${url}` });
         await workerPage.goto(url, { waitUntil: "networkidle", timeout: 60000 });
 
+        // Wait a bit for any secondary dynamic content
+        await workerPage.waitForTimeout(2000);
+
+        send({ type: "step", message: "Searching for cards on the page..." });
+
         const pageData = await workerPage.evaluate(() => {
-            const cardElements = document.querySelectorAll(".resultArea dl");
-            const items = Array.from(cardElements).map((el) => {
-                const img = el.querySelector("img") as HTMLImageElement;
-                const name = img?.alt || "One Piece Card JP";
+            // Find cards: try traditional DLs first, then fallback to lazy images
+            let targets: Element[] = Array.from(document.querySelectorAll("dl"));
+            let isImageOnly = false;
+
+            if (targets.length === 0) {
+                // Fallback: If no DLs, try finding images directly (special layouts)
+                targets = Array.from(document.querySelectorAll("img.lazy, img[data-src]"));
+                isImageOnly = true;
+            }
+
+            if (targets.length === 0) return { items: [], status: "No card elements (dl or img.lazy) found" };
+
+            const items = targets.map((el) => {
+                const img = (isImageOnly ? el : el.querySelector("img")) as HTMLImageElement;
+                const nameLabel = isImageOnly ? null : el.querySelector('.cardName, .name');
+                const name = nameLabel?.textContent?.trim() || img?.alt || "One Piece Card JP";
 
                 // Get image URL (data-src fallback)
-                let imageUrl = img?.getAttribute('data-src') || img?.src || "";
-                if (imageUrl && !imageUrl.startsWith('http')) {
-                    const baseUrl = window.location.origin;
-                    if (imageUrl.startsWith('..')) {
-                        const currentPath = window.location.pathname.split('/').slice(0, -1).join('/');
-                        imageUrl = baseUrl + currentPath + '/' + imageUrl;
-                    } else {
-                        imageUrl = baseUrl + (imageUrl.startsWith('/') ? '' : '/') + imageUrl;
+                let rawImageUrl = img?.getAttribute('data-src') || img?.getAttribute('src') || "";
+                let imageUrl = "";
+                if (rawImageUrl) {
+                    try {
+                        imageUrl = new URL(rawImageUrl, window.location.href).href;
+                        // Normalize to clean format: remove _p1 suffix and query params
+                        imageUrl = imageUrl.split('?')[0].replace(/_p\d+\./, '.');
+                    } catch (e) {
+                        imageUrl = rawImageUrl;
                     }
                 }
 
@@ -44,9 +62,20 @@ export async function scrapeOnepieceCardsJp({ url, context, send, deepScrape, co
                     }
                 }
 
-                const anchor = el.querySelector("a") as HTMLAnchorElement;
+                const anchor = (isImageOnly ? el.closest("a") : el.querySelector("a")) as HTMLAnchorElement;
                 const detailId = anchor?.getAttribute("data-src") || "";
-                let cardUrl = anchor?.href || imageUrl;
+
+                // Construct card URL using hash format
+                const pageUrl = window.location.origin + window.location.pathname + window.location.search;
+                let cardUrl = "";
+                if (detailId && detailId.startsWith('#')) {
+                    cardUrl = `${pageUrl.split('#')[0]}${detailId}`;
+                } else if (anchor?.href && !anchor.href.startsWith('javascript')) {
+                    cardUrl = anchor.href;
+                } else {
+                    // Fallback to hash based on card number
+                    cardUrl = `${pageUrl.split('#')[0]}#${cardNo}`;
+                }
 
                 return {
                     name,
@@ -58,24 +87,29 @@ export async function scrapeOnepieceCardsJp({ url, context, send, deepScrape, co
                     isBeingScraped: false
                 };
             });
-            return { items };
+            return { items, status: items.length > 0 ? "Success" : "Empty list" };
         });
 
         if (pageData.items.length > 0) {
             sharedCardList.push(...pageData.items);
+            send({ type: "step", message: `✅ Successfully extracted ${pageData.items.length} cards from the list.` });
             send({ type: "chunk", items: pageData.items, startIndex: 0 });
             send({ type: "meta", totalItems: sharedCardList.length });
+        } else {
+            send({ type: "step", message: `⚠️ No cards found. Status: ${pageData.status}` });
         }
 
         // Deep Scrape Phase (JP) - Modal Interaction
         if (deepScrape && sharedCardList.length > 0) {
             const totalCards = sharedCardList.length;
-            send({ type: "step", message: `Starting JP deep scrape for ${totalCards} cards via modals...` });
+            send({ type: "step", message: `Starting deep scrape for ${totalCards} cards via modals (Parallel Workers)...` });
 
             const deepWorker = async (workerId: number) => {
                 const deepPage = await context.newPage();
                 try {
                     await deepPage.goto(url, { waitUntil: "networkidle", timeout: 60000 });
+                    // Wait for the card list to be interactive
+                    await deepPage.waitForSelector('a[data-src]', { timeout: 15000 });
 
                     while (true) {
                         const cardIndex = sharedCardList.findIndex((c) => c.detailId && !c.isDeepScraped && !c.isBeingScraped);
@@ -83,39 +117,100 @@ export async function scrapeOnepieceCardsJp({ url, context, send, deepScrape, co
 
                         const card = sharedCardList[cardIndex];
                         card.isBeingScraped = true;
-                        send({ type: "step", message: `[Worker ${workerId}] Opening modal for card ${cardIndex + 1}/${totalCards}: ${card.name}` });
 
                         try {
                             const selector = `a[data-src="${card.detailId}"]`;
-                            await deepPage.click(selector);
+                            const clickTarget = await deepPage.$(selector);
 
-                            const modalSelector = `.fancybox-content ${card.detailId}, .fancybox-inner`;
+                            if (!clickTarget) {
+                                send({ type: "step", message: `[Worker ${workerId}] ⚠️ Could not find click target for ${card.cardNo}. Skipping details.` });
+                                continue;
+                            }
+
+                            await clickTarget.click();
+
+                            const modalSelector = `.fancybox-content, .fancybox-inner, .cardDetail, ${card.detailId}`;
                             await deepPage.waitForSelector(modalSelector, { timeout: 10000 });
 
+                            // 1. Wait until metadata is actually rendered
+                            try {
+                                await deepPage.waitForFunction(() => {
+                                    const info = document.querySelector('.infoCol') || document.querySelector('.info_col');
+                                    const text = info?.textContent || "";
+                                    return text.includes('|');
+                                }, { timeout: 7000 });
+                            } catch (e) {
+                                // Continue
+                            }
+
                             const details = await deepPage.evaluate((cid: string) => {
-                                const modal = document.querySelector('.fancybox-content') || document.querySelector(cid);
+                                // Find visible/active modal
+                                const modals = Array.from(document.querySelectorAll('.fancybox-content, .fancybox-inner, .cardDetail, .fancybox-container'));
+                                const modal = modals.find(m => (m as HTMLElement).offsetParent !== null) ||
+                                    modals.find(m => m.classList.contains('fancybox-is-open')) ||
+                                    document.querySelector(cid) ||
+                                    modals[0];
+
                                 if (!modal) return null;
 
                                 const getText = (sel: string) => modal.querySelector(sel)?.textContent?.trim() || "";
+                                const name = getText('.cardName, .name, h2, h3');
 
-                                const name = getText('.cardName, .name');
-                                const cardNo = getText('.cardNumber, .number');
-                                const rarity = getText('.rarity');
+                                // --- RARITY EXTRACTION ---
+                                let rarity = "";
+                                let debugRawText = "";
+                                let debugStrategy = "None";
+                                const infoCol = modal.querySelector('.infoCol') || modal.querySelector('.info_col');
 
-                                return { name, cardNo, rarity, isDeepScraped: true };
+                                if (infoCol) {
+                                    debugRawText = infoCol.textContent?.trim() || "EMPTY";
+                                    const parts = debugRawText.split('|').map((p: string) => p.trim());
+                                    if (parts.length >= 2) {
+                                        rarity = parts[1];
+                                        debugStrategy = "PipeSplit";
+                                    }
+                                }
+
+                                if (!rarity || rarity.length > 8) {
+                                    const allText = modal.textContent || "";
+                                    const match = allText.match(/\b(L|SEC|SR|R|UC|C|P)\b/);
+                                    if (match) {
+                                        rarity = match[1];
+                                        debugStrategy = "RegexFallback";
+                                    }
+                                }
+
+                                // --- IMAGE EXTRACTION ---
+                                const imgEl = modal.querySelector('.cardDetail img, .card_detail img, img') as HTMLImageElement;
+                                let imageUrl = imgEl?.src || "";
+                                if (imageUrl) {
+                                    imageUrl = imageUrl.split('?')[0].replace(/_p\d+\./, '.');
+                                }
+
+                                return {
+                                    name,
+                                    rarity,
+                                    imageUrl,
+                                    isDeepScraped: true,
+                                    debug: { raw: debugRawText, strategy: debugStrategy }
+                                };
                             }, card.detailId);
 
                             if (details) {
-                                Object.assign(card, details);
-                                send({ type: "cardUpdate", index: cardIndex, details });
+                                const { debug, ...actualDetails } = details;
+                                Object.assign(card, actualDetails);
+                                send({ type: "step", message: `[Worker ${workerId}] ${card.cardNo}: Rarity="${card.rarity}" | Strategy=${debug.strategy}` });
+                                send({ type: "cardUpdate", index: cardIndex, details: actualDetails });
+                            } else {
+                                send({ type: "step", message: `[Worker ${workerId}] ❌ Failed to extract details for ${card.cardNo}` });
                             }
 
                             const closeBtn = await deepPage.$('.fancybox-close-small, .fancybox-button--close');
                             if (closeBtn) await closeBtn.click();
-                            await deepPage.waitForTimeout(500);
+                            await deepPage.waitForTimeout(300);
 
                         } catch (e) {
-                            console.error(`Failed to deep scrape JP card ${cardIndex}:`, e);
+                            send({ type: "step", message: `[Worker ${workerId}] Error on ${card.cardNo}: ${e instanceof Error ? e.message : 'Unknown error'}` });
                         } finally {
                             card.isBeingScraped = false;
                         }
@@ -128,16 +223,22 @@ export async function scrapeOnepieceCardsJp({ url, context, send, deepScrape, co
             const concurrency = Math.min(APP_CONFIG.CARD_CONCURRENCY_LIMIT, 3);
             const workers = Array.from({ length: concurrency }, (_, i) => deepWorker(i + 1));
             await Promise.all(workers);
+            send({ type: "step", message: "Deep scrape phase completed." });
         }
 
         if (collectionId && sharedCardList.length > 0) {
-            send({ type: "step", message: "Saving One Piece JP cards..." });
-            const result = await saveScrapedCards(sharedCardList, collectionId);
+            // Deduplicate cards by cardNo
+            const uniqueCards = Array.from(new Map(sharedCardList.map(c => [c.cardNo, c])).values());
+
+            send({ type: "step", message: `Final Step: Persisting ${uniqueCards.length} unique cards to database...` });
+            const result = await saveScrapedCards(uniqueCards, collectionId);
             if (result) {
                 const { added, matched } = result;
                 send({ type: "stats", category: "cards", added, matched, missed: 0 });
-                send({ type: "step", message: `Saved ${sharedCardList.length} cards — ✅ ${added} new, 🔁 ${matched} matched.` });
+                send({ type: "step", message: `✨ Scrape Complete! Saved ${uniqueCards.length} cards — ✅ ${added} new, 🔁 ${matched} matched.` });
             }
+        } else if (sharedCardList.length === 0) {
+            send({ type: "step", message: "Scrape finished with 0 cards found for this series." });
         }
     } finally {
         await workerPage.close();

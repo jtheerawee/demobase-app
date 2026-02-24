@@ -107,7 +107,7 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
     const missed = 0;
 
     if (cardsToUpsert.length > 0) {
-        const dataToInsert = cardsToUpsert.map((card) => ({
+        const rawData = cardsToUpsert.map((card) => ({
             collection_id: colId,
             name: card.name,
             image_url: card.imageUrl,
@@ -115,6 +115,16 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
             card_no: card.cardNo,
             rarity: card.rarity || "",
         }));
+
+        // Deduplicate by card_url — Postgres throws "cannot affect row a second time"
+        // if the same conflict key appears twice in one upsert batch.
+        // Keep the last entry (tends to have rarity after deep scrape).
+        const urlMap = new Map<string, typeof rawData[0]>();
+        for (const row of rawData) urlMap.set(row.card_url, row);
+        const dataToInsert = Array.from(urlMap.values());
+        if (dataToInsert.length < rawData.length) {
+            console.warn(`[Persistence] Deduped ${rawData.length - dataToInsert.length} duplicate card_url(s) before upsert.`);
+        }
 
         const { error } = await supabase.from("scraped_cards").upsert(dataToInsert, { onConflict: "card_url" });
 

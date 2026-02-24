@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, Stack, Text, Group, Badge, ScrollArea, Box } from "@mantine/core";
-import { IconCircleCheck, IconCircleDashed, IconLoader2, IconAlertCircle } from "@tabler/icons-react";
+import { useState } from "react";
+import { Card, Stack, Text, Group, Badge, ScrollArea, Box, ActionIcon, Tooltip, CopyButton } from "@mantine/core";
+import { IconCircleCheck, IconCircleDashed, IconLoader2, IconAlertCircle, IconCopy, IconCheck } from "@tabler/icons-react";
 
 interface Step {
     id: string | number;
@@ -15,14 +16,40 @@ interface CardScraperRunningStepsProps {
 }
 
 export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsProps) {
+    const [copiedId, setCopiedId] = useState<string | number | null>(null);
+
+    const handleCopy = (step: Step) => {
+        navigator.clipboard.writeText(`[${step.timestamp}] ${step.message}`);
+        setCopiedId(step.id);
+        setTimeout(() => setCopiedId(null), 1500);
+    };
+
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
             <Stack gap="sm">
                 <Group justify="space-between">
                     <Text fw={600} size="sm">Running Steps</Text>
-                    {steps.some(s => s.status === "running") && (
-                        <Badge variant="dot" color="blue" size="sm">Active</Badge>
-                    )}
+                    <Group gap="xs">
+                        {steps.some(s => s.status === "running") && (
+                            <Badge variant="dot" color="blue" size="sm">Active</Badge>
+                        )}
+                        {steps.length > 0 && (
+                            <CopyButton value={[...steps].reverse().map(s => `[${s.timestamp}] ${s.message}`).join('\n')}>
+                                {({ copied, copy }) => (
+                                    <Tooltip label={copied ? "Copied all!" : "Copy all steps"}>
+                                        <ActionIcon
+                                            variant="subtle"
+                                            color={copied ? "green" : "gray"}
+                                            size="sm"
+                                            onClick={copy}
+                                        >
+                                            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                                        </ActionIcon>
+                                    </Tooltip>
+                                )}
+                            </CopyButton>
+                        )}
+                    </Group>
                 </Group>
 
                 <ScrollArea h={400} offsetScrollbars>
@@ -44,6 +71,19 @@ export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsP
                                             {step.timestamp}
                                         </Text>
                                     </Stack>
+                                    <Tooltip label={copiedId === step.id ? "Copied!" : "Copy"} position="left">
+                                        <ActionIcon
+                                            variant="subtle"
+                                            color={copiedId === step.id ? "green" : "gray"}
+                                            size="xs"
+                                            onClick={() => handleCopy(step)}
+                                            style={{ opacity: 0.5, flexShrink: 0 }}
+                                            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                                            onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}
+                                        >
+                                            {copiedId === step.id ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                                        </ActionIcon>
+                                    </Tooltip>
                                 </Group>
                             ))
                         ) : (
