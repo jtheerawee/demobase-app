@@ -150,8 +150,13 @@ export default function CardScraperPage() {
 
         setCardLoading(true);
         setError(null);
+        setSteps([]); // Clear steps at the start of bulk
+        setScraperStats(DEFAULT_STATS); // Reset global stats
 
         for (const col of collections) {
+            setSelectedCollection(col);
+            setCards([]); // Clear current cards view for this specific collection
+
             setSteps((prev) => [
                 ...prev,
                 {
@@ -173,8 +178,8 @@ export default function CardScraperPage() {
             };
 
             await runScraperStream(requestData, (items) => {
-                // We update step logs but don't necessarily need to show all cards in the list during bulk
-                // though it might be nice.
+                // Now streaming items into the UI so user can see progress
+                setCards((prev) => [...prev, ...items]);
             });
         }
 
