@@ -3,65 +3,54 @@
 import { Card, SimpleGrid, Image, Text, Stack, Group, Badge, ScrollArea } from "@mantine/core";
 
 interface CardItem {
-    id: string;
+    id: string | number;
     name: string;
-    cardNumber: string;
-    rarity: string;
+    cardNo?: string;
+    rarity?: string;
     imageUrl: string;
 }
 
-const MOCK_CARDS: CardItem[] = [
-    {
-        id: "1",
-        name: "Pikachu ex",
-        cardNumber: "013/011",
-        rarity: "SAR",
-        imageUrl: "https://images.pokemontcg.io/sv3/1.png"
-    },
-    {
-        id: "2",
-        name: "Charizard ex",
-        cardNumber: "199/165",
-        rarity: "SAR",
-        imageUrl: "https://images.pokemontcg.io/sv3pt5/199.png"
-    },
-    {
-        id: "3",
-        name: "Black Lotus",
-        cardNumber: "PR-3",
-        rarity: "Rare",
-        imageUrl: "https://cards.scryfall.io/large/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg?1614638838"
-    },
-    {
-        id: "4",
-        name: "Luffy Gear 5",
-        cardNumber: "OP05-119",
-        rarity: "SEC",
-        imageUrl: "https://onepiece-cardgame.dev/cards/op05/OP05-119_p1.png"
-    }
-];
+interface CardScraperCardListProps {
+    cards?: CardItem[];
+    loading?: boolean;
+    onDownloadCards?: () => void;
+    canDownload?: boolean;
+}
 
-export function CardScraperCardList() {
+export function CardScraperCardList({ cards = [], loading, onDownloadCards, canDownload }: CardScraperCardListProps) {
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
             <Stack gap="md">
                 <Group justify="space-between">
                     <Text fw={600}>Scraped Cards</Text>
-                    <Badge variant="light" color="gray">
-                        Preview
-                    </Badge>
+                    <Group gap="xs">
+                        {canDownload && (
+                            <Badge
+                                variant="light"
+                                color="blue"
+                                style={{ cursor: 'pointer' }}
+                                onClick={onDownloadCards}
+                            >
+                                Download Cards
+                            </Badge>
+                        )}
+                        <Badge variant="light" color="gray">
+                            {cards.length} Items
+                        </Badge>
+                    </Group>
                 </Group>
 
                 <ScrollArea h={400} offsetScrollbars>
                     <SimpleGrid cols={2} spacing="xs">
-                        {MOCK_CARDS.map((card) => (
-                            <Card key={card.id} withBorder padding="xs" radius="sm">
+                        {cards.map((card, index) => (
+                            <Card key={card.id || index} withBorder padding="xs" radius="sm">
                                 <Stack gap="xs">
                                     <Image
                                         src={card.imageUrl}
                                         fallbackSrc="https://placehold.co/200x280?text=No+Image"
                                         alt={card.name}
                                         radius="xs"
+                                        style={{ aspectRatio: '2.5 / 3.5', objectFit: 'contain' }}
                                     />
                                     <Stack gap={2}>
                                         <Text size="xs" fw={700} lineClamp={1}>
@@ -69,10 +58,10 @@ export function CardScraperCardList() {
                                         </Text>
                                         <Group justify="space-between">
                                             <Text size="10px" c="dimmed">
-                                                {card.cardNumber}
+                                                {card.cardNo || "---"}
                                             </Text>
                                             <Badge size="xs" variant="outline" radius="xs">
-                                                {card.rarity}
+                                                {card.rarity || "---"}
                                             </Badge>
                                         </Group>
                                     </Stack>
@@ -80,6 +69,16 @@ export function CardScraperCardList() {
                             </Card>
                         ))}
                     </SimpleGrid>
+                    {cards.length === 0 && !loading && (
+                        <Text size="sm" c="dimmed" ta="center" py="xl">
+                            {canDownload ? "Click 'Download Cards' to fetch." : "Select a collection first."}
+                        </Text>
+                    )}
+                    {loading && (
+                        <Text size="sm" c="dimmed" ta="center" py="xl">
+                            Scraping cards...
+                        </Text>
+                    )}
                 </ScrollArea>
             </Stack>
         </Card>

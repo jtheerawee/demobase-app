@@ -291,26 +291,24 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
     updateWorkers(1);
     const workerPage = await context.newPage();
     const allDiscoveredSets: any[] = [];
+    const uniqueCollectionCodes = new Set<string>();
     let p = 1;
 
     try {
         while (true) {
             const pageUrl = url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`;
-            send({ type: "step", message: `Navigating to: ${pageUrl}` });
+            send({ type: "step", message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})` });
 
             await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
 
             send({ type: "step", message: `Searching for set links on page ${p}...` });
             const pageResults = await workerPage.evaluate((currentUrl: string) => {
-                if (currentUrl.includes("/sets")) {
-                    const setLinks = document.querySelectorAll("a[href^='/sets/']");
-                    const rawItems = Array.from(setLinks).map((el: any) => ({
-                        name: el.textContent?.trim() || "",
-                        href: el.getAttribute("href") || "",
-                    }));
-                    return { rawItems };
-                }
-                return { rawItems: [] };
+                const setLinks = document.querySelectorAll("a[href*='/sets/']");
+                const rawItems = Array.from(setLinks).map((el: any) => ({
+                    name: el.textContent?.trim() || "",
+                    href: el.getAttribute("href") || "",
+                }));
+                return { rawItems };
             }, pageUrl);
 
             const { rawItems } = pageResults;
@@ -322,7 +320,7 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
 
             const pageSets = rawItems
                 .map((item: any) => {
-                    const codeMatch = item.href.match(/\/sets\/([^/]+)/);
+                    const codeMatch = item.href.match(/\/sets\/([^/&?]+)/);
                     const collectionCode = codeMatch ? codeMatch[1].toUpperCase() : "";
 
                     return {
@@ -334,24 +332,33 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
                 })
                 .filter((s: any) => s.name && s.name !== "Sets" && s.collectionCode);
 
-            const filteredOut = rawItems.length - pageSets.length;
+            // Check for new sets on this page
+            const newSets = pageSets.filter((s: any) => !uniqueCollectionCodes.has(s.collectionCode));
+
+            if (newSets.length === 0) {
+                send({ type: "step", message: `Page ${p} returned only duplicate sets. Extraction complete.` });
+                break;
+            }
+
+            newSets.forEach((s: any) => uniqueCollectionCodes.add(s.collectionCode));
+
             send({
                 type: "step",
-                message: `Page ${p}: Discovered ${rawItems.length} items. Filtered out ${filteredOut} (invalid codes). Proceeding with ${pageSets.length} sets.`
+                message: `Page ${p}: Discovered ${newSets.length} new sets.`
             });
 
-            send({ type: "chunk", items: pageSets, startIndex: allDiscoveredSets.length });
-            allDiscoveredSets.push(...pageSets);
+            send({ type: "chunk", items: newSets, startIndex: allDiscoveredSets.length });
+            allDiscoveredSets.push(...newSets);
 
-            if (!skipSave && franchise && language && scrapedIndex !== undefined && pageSets.length > 0) {
+            if (!skipSave && franchise && language && scrapedIndex !== undefined && newSets.length > 0) {
                 try {
-                    const savedData = await saveScrapedCollections(pageSets, {
+                    const savedData = await saveScrapedCollections(newSets, {
                         franchise,
                         language,
                         scrapedIndex,
                     });
                     send({ type: "savedCollections", items: savedData });
-                    send({ type: "step", message: `Page ${p}: Successfully saved ${pageSets.length} collections.` });
+                    send({ type: "step", message: `Page ${p}: Successfully saved ${newSets.length} collections.` });
                 } catch (error) {
                     console.error(`Failed to save collections for page ${p}:`, error);
                     send({ type: "step", message: `Warning: Failed to persist collections for page ${p}.` });

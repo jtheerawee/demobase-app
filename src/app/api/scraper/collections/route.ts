@@ -47,3 +47,42 @@ export async function GET(request: Request) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
+
+export async function DELETE(request: Request) {
+    const { searchParams } = new URL(request.url);
+    const franchise = searchParams.get("franchise");
+    const language = searchParams.get("language");
+
+    if (!franchise) {
+        return NextResponse.json({ success: false, error: "Franchise is required" }, { status: 400 });
+    }
+
+    try {
+        const supabase = await createClient();
+
+        let query = supabase
+            .from("scraped_collections")
+            .delete();
+
+        query = query.eq("franchise", franchise);
+
+        if (language) {
+            query = query.eq("language", language);
+        }
+
+        const { error } = await query;
+
+        if (error) {
+            console.error("[API] Error deleting collections:", error);
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: "Collections deleted successfully",
+        });
+    } catch (err: any) {
+        console.error("[API] Unexpected error deleting collections:", err);
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    }
+}
