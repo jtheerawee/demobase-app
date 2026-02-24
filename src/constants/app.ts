@@ -11,4 +11,7 @@ export const APP_CONFIG = {
     // MTG
     MTG_COLLECTION_URL: "https://gatherer.wizards.com/sets",
     SCRAPER_PAGE_LOAD_DELAY_MS: 0,
+    // Search
+    SEARCH_MIN_CHARS: 3,
+    SEARCH_RESULTS_PER_ROW: 4,
 } as const;
