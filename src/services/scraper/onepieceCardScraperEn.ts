@@ -1,3 +1,4 @@
+import { APP_CONFIG } from "@/constants/app";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
@@ -157,7 +158,7 @@ export async function scrapeOnepieceCardsEn({
         return false;
       });
       if (!closed) await page.keyboard.press("Escape");
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(APP_CONFIG.SCRAPER_PAGE_LOAD_DELAY_MS);
     }
 
     // Dedup by cardNo — variants share the same cardNo as the base card
