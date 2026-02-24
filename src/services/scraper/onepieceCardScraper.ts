@@ -130,8 +130,8 @@ export async function scrapeOnepieceCards({
         let cardNo = "N/A";
         const filename = imageUrl ? (imageUrl.split("/").pop()?.split("?")[0] || "") : "";
         if (filename) {
-          const m = filename.match(/([A-Z]{1,4}\d*-\d+)/i);
-          if (m) cardNo = m[1].toUpperCase();
+          const m = filename.match(/[A-Z]{1,4}\d*-(\d+)/i);
+          if (m) cardNo = m[1];
         }
 
         return { name, cardNo, rarity, imageUrl, debugFilename: filename };
