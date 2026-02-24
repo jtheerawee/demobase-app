@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea, TextInput, Tooltip } from "@mantine/core";
-import { IconDownload, IconTrash, IconSearch, IconX, IconSortAZ, IconSortZA, IconSortDescendingNumbers, IconSortAscendingNumbers, IconDatabaseImport } from "@tabler/icons-react";
+import { IconDownload, IconTrash, IconSearch, IconX, IconSortAZ, IconSortZA, IconSortDescendingNumbers, IconSortAscendingNumbers, IconDatabaseImport, IconRefresh } from "@tabler/icons-react";
 import { useState } from "react";
 import { CardScraperCollectionItem, type CollectionItem } from "./CardScraperCollectionItem";
 
@@ -12,6 +12,8 @@ interface CardScraperCollectionListProps {
     onDownloadAllCollections?: () => void;
     onDownloadAllCards?: () => void;
     onDeleteAllCollections?: () => void;
+    onDeleteCollection?: (id: string | number) => void;
+    onRefresh?: () => void;
     loading?: boolean;
 }
 
@@ -22,6 +24,8 @@ export function CardScraperCollectionList({
     onDownloadAllCollections,
     onDownloadAllCards,
     onDeleteAllCollections,
+    onDeleteCollection,
+    onRefresh,
     loading
 }: CardScraperCollectionListProps) {
     const [search, setSearch] = useState("");
@@ -64,6 +68,17 @@ export function CardScraperCollectionList({
                 <Group justify="space-between">
                     <Text fw={700}>Collections</Text>
                     <Group gap="xs">
+                        <Tooltip label="Refresh from database" withArrow>
+                            <ActionIcon
+                                variant="light"
+                                color="blue"
+                                size="sm"
+                                onClick={onRefresh}
+                                loading={loading}
+                            >
+                                <IconRefresh size={16} />
+                            </ActionIcon>
+                        </Tooltip>
                         <Tooltip label="Fetch collections from source" withArrow>
                             <ActionIcon
                                 variant="light"
@@ -154,7 +169,7 @@ export function CardScraperCollectionList({
                                 item={item}
                                 selected={selectedId === item.id}
                                 onSelect={() => onSelect?.(item.id)}
-                                onDelete={() => { /* TODO: handle per-item delete */ }}
+                                onDelete={() => onDeleteCollection?.(item.id)}
                             />
                         ))}
                         {totalCount === 0 && !loading && (

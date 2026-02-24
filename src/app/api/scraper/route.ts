@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         }
 
         if (!url && type === "collections") {
-            url = APP_CONFIG.MTG_URL_EN;
+            url = APP_CONFIG.MTG_COLLECTION_URL;
         }
 
         if (!url) {

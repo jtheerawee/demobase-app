@@ -89,8 +89,22 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 }
                 newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
 
-                send({ type: "step", message: `Found ${newCards.length} new cards on page ${p + 1}.` });
+                send({ type: "step", message: `Found ${newCards.length} new cards on page ${p}.` });
                 allCards.push(...newCards);
+
+                // Save this page's cards immediately to get real-time stats
+                if (collectionId) {
+                    try {
+                        const result = await saveScrapedCards(newCards, collectionId);
+                        if (result) {
+                            const { added, matched } = result;
+                            console.log(`[Scraper] Sending incremental card stats for page ${p}:`, { added, matched });
+                            send({ type: "stats", category: "cards", added, matched, missed: 0 });
+                        }
+                    } catch (error) {
+                        console.error(`Failed to save page ${p} cards:`, error);
+                    }
+                }
 
                 p++;
                 if (p > 50) break; // Safety cap
@@ -172,19 +186,33 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
                 });
 
                 if (pageCardsRaw.length === 0) {
-                    send({ type: "step", message: `No more cards found at page ${p + 1}.` });
+                    send({ type: "step", message: `No more cards found at page ${p}.` });
                     break;
                 }
 
                 const newCards = pageCardsRaw.filter((c: any) => !uniqueCardUrls.has(c.cardUrl));
                 if (newCards.length === 0) {
-                    send({ type: "step", message: `Page ${p + 1} returned only duplicate cards. Evolution complete.` });
+                    send({ type: "step", message: `Page ${p} returned only duplicate cards. Evolution complete.` });
                     break;
                 }
                 newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
 
-                send({ type: "step", message: `Found ${newCards.length} new cards on page ${p + 1}.` });
+                send({ type: "step", message: `Found ${newCards.length} new cards on page ${p}.` });
                 allCards.push(...newCards);
+
+                // Save this page's cards immediately to get real-time stats
+                if (collectionId) {
+                    try {
+                        const result = await saveScrapedCards(newCards, collectionId);
+                        if (result) {
+                            const { added, matched } = result;
+                            console.log(`[Scraper] Sending incremental card stats for page ${p}:`, { added, matched });
+                            send({ type: "stats", category: "cards", added, matched, missed: 0 });
+                        }
+                    } catch (error) {
+                        console.error(`Failed to save page ${p} cards:`, error);
+                    }
+                }
 
                 p++;
                 if (p > 50) break;
@@ -256,18 +284,14 @@ export async function scrapeMTGCards({ url, context, send, collectionId, deepScr
             const workers = Array.from({ length: concurrency }, (_, i) => deepScrapeWorker(i + 1));
             await Promise.all(workers);
 
-            // Save to database
+            // Final Save: persist all deep-scraped details
             if (collectionId) {
-                send({ type: "step", message: "Saving all cards to database..." });
+                send({ type: "step", message: "Finalizing card details in database..." });
                 try {
                     const result = await saveScrapedCards(allCards, collectionId);
                     if (result) {
-                        const { added, matched } = result;
-                        send({
-                            type: "step",
-                            message: `Cards saved: ${allCards.length} scraped — ✅ ${added} new, 🔁 ${matched} matched.`,
-                        });
-                        send({ type: "stats", category: "cards", added, matched, missed: 0 });
+                        // We already added stats incrementally per-page during discovery
+                        send({ type: "stats", category: "cards", added: 0, matched: 0, missed: 0 });
                         // Compute real missed after full scrape
                         const allCardUrls = new Set(allCards.map((c: any) => c.cardUrl).filter(Boolean));
                         const missed = await computeMissedCards(allCardUrls, collectionId);

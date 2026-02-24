@@ -51,9 +51,10 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const franchise = searchParams.get("franchise");
     const language = searchParams.get("language");
+    const id = searchParams.get("id");
 
-    if (!franchise) {
-        return NextResponse.json({ success: false, error: "Franchise is required" }, { status: 400 });
+    if (!id && !franchise) {
+        return NextResponse.json({ success: false, error: "Franchise or ID is required" }, { status: 400 });
     }
 
     try {
@@ -63,10 +64,13 @@ export async function DELETE(request: Request) {
             .from("scraped_collections")
             .delete();
 
-        query = query.eq("franchise", franchise);
-
-        if (language) {
-            query = query.eq("language", language);
+        if (id) {
+            query = query.eq("id", id);
+        } else {
+            query = query.eq("franchise", franchise);
+            if (language) {
+                query = query.eq("language", language);
+            }
         }
 
         const { error } = await query;

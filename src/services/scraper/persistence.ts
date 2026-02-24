@@ -56,6 +56,7 @@ export async function saveScrapedCollections(
         collectionCode: d.collection_code,
     }));
 
+    console.log(`[Persistence] Saving ${collections.length} collections for ${context.franchise}...`, { added, matched, missed });
     return { saved, added, matched, missed };
 }
 
@@ -65,11 +66,13 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
     const supabase = await createClient();
     const scrapedUrls = new Set(cards.map((c) => c.cardUrl).filter(Boolean));
 
+    const colId = typeof collectionId === 'string' ? parseInt(collectionId, 10) : collectionId;
+
     // Fetch ALL existing cards for this collection from DB
     const { data: allExisting } = await supabase
         .from("scraped_cards")
         .select("card_url")
-        .eq("collection_id", collectionId);
+        .eq("collection_id", colId);
 
     const allExistingUrls = new Set((allExisting || []).map((e: any) => e.card_url));
 
@@ -96,6 +99,7 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
         throw error;
     }
 
+    console.log(`[Persistence] Saving ${cards.length} cards for collection ${collectionId}...`, { added, matched, missed });
     return { added, matched, missed };
 }
 
@@ -120,10 +124,11 @@ export async function computeMissedCards(
     collectionId: number | string
 ): Promise<number> {
     const supabase = await createClient();
+    const colId = typeof collectionId === 'string' ? parseInt(collectionId, 10) : collectionId;
     const { data } = await supabase
         .from("scraped_cards")
         .select("card_url")
-        .eq("collection_id", collectionId);
+        .eq("collection_id", colId);
     const dbUrls = (data || []).map((e: any) => e.card_url);
     return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
 }

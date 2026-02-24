@@ -98,6 +98,38 @@ export default function CardScraperPage() {
         );
     };
 
+    const handleDeleteCollection = async (id: string | number) => {
+        const collection = collections.find(c => c.id === id);
+        if (!collection) return;
+
+        askConfirm(
+            `Delete collection: ${collection.name}`,
+            `This will permanently delete this collection and all its cards. This cannot be undone.`,
+            async () => {
+                setCollectionLoading(true);
+                try {
+                    const res = await fetch(`/api/scraper/collections?id=${id}`, {
+                        method: "DELETE",
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setCollections((prev) => prev.filter((c) => c.id !== id));
+                        if (selectedCollection?.id === id) {
+                            setSelectedCollection(null);
+                            setCards([]);
+                        }
+                    } else {
+                        setError(data.error || "Failed to delete collection");
+                    }
+                } catch (err: any) {
+                    setError(err.message || "An unexpected error occurred during deletion");
+                } finally {
+                    setCollectionLoading(false);
+                }
+            }
+        );
+    };
+
     const handleDownloadAllCards = async () => {
         if (collections.length === 0) return;
 
@@ -140,13 +172,10 @@ export default function CardScraperPage() {
 
         setCollectionLoading(true);
         setSteps([]);
-        setCollections([]);
-        setCards([]);
         setError(null);
-        setSelectedCollection(null);
         setScraperStats(DEFAULT_STATS);
 
-        const targetUrl = selectedFranchise === "mtg" ? APP_CONFIG.MTG_URL_EN : "";
+        const targetUrl = selectedFranchise === "mtg" ? APP_CONFIG.MTG_COLLECTION_URL : "";
 
         const requestData = {
             url: targetUrl,
@@ -431,6 +460,8 @@ export default function CardScraperPage() {
                             selectedId={selectedCollection?.id}
                             loading={collectionLoading}
                             onDeleteAllCollections={handleDeleteAll}
+                            onDeleteCollection={handleDeleteCollection}
+                            onRefresh={() => selectedFranchise && fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en")}
                             onDownloadAllCollections={handleDownloadCollections}
                             onDownloadAllCards={handleDownloadAllCards}
                             onSelect={async (id) => {

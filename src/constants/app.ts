@@ -9,6 +9,6 @@ export const APP_CONFIG = {
     SCRAPER_GRID_COLS: 10,
 
     // MTG
-    MTG_URL_EN: "https://gatherer.wizards.com/sets",
+    MTG_COLLECTION_URL: "https://gatherer.wizards.com/sets",
     SCRAPER_PAGE_LOAD_DELAY_MS: 0,
 } as const;
