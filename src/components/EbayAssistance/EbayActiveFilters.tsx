@@ -233,9 +233,6 @@ export function EbayActiveFilters({
 
                 <Stack gap="md">
                     <Stack gap={4}>
-                        <Text size="sm" fw={500}>
-                            {t("listingType")}
-                        </Text>
                         <SegmentedControl
                             fullWidth
                             value={listingType}

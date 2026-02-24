@@ -12,7 +12,8 @@ import {
     Switch,
     Text,
 } from "@mantine/core";
-import { IconBolt } from "@tabler/icons-react";
+import { IconBolt, IconShoppingCart } from "@tabler/icons-react";
+import { PageHeader } from "@/components/PageHeader";
 import { EbayActiveFilters } from "@/components/EbayAssistance/EbayActiveFilters";
 import { EbayActiveResults } from "@/components/EbayAssistance/EbayActiveResults";
 import { EbaySearchList } from "@/components/EbayAssistance/EbaySearchList";
@@ -479,6 +480,17 @@ export default function EbaySearchPage() {
     return (
         <Container size="xl" py="xl">
             <Stack gap="xl">
+                <PageHeader
+                    title="eBay Assistance"
+                    description="Analyze active and sold listings to find the best market prices."
+                    icon={
+                        <IconShoppingCart
+                            size={32}
+                            stroke={1.5}
+                            color="var(--mantine-color-orange-6)"
+                        />
+                    }
+                />
                 <SimpleGrid
                     cols={{ base: 1, md: 3 }}
                     spacing="lg"

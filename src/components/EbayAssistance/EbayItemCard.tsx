@@ -5,6 +5,7 @@ import {
     Anchor,
     Badge,
     Card,
+    CardSection,
     Center,
     Group,
     Image,
@@ -107,7 +108,7 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                         if (onHover) onHover(null);
                     }}
                 >
-                    <Card.Section pos="relative">
+                    <CardSection pos="relative">
                         <Center
                             bg="gray.0"
                             h={250}
@@ -129,7 +130,7 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                 <Badge
                                     color={
                                         timeLeft.includes("left") &&
-                                        !timeLeft.includes("d")
+                                            !timeLeft.includes("d")
                                             ? "red"
                                             : "blue"
                                     }
@@ -160,7 +161,7 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                 <IconExternalLink size={16} />
                             </ActionIcon>
                         </Group>
-                    </Card.Section>
+                    </CardSection>
 
                     <Stack mt="md" gap="sm" style={{ flex: 1 }}>
                         <Text

@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/navigation";
-import { Card, Text } from "@mantine/core";
+import { Card, CardSection, Text } from "@mantine/core";
 import type { ReactNode } from "react";
 
 interface WidgetCardProps {
@@ -29,9 +29,9 @@ export function WidgetCard({ title, href, icon }: WidgetCardProps) {
                 }}
             >
                 {icon && (
-                    <Card.Section inheritPadding py="sm">
+                    <CardSection inheritPadding py="sm">
                         {icon}
-                    </Card.Section>
+                    </CardSection>
                 )}
                 <Text fw={600} size="lg">
                     {title}
