@@ -154,7 +154,7 @@ export const CollectedCardsList = forwardRef(({ onImageClick, onCollectionChange
                     cardId: addEntryCard.cardId,
                     variant: addVariant,
                     condition: addCondition,
-                    noIncrement: true,
+                    checkVariantCondition: true,
                 }),
             });
             const data = await res.json();

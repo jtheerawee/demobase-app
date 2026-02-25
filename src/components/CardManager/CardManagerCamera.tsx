@@ -153,7 +153,7 @@ export function CardManagerCamera({
         let interval: NodeJS.Timeout;
         let countdownInterval: NodeJS.Timeout;
 
-        if (autoCapture && loopActive && cameraActive && !loading && !paused) {
+        if (autoCapture && loopActive && cameraActive && !paused) {
             setCountdown(autoCaptureInterval);
             countdownInterval = setInterval(() => {
                 setCountdown(prev => (prev !== null && prev > 1) ? prev - 1 : prev);
@@ -169,7 +169,7 @@ export function CardManagerCamera({
             if (interval) clearInterval(interval);
             if (countdownInterval) clearInterval(countdownInterval);
         };
-    }, [autoCapture, loopActive, cameraActive, loading, paused, autoCaptureInterval]);
+    }, [autoCapture, loopActive, cameraActive, paused, autoCaptureInterval]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
