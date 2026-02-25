@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollArea, SimpleGrid, Card, Group, Image, Stack, Text, ActionIcon, Badge, Box } from "@mantine/core";
+import { ScrollArea, SimpleGrid, Card, Group, Image, Stack, Text, ActionIcon, Badge, Box, Loader } from "@mantine/core";
 import { IconExternalLink, IconPlus } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -110,6 +110,15 @@ export function CardManagerResult({
                     </Card>
                 ))}
             </SimpleGrid>
+
+            {loading && results.length === 0 && (
+                <Box py="xl" ta="center">
+                    <Stack align="center" gap="xs">
+                        <Loader size="sm" />
+                        <Text c="dimmed" size="xs">Scanning and looking for cards...</Text>
+                    </Stack>
+                </Box>
+            )}
 
             {results.length === 0 && !loading && (
                 <Box py="xl" ta="center">

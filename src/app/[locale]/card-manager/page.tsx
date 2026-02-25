@@ -111,6 +111,7 @@ export default function CardManagerPage() {
         }
 
         setLoading(true);
+        setResults([]); // Clear results immediately for visual feedback
         try {
             const params = new URLSearchParams({
                 scan_ids: ids.join(","),
