@@ -157,17 +157,6 @@ export function CardManagerOCR({
 
           if (setCode && cardNo) {
             onScan?.([`${setCode}:${cardNo}`]);
-            // notifications.show({
-            //     title: "Card Identified via " + (mode === "camera" ? "Camera" : "Text"),
-            //     message: (
-            //         <Stack gap={4}>
-            //             <Text size="sm" fw={700}>{potentialName}</Text>
-            //             <Text size="xs" c="dimmed">Set: {setCode} | No: {cardNo}</Text>
-            //         </Stack>
-            //     ),
-            //     color: "green",
-            //     autoClose: 3000,
-            // });
           } else {
             onTextResult?.(text);
           }
