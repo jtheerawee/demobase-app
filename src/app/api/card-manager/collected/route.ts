@@ -120,7 +120,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       alreadyInCollection: !!existing,
-      error: existing ? "Card already exists in your collection." : undefined,
     });
   } catch (err: any) {
     return NextResponse.json(
