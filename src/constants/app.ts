@@ -25,7 +25,7 @@ export const APP_CONFIG = {
 
   // Search
   SEARCH_MIN_CHARS: 3,
-  SEARCH_RESULTS_PER_ROW: 3,
+  SEARCH_RESULTS_PER_ROW: 1,
   PREVIEW_IMAGE_WIDTH: 400,
 
   // Feature Toggles (Widgets)
@@ -55,6 +55,13 @@ export const APP_CONFIG = {
 
   AUTO_CAPTURE_INTERVAL: 5,
   AUTO_CAPTURE_MAX_NO_CARD: 2,
+
+  // Layout Spans (Mantine Grid 12-cols)
+  CARD_MANAGER_LAYOUT: {
+    COLLECTION_SPAN: 3, // 1/4
+    RESULTS_SPAN: 3,    // 1/4
+    CONTROLS_SPAN: 6    // 2/4
+  },
 
   // OCR TEXT
   OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",

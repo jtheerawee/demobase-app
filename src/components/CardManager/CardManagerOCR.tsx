@@ -351,21 +351,21 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
             if (err.stack) console.error("OCR Stack:", err.stack);
 
             const isTimeout = err.name === 'AbortError';
+            const isNoMatch = err.message === "No clear match found" || err.message === "No text found on card";
 
-            notifications.show({
-                title: isTimeout ? "Request Timed Out" : "Scan Failed",
-                message: isTimeout
-                    ? "The vision server took too long to respond. Please try again."
-                    : (err.message || "Failed to process image"),
-                color: "red",
-                icon: <IconX size={18} />,
-            });
-
-            // If auto-capture is on, we MUST tell the parent that scanning failed/found nothing
-            // so it can increment the 'consecutiveNoCard' counter and stop the loop if needed.
-            if (autoCapture) {
-                onScan?.([]);
+            if (!isNoMatch) {
+                notifications.show({
+                    title: isTimeout ? "Request Timed Out" : "Scan Failed",
+                    message: isTimeout
+                        ? "The vision server took too long to respond. Please try again."
+                        : (err.message || "Failed to process image"),
+                    color: "red",
+                    icon: <IconX size={18} />,
+                });
             }
+
+            // Tell parent that scanning found nothing or failed
+            onScan?.([]);
         } finally {
             setLoading(false);
         }

@@ -151,7 +151,11 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
                 <Group justify="space-between" align="center">
                     <Text fw={700} size="lg">My Collection</Text>
                     <Group gap="xs">
-                        {loading ? <Loader size="xs" /> : <Badge color="grape" variant="filled">{collectedCards.length}</Badge>}
+                        {loading ? <Loader size="xs" /> : (
+                            <Badge color="grape" variant="filled" h={18} styles={{ label: { fontSize: '10px' } }}>
+                                {collectedCards.length}
+                            </Badge>
+                        )}
                         <ActionIcon
                             variant="subtle"
                             color="gray"

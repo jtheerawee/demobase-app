@@ -1,6 +1,6 @@
 "use client";
 
-import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge, Loader as MantineLoader } from "@mantine/core";
+import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge, Box, Loader as MantineLoader } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
@@ -81,11 +81,6 @@ export default function CardManagerPage() {
             const data = await res.json();
             if (data.success) {
                 setResults(data.cards);
-
-                // Auto-add if exactly one card found and autoAdd is enabled
-                if (autoAdd && data.cards.length === 1) {
-                    handleAddToCollection(data.cards[0]);
-                }
             }
         } catch (err) {
             console.error("Search failed:", err);
@@ -231,18 +226,44 @@ export default function CardManagerPage() {
                 <Grid gutter="md" align="flex-start" style={{ height: 'calc(100vh - 180px)' }}>
                     {/* Left Sidebar: Collected Cards (1/4) */}
                     {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_COLLECTION && (
-                        <Grid.Col span={{ base: 12, md: APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_SEARCH ? 3 : 12 }} h="100%">
+                        <Grid.Col span={{ base: 12, md: APP_CONFIG.CARD_MANAGER_LAYOUT.COLLECTION_SPAN }} h="100%">
                             <CollectedCardsList ref={listRef} onImageClick={setPreviewImage} />
                         </Grid.Col>
                     )}
 
-                    {/* Right Content: Search (3/4) */}
+                    {/* Middle: Search Results (1/4) */}
+                    <Grid.Col span={{ base: 12, md: APP_CONFIG.CARD_MANAGER_LAYOUT.RESULTS_SPAN }} h="100%">
+                        <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
+                            <Stack gap="md" h="100%">
+                                <Group justify="space-between" align="center">
+                                    <Text fw={700} size="lg">Search Results</Text>
+                                    {results.length > 0 && (
+                                        <Badge color="blue" variant="filled" h={18} styles={{ label: { fontSize: '10px' } }}>
+                                            {results.length}
+                                        </Badge>
+                                    )}
+                                </Group>
+                                <Box style={{ flex: 1, minHeight: 0 }}>
+                                    <CardManagerResult
+                                        results={results}
+                                        loading={loading}
+                                        query={searchQuery}
+                                        addingId={addingId}
+                                        onAddToCollection={handleAddToCollection}
+                                        onImageClick={setPreviewImage}
+                                    />
+                                </Box>
+                            </Stack>
+                        </Card>
+                    </Grid.Col>
+
+                    {/* Right: Camera / Search Input (2/4) */}
                     {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_SEARCH && (
-                        <Grid.Col span={{ base: 12, md: APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_COLLECTION ? 9 : 12 }} h="100%">
+                        <Grid.Col span={{ base: 12, md: APP_CONFIG.CARD_MANAGER_LAYOUT.CONTROLS_SPAN }} h="100%">
                             <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
                                 <Stack gap="md" h="100%">
                                     <Group justify="space-between">
-                                        <Text fw={700} size="lg">Search Database</Text>
+                                        <Text fw={700} size="lg">Search</Text>
                                         <Group gap="xs">
                                             <Select
                                                 size="xs"
@@ -285,21 +306,6 @@ export default function CardManagerPage() {
                                         onLoopActiveChange={setAutoCaptureActive}
                                         paused={waitingForSelection}
                                         onClear={() => setWaitingForSelection(false)}
-                                    />
-
-                                    {results.length > 0 && (
-                                        <Text size="sm" fw={600} c="dimmed">
-                                            Found {results.length} cards
-                                        </Text>
-                                    )}
-
-                                    <CardManagerResult
-                                        results={results}
-                                        loading={loading}
-                                        query={searchQuery}
-                                        addingId={addingId}
-                                        onAddToCollection={handleAddToCollection}
-                                        onImageClick={setPreviewImage}
                                     />
                                 </Stack>
                             </Card>
