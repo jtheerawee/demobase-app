@@ -9,6 +9,7 @@ import { APP_CONFIG } from "@/constants/app";
 
 interface CardManagerCameraProps {
     onCapture: (file: FileWithPath) => void;
+    onScanStart?: () => void;
     loading: boolean;
     paused?: boolean;
     autoAdd?: boolean;
@@ -26,6 +27,7 @@ interface CardManagerCameraProps {
 
 export function CardManagerCamera({
     onCapture,
+    onScanStart,
     loading,
     paused,
     autoAdd,
@@ -107,6 +109,11 @@ export function CardManagerCamera({
             onLoopActiveChange?.(true);
         }
 
+        // Clear snapshot and results immediately before async blob creation
+        if (preview) URL.revokeObjectURL(preview);
+        setPreview(null);
+        onScanStart?.();
+
         const canvas = document.createElement("canvas");
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
@@ -115,7 +122,6 @@ export function CardManagerCamera({
             ctx.drawImage(videoRef.current, 0, 0);
             canvas.toBlob((blob) => {
                 if (blob) {
-                    if (preview) URL.revokeObjectURL(preview);
                     const capturedFile = new File([blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" }) as FileWithPath;
                     const url = URL.createObjectURL(capturedFile);
                     setPreview(url);

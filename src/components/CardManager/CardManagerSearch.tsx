@@ -14,6 +14,7 @@ interface CardManagerSearchProps {
     searchMode: SearchMode;
     onSearchModeChange: (mode: SearchMode) => void;
     onScanIds: (ids: string[]) => void;
+    onScanStart?: () => void;
     autoAdd: boolean;
     onAutoAddChange: (val: boolean) => void;
     autoCapture: boolean;
@@ -27,7 +28,7 @@ interface CardManagerSearchProps {
     resetTrigger?: number;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange, autoCaptureInterval, onAutoCaptureIntervalChange, resetTrigger }: CardManagerSearchProps) {
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, onScanStart, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange, autoCaptureInterval, onAutoCaptureIntervalChange, resetTrigger }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -67,6 +68,7 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                 <CardManagerOCR
                     mode="camera"
                     onScan={onScanIds}
+                    onScanStart={onScanStart}
                     onTextResult={setQuery}
                     onClear={() => { setQuery(""); onClear?.(); }}
                     autoAdd={autoAdd}

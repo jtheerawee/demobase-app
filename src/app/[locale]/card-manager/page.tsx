@@ -96,6 +96,7 @@ export default function CardManagerPage() {
 
     const handleScanIds = async (ids: string[]) => {
         if (ids.length === 0) {
+            setLoading(false);
             if (autoCapture) {
                 consecutiveNoCard.current += 1;
                 if (consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
@@ -111,7 +112,6 @@ export default function CardManagerPage() {
         }
 
         setLoading(true);
-        setResults([]); // Clear results immediately for visual feedback
         try {
             const params = new URLSearchParams({
                 scan_ids: ids.join(","),
@@ -325,6 +325,7 @@ export default function CardManagerPage() {
                                         searchMode={searchMode}
                                         onSearchModeChange={setSearchMode}
                                         onScanIds={handleScanIds}
+                                        onScanStart={() => { setResults([]); setLoading(true); }}
                                         autoAdd={autoAdd}
                                         onAutoAddChange={setAutoAdd}
                                         autoCapture={autoCapture}

@@ -11,6 +11,7 @@ import { CardManagerCamera } from "./CardManagerCamera";
 interface CardManagerOCRProps {
     mode: "vision" | "text" | "camera";
     onScan?: (ids: string[]) => void;
+    onScanStart?: () => void;
     onTextResult?: (query: string) => void;
     onClear?: () => void;
     autoAdd?: boolean;
@@ -25,7 +26,7 @@ interface CardManagerOCRProps {
     resetTrigger?: number;
 }
 
-export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, loopActive, onLoopActiveChange, autoCaptureInterval = 5, onAutoCaptureIntervalChange, resetTrigger }: CardManagerOCRProps) {
+export function CardManagerOCR({ mode, onScan, onScanStart, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, loopActive, onLoopActiveChange, autoCaptureInterval = 5, onAutoCaptureIntervalChange, resetTrigger }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -173,6 +174,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                         setFile(capturedFile);
                         handleScan(capturedFile);
                     }}
+                    onScanStart={onScanStart}
                     loading={loading}
                     paused={paused}
                     autoAdd={autoAdd}
