@@ -44,5 +44,9 @@ export const APP_CONFIG = {
   },
 
   // OCR
-  OCR_API_URL: "http://localhost:8000/ocr",
+  OCR_API_URL: "http://localhost:3002/api/ocr/search",
+  OCR_MODEL: "CLIP",
+  OCR_SCORE_THRESHOLD: 0.8,
+  OCR_LIMIT: 5,
+  OCR_WORKERS: 2,
 } as const;

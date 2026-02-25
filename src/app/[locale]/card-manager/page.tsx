@@ -28,15 +28,18 @@ export default function CardManagerPage() {
     useEffect(() => {
         const savedFranchise = localStorage.getItem("manager_selected_franchise") || "all";
         const savedLanguage = localStorage.getItem("manager_selected_language") || "all";
+        const savedMode = localStorage.getItem("manager_search_mode") as SearchMode || "text";
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
+        setSearchMode(savedMode);
     }, []);
 
     // Save to localStorage when changed
     useEffect(() => {
         if (selectedFranchise) localStorage.setItem("manager_selected_franchise", selectedFranchise);
         if (selectedLanguage) localStorage.setItem("manager_selected_language", selectedLanguage);
-    }, [selectedFranchise, selectedLanguage]);
+        localStorage.setItem("manager_search_mode", searchMode);
+    }, [selectedFranchise, selectedLanguage, searchMode]);
 
     const languageOptions = useMemo(() => {
         if (!selectedFranchise || selectedFranchise === "all") return [{ value: "all", label: "All Languages" }];

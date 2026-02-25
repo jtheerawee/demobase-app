@@ -18,7 +18,6 @@ interface CardManagerSearchProps {
 export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange }: CardManagerSearchProps) {
     const handleOCRResult = (text: string) => {
         setQuery(text);
-        onSearchModeChange("text");
     };
 
     return (
@@ -67,7 +66,7 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     onChange={(e) => setQuery(e.currentTarget.value)}
                 />
             ) : (
-                <CardManagerOCR onResult={handleOCRResult} />
+                <CardManagerOCR onResult={handleOCRResult} onClear={() => setQuery("")} />
             )}
         </Stack>
     );
