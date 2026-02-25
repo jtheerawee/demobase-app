@@ -5,7 +5,7 @@ import { IconSearch, IconAlphabetLatin, IconScan } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 import { CardManagerOCR } from "./CardManagerOCR";
 
-export type SearchMode = "text" | "scan";
+export type SearchMode = "text" | "scan" | "scan_text";
 
 interface CardManagerSearchProps {
     query: string;
@@ -42,6 +42,15 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                                 </Center>
                             ),
                         },
+                        {
+                            value: "scan_text",
+                            label: (
+                                <Center style={{ gap: 10 }}>
+                                    <IconAlphabetLatin size={16} />
+                                    <span>Scan Card By Text</span>
+                                </Center>
+                            ),
+                        },
                     ]}
                 />
             </Center>
@@ -62,8 +71,10 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     value={query}
                     onChange={(e) => setQuery(e.currentTarget.value)}
                 />
+            ) : searchMode === "scan" ? (
+                <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => setQuery("")} />
             ) : (
-                <CardManagerOCR onScan={onScanIds} onClear={() => setQuery("")} />
+                <CardManagerOCR mode="text" onTextResult={setQuery} onClear={() => setQuery("")} />
             )}
         </Stack>
     );

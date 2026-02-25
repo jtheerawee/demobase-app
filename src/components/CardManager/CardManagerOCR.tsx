@@ -8,11 +8,13 @@ import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 
 interface CardManagerOCRProps {
-    onScan: (ids: string[]) => void;
+    mode: "vision" | "text";
+    onScan?: (ids: string[]) => void;
+    onTextResult?: (query: string) => void;
     onClear?: () => void;
 }
 
-export function CardManagerOCR({ onScan, onClear }: CardManagerOCRProps) {
+export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -39,67 +41,104 @@ export function CardManagerOCR({ onScan, onClear }: CardManagerOCRProps) {
 
         try {
             const formData = new FormData();
-            // The API expects 'fileA' as the image parameter
-            formData.append("fileA", file);
-            // Optional: configurations from app.ts
-            formData.append("model", APP_CONFIG.OCR_MODEL);
-            formData.append("score", APP_CONFIG.OCR_SCORE_THRESHOLD.toString());
-            formData.append("limit", APP_CONFIG.OCR_LIMIT.toString());
-            formData.append("workers", APP_CONFIG.OCR_WORKERS.toString());
 
-            const res = await fetch(APP_CONFIG.OCR_API_URL, {
-                method: "POST",
-                body: formData,
-                signal: controller.signal,
-            });
-            clearTimeout(timeoutId);
+            if (mode === "vision") {
+                // CLIP / Image Matching API
+                formData.append("fileA", file);
+                formData.append("model", APP_CONFIG.OCR_MODEL);
+                formData.append("score", APP_CONFIG.OCR_SCORE_THRESHOLD.toString());
+                formData.append("limit", APP_CONFIG.OCR_LIMIT.toString());
+                formData.append("workers", APP_CONFIG.OCR_WORKERS.toString());
 
-            if (!res.ok) throw new Error("OCR Service failed");
-
-            const data = await res.json();
-
-            // Show raw JSON response for debugging
-            notifications.show({
-                title: "OCR Debug: Server Response",
-                message: (
-                    <Box component="pre" style={{ margin: 0, fontSize: '10px', maxHeight: '150px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
-                        {JSON.stringify(data, null, 2)}
-                    </Box>
-                ),
-                color: "blue",
-                autoClose: 8000,
-            });
-
-            // The API returns a list of results and a bestMatch (which is results[0])
-            const matches = data.results || [];
-            const scanIds = matches.map((m: any) => {
-                const filename = m.path.split("/").pop()?.split(".").shift() || "";
-
-                // Use Regex to capture [SET] and NO
-                // e.g. [WOE]-173-Hamlet_Glutton -> SET: WOE, NO: 173
-                const match = filename.match(/\[(.*?)\]-([^-]+)/);
-                if (match) {
-                    const set = match[1];
-                    const no = match[2];
-                    return `${set}:${no}`;
-                }
-                return null;
-            }).filter(Boolean);
-
-            if (scanIds.length > 0) {
-                onScan(scanIds);
-
-                // Optional: Notify about best match
-                const bestMatch = matches[0];
-                const bestFilename = bestMatch.path.split("/").pop()?.split(".").shift() || "";
-                notifications.show({
-                    title: "Scan Completed",
-                    message: `Found ${matches.length} matches. Best: ${bestFilename}`,
-                    color: "green",
-                    autoClose: 3000,
+                const res = await fetch(APP_CONFIG.OCR_API_URL, {
+                    method: "POST",
+                    body: formData,
+                    signal: controller.signal,
                 });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) throw new Error("Vision Service failed");
+                const data = await res.json();
+
+                // Show raw JSON response for debugging
+                notifications.show({
+                    title: "Vision Debug: Server Response",
+                    message: (
+                        <Box component="pre" style={{ margin: 0, fontSize: '10px', maxHeight: '150px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+                            {JSON.stringify(data, null, 2)}
+                        </Box>
+                    ),
+                    color: "blue",
+                    autoClose: 8000,
+                });
+
+                const matches = data.results || [];
+                const scanIds = matches.map((m: any) => {
+                    const filename = m.path.split("/").pop()?.split(".").shift() || "";
+                    const match = filename.match(/\[(.*?)\]-([^-]+)/);
+                    if (match) return `${match[1]}:${match[2]}`;
+                    return null;
+                }).filter(Boolean);
+
+                if (scanIds.length > 0) {
+                    onScan?.(scanIds);
+                    notifications.show({
+                        title: "Scan Completed",
+                        message: `Found ${matches.length} matches.`,
+                        color: "green",
+                    });
+                } else {
+                    throw new Error("No clear match found");
+                }
             } else {
-                throw new Error("No clear match found for this card");
+                // Text-only OCR API (PaddleOCR)
+                // Note: PaddleOCR expects 'file' not 'fileA'
+                formData.append("file", file);
+
+                const res = await fetch(APP_CONFIG.OCR_TEXT_API_URL, {
+                    method: "POST",
+                    body: formData,
+                    signal: controller.signal,
+                });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) throw new Error("OCR Text Service failed");
+                const data = await res.json();
+
+                if (data.text) {
+                    const text = data.text;
+                    console.log("[OCR Text Recognition]", text);
+
+                    // 1. Extract potential Set Code (e.g., WOE from WOE-EN or [WOE])
+                    const setMatch = text.match(/\b([A-Z0-9]{3,5})-[A-Z]{2,}\b/) || text.match(/\[([A-Z0-9]{3,5})\]/);
+                    const setCode = setMatch ? setMatch[1].toUpperCase() : null;
+
+                    // 2. Extract potential Card Number (e.g., 180 from U0180 or 3/1 U0180)
+                    // We look for 1-4 digits, ignoring common years and small fraction numbers
+                    const cleaned = text.replace(/\b20\d{2}\b/g, ""); // Remove years like 2023
+                    const noMatch = cleaned.match(/\b(?:[A-Z/])?0?([1-9][0-9]{0,3})\b/);
+                    const cardNo = noMatch ? noMatch[1] : null;
+
+                    if (setCode && cardNo) {
+                        console.log(`[OCR Identified] Set: ${setCode}, No: ${cardNo}`);
+                        onScan?.([`${setCode}:${cardNo}`]);
+                        notifications.show({
+                            title: "Card Identified via Text",
+                            message: `Found ${setCode} #${cardNo}. Syncing with database...`,
+                            color: "green",
+                            autoClose: 3000,
+                        });
+                    } else {
+                        onTextResult?.(text);
+                        notifications.show({
+                            title: "Text Recognized",
+                            message: "Query updated with card text",
+                            color: "green",
+                        });
+                    }
+                } else {
+                    throw new Error("No text found on card");
+                }
             }
         } catch (err: any) {
             console.error("OCR Precise Error:", err);

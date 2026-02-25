@@ -127,7 +127,7 @@ export default function CardManagerPage() {
             <Stack gap="lg">
                 <PageHeader
                     title="Card Manager"
-                    description="Manage your card collection and inventory"
+                    description="Manage your card collection"
                     icon={
                         <IconLayoutDashboard
                             size={32}
