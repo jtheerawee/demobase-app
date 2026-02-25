@@ -1,11 +1,11 @@
 "use client";
 
 import { Group, TextInput, Loader, CloseButton, SegmentedControl, Stack, Center, Text } from "@mantine/core";
-import { IconSearch, IconAlphabetLatin, IconScan } from "@tabler/icons-react";
+import { IconSearch, IconAlphabetLatin, IconScan, IconCamera } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 import { CardManagerOCR } from "./CardManagerOCR";
 
-export type SearchMode = "text" | "scan" | "scan_text";
+export type SearchMode = "text" | "scan" | "scan_text" | "scan_camera";
 
 interface CardManagerSearchProps {
     query: string;
@@ -51,6 +51,15 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                                 </Center>
                             ),
                         },
+                        {
+                            value: "scan_camera",
+                            label: (
+                                <Center style={{ gap: 10 }}>
+                                    <IconCamera size={16} />
+                                    <span>Scan Card Using Camera</span>
+                                </Center>
+                            ),
+                        },
                     ]}
                 />
             </Center>
@@ -73,9 +82,16 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                 />
             ) : searchMode === "scan" ? (
                 <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => setQuery("")} />
-            ) : (
+            ) : searchMode === "scan_text" ? (
                 <CardManagerOCR
                     mode="text"
+                    onScan={onScanIds}
+                    onTextResult={setQuery}
+                    onClear={() => setQuery("")}
+                />
+            ) : (
+                <CardManagerOCR
+                    mode="camera"
                     onScan={onScanIds}
                     onTextResult={setQuery}
                     onClear={() => setQuery("")}

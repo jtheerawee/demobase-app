@@ -49,7 +49,10 @@ export const APP_CONFIG = {
   OCR_SCORE_THRESHOLD: 0.8,
   OCR_LIMIT: 5,
   OCR_WORKERS: 2,
+  OCR_SCAN_WIDTH: "50%",
+  OCR_SCAN_MAX_WIDTH: 500,
 
   // OCR TEXT
   OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
+
 } as const;
