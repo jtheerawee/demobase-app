@@ -19,9 +19,11 @@ interface CardManagerOCRProps {
     autoCapture?: boolean;
     onAutoCaptureChange?: (val: boolean) => void;
     paused?: boolean;
+    loopActive?: boolean;
+    onLoopActiveChange?: (val: boolean) => void;
 }
 
-export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused }: CardManagerOCRProps) {
+export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, loopActive, onLoopActiveChange }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -29,7 +31,6 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
     const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
     const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
     const [countdown, setCountdown] = useState<number | null>(null);
-    const [loopStarted, setLoopStarted] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
@@ -40,10 +41,10 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
         };
     }, [mode]);
 
-    // Reset loopStarted when autoCapture is turned off
+    // Reset loopActive when autoCapture is turned off
     useEffect(() => {
         if (!autoCapture) {
-            setLoopStarted(false);
+            onLoopActiveChange?.(false);
         }
     }, [autoCapture]);
 
@@ -66,7 +67,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
         let interval: NodeJS.Timeout;
         let countdownInterval: NodeJS.Timeout;
 
-        if (autoCapture && loopStarted && cameraActive && !preview && !loading && !paused && mode === "camera") {
+        if (autoCapture && loopActive && cameraActive && !preview && !loading && !paused && mode === "camera") {
             setCountdown(APP_CONFIG.AUTO_CAPTURE_INTERVAL);
 
             countdownInterval = setInterval(() => {
@@ -84,7 +85,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
             if (interval) clearInterval(interval);
             if (countdownInterval) clearInterval(countdownInterval);
         };
-    }, [autoCapture, loopStarted, cameraActive, preview, loading, paused, mode]);
+    }, [autoCapture, loopActive, cameraActive, preview, loading, paused, mode]);
 
     // Auto-return to live view after scan if auto-capture is on
     useEffect(() => {
@@ -183,8 +184,8 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
         if (!videoRef.current) return;
 
         // Start the auto-capture loop if enabled
-        if (autoCapture && !loopStarted) {
-            setLoopStarted(true);
+        if (autoCapture && !loopActive) {
+            onLoopActiveChange?.(true);
         }
 
         const canvas = document.createElement("canvas");
@@ -437,14 +438,14 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                                         Scan (<IconSpace size={16} style={{ verticalAlign: 'middle', display: 'inline-block' }} /> Space)
                                     </Button>
 
-                                    {autoCapture && loopStarted && (
+                                    {autoCapture && loopActive && (
                                         <Button
                                             color="red"
                                             radius="xl"
                                             size="md"
                                             leftSection={<IconPlayerStop size={20} />}
                                             onClick={() => {
-                                                setLoopStarted(false);
+                                                onLoopActiveChange?.(false);
                                                 onClear?.(); // Trigger clear on parent to reset waitingForSelection state
                                             }}
                                         >
@@ -453,7 +454,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                                     )}
                                 </Group>
 
-                                {autoCapture && (countdown !== null || paused) && (
+                                {autoCapture && (countdown !== null || paused) && loopActive && (
                                     <Badge
                                         pos="absolute"
                                         top={10}

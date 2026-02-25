@@ -26,6 +26,7 @@ export default function CardManagerPage() {
     const [searchMode, setSearchMode] = useState<SearchMode>("text");
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
+    const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
     const consecutiveNoCard = useRef(0);
 
@@ -98,10 +99,10 @@ export default function CardManagerPage() {
             if (autoCapture) {
                 consecutiveNoCard.current += 1;
                 if (consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
-                    setAutoCapture(false);
+                    setAutoCaptureActive(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
-                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures.`,
+                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange"
                     });
                 }
@@ -127,12 +128,12 @@ export default function CardManagerPage() {
                     consecutiveNoCard.current += 1;
                 }
 
-                // Stop auto-capture if X times in a row no card detected
+                // Stop auto-capture loop if X times in a row no card detected
                 if (autoCapture && consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
-                    setAutoCapture(false);
+                    setAutoCaptureActive(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
-                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures.`,
+                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange"
                     });
                 }
@@ -150,8 +151,7 @@ export default function CardManagerPage() {
             console.error("Scan fetch failed:", err);
             consecutiveNoCard.current += 1;
             if (autoCapture && consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
-                setAutoCapture(false);
-                setAutoAdd(false);
+                setAutoCaptureActive(false);
             }
         } finally {
             setLoading(false);
@@ -197,13 +197,12 @@ export default function CardManagerPage() {
                     });
                 }
 
-                // Stop auto mode entirely if card already in collection during auto-capture
+                // Stop auto-capture loop if card already in collection during auto-capture
                 if (autoCapture && isDuplicate) {
-                    setAutoCapture(false);
-                    setAutoAdd(false);
+                    setAutoCaptureActive(false);
                     notifications.show({
-                        title: "Auto Mode Exited",
-                        message: "Found a duplicate card. Hands-free mode has been disabled.",
+                        title: "Auto Loop Paused",
+                        message: "Found a duplicate card. Automated capture has been suspended.",
                         color: "info"
                     });
                 }
@@ -280,7 +279,10 @@ export default function CardManagerPage() {
                                         onAutoCaptureChange={(val) => {
                                             setAutoCapture(val);
                                             if (val) setAutoAdd(true);
+                                            else setAutoCaptureActive(false);
                                         }}
+                                        loopActive={autoCaptureActive}
+                                        onLoopActiveChange={setAutoCaptureActive}
                                         paused={waitingForSelection}
                                         onClear={() => setWaitingForSelection(false)}
                                     />

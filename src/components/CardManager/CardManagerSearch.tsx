@@ -5,7 +5,7 @@ import { IconSearch, IconAlphabetLatin, IconScan, IconCamera } from "@tabler/ico
 import { APP_CONFIG } from "@/constants/app";
 import { CardManagerOCR } from "./CardManagerOCR";
 
-export type SearchMode = "text" | "scan" | "scan_text" | "scan_camera";
+export type SearchMode = "text" | "scan_camera";
 
 interface CardManagerSearchProps {
     query: string;
@@ -20,9 +20,11 @@ interface CardManagerSearchProps {
     onAutoCaptureChange: (val: boolean) => void;
     paused?: boolean;
     onClear?: () => void;
+    loopActive?: boolean;
+    onLoopActiveChange?: (val: boolean) => void;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear }: CardManagerSearchProps) {
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -36,24 +38,6 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                                 <Center style={{ gap: 10 }}>
                                     <IconAlphabetLatin size={16} />
                                     <span>Text Search</span>
-                                </Center>
-                            ),
-                        },
-                        {
-                            value: "scan",
-                            label: (
-                                <Center style={{ gap: 10 }}>
-                                    <IconScan size={16} />
-                                    <span>Scan Card</span>
-                                </Center>
-                            ),
-                        },
-                        {
-                            value: "scan_text",
-                            label: (
-                                <Center style={{ gap: 10 }}>
-                                    <IconAlphabetLatin size={16} />
-                                    <span>Scan Card By Text</span>
                                 </Center>
                             ),
                         },
@@ -86,20 +70,6 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     value={query}
                     onChange={(e) => setQuery(e.currentTarget.value)}
                 />
-            ) : searchMode === "scan" ? (
-                <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => { setQuery(""); onClear?.(); }} autoAdd={autoAdd} onAutoAddChange={onAutoAddChange} autoCapture={autoCapture} onAutoCaptureChange={onAutoCaptureChange} paused={paused} />
-            ) : searchMode === "scan_text" ? (
-                <CardManagerOCR
-                    mode="text"
-                    onScan={onScanIds}
-                    onTextResult={setQuery}
-                    onClear={() => { setQuery(""); onClear?.(); }}
-                    autoAdd={autoAdd}
-                    onAutoAddChange={onAutoAddChange}
-                    autoCapture={autoCapture}
-                    onAutoCaptureChange={onAutoCaptureChange}
-                    paused={paused}
-                />
             ) : (
                 <CardManagerOCR
                     mode="camera"
@@ -111,6 +81,8 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     autoCapture={autoCapture}
                     onAutoCaptureChange={onAutoCaptureChange}
                     paused={paused}
+                    loopActive={loopActive}
+                    onLoopActiveChange={onLoopActiveChange}
                 />
             )}
         </Stack>
