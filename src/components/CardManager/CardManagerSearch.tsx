@@ -74,7 +74,12 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
             ) : searchMode === "scan" ? (
                 <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => setQuery("")} />
             ) : (
-                <CardManagerOCR mode="text" onTextResult={setQuery} onClear={() => setQuery("")} />
+                <CardManagerOCR
+                    mode="text"
+                    onScan={onScanIds}
+                    onTextResult={setQuery}
+                    onClear={() => setQuery("")}
+                />
             )}
         </Stack>
     );

@@ -107,24 +107,34 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
 
                 if (data.text) {
                     const text = data.text;
-                    console.log("[OCR Text Recognition]", text);
+                    const lines = text.split(/\n/).map((l: string) => l.trim()).filter(Boolean);
+                    const potentialName = lines[0] || "Unknown";
 
-                    // 1. Extract potential Set Code (e.g., WOE from WOE-EN or [WOE])
-                    const setMatch = text.match(/\b([A-Z0-9]{3,5})-[A-Z]{2,}\b/) || text.match(/\[([A-Z0-9]{3,5})\]/);
+                    console.log("[OCR Text Recognition]", { name: potentialName, raw: text });
+
+                    // 1. Extract Set Code (e.g., WOE from WOE-EN)
+                    const setMatch = text.match(/\b([A-Z0-9]{3,5})-(?:[A-Z]{2,})\b/i);
                     const setCode = setMatch ? setMatch[1].toUpperCase() : null;
 
-                    // 2. Extract potential Card Number (e.g., 180 from U0180 or 3/1 U0180)
-                    // We look for 1-4 digits, ignoring common years and small fraction numbers
-                    const cleaned = text.replace(/\b20\d{2}\b/g, ""); // Remove years like 2023
-                    const noMatch = cleaned.match(/\b(?:[A-Z/])?0?([1-9][0-9]{0,3})\b/);
+                    // 2. Extract Card Number (e.g., 180 from U0180)
+                    // We look for a letter + 0-padded numbers, or standalone 3+ digit numbers
+                    // Negative lookahead/lookbehind avoids hitting things like 3/1
+                    const noMatch = text.match(/\b[A-Z]?0*([1-9][0-9]{2,3})\b/) || // Best: 3-4 digit numbers (U0180)
+                        text.match(/(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/); // Fallback: 1-2 digits (NOT part of X/Y)
+
                     const cardNo = noMatch ? noMatch[1] : null;
 
                     if (setCode && cardNo) {
-                        console.log(`[OCR Identified] Set: ${setCode}, No: ${cardNo}`);
+                        console.log(`[OCR Identified] Match: ${setCode}:${cardNo} (${potentialName})`);
                         onScan?.([`${setCode}:${cardNo}`]);
                         notifications.show({
                             title: "Card Identified via Text",
-                            message: `Found ${setCode} #${cardNo}. Syncing with database...`,
+                            message: (
+                                <Stack gap={4}>
+                                    <Text size="sm" fw={700}>{potentialName}</Text>
+                                    <Text size="xs" c="dimmed">Set: {setCode} | No: {cardNo}</Text>
+                                </Stack>
+                            ),
                             color: "green",
                             autoClose: 3000,
                         });
@@ -133,12 +143,25 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                         notifications.show({
                             title: "Text Recognized",
                             message: (
-                                <Box component="pre" style={{ margin: 0, fontSize: '10px', maxHeight: '150px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
-                                    {JSON.stringify(data, null, 2)}
-                                </Box>
+                                <Stack gap="xs">
+                                    <Box
+                                        style={{
+                                            whiteSpace: 'pre-wrap',
+                                            fontSize: '13px',
+                                            backgroundColor: 'rgba(0,0,0,0.05)',
+                                            padding: '8px',
+                                            borderRadius: '4px',
+                                            maxHeight: '200px',
+                                            overflow: 'auto'
+                                        }}
+                                    >
+                                        {text}
+                                    </Box>
+                                    <Text size="xs" c="dimmed">Raw JSON available in console</Text>
+                                </Stack>
                             ),
                             color: "green",
-                            autoClose: 8000,
+                            autoClose: 10000,
                         });
                     }
                 } else {
