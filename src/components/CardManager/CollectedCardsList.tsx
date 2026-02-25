@@ -1,8 +1,9 @@
 "use client";
 
-import { Card, Stack, Text, ScrollArea, Group, Image, Badge, ActionIcon, Box, Loader, Menu } from "@mantine/core";
+import { Card, Stack, Text, ScrollArea, Group, Image, Badge, ActionIcon, Box, Loader, Menu, Modal, Select, Button, Tooltip } from "@mantine/core";
 import { IconTrash, IconPlus, IconMinus, IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import { notifications } from "@mantine/notifications";
 
 const CONDITIONS = [
     { value: "NM", label: "Near Mint" },
@@ -28,9 +29,13 @@ export interface CollectedCard {
     condition?: string;
 }
 
-export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?: (url: string) => void }, ref) => {
+export const CollectedCardsList = forwardRef(({ onImageClick, onCollectionChange }: { onImageClick?: (url: string) => void; onCollectionChange?: (ids: Set<number>) => void }, ref) => {
     const [collectedCards, setCollectedCards] = useState<CollectedCard[]>([]);
     const [loading, setLoading] = useState(true);
+    const [addEntryCard, setAddEntryCard] = useState<CollectedCard | null>(null);
+    const [addVariant, setAddVariant] = useState<string>("NF");
+    const [addCondition, setAddCondition] = useState<string>("NM");
+    const [addingEntry, setAddingEntry] = useState(false);
 
     const fetchCollection = async () => {
         setLoading(true);
@@ -39,6 +44,7 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
             const data = await res.json();
             if (data.success) {
                 setCollectedCards(data.cards);
+                onCollectionChange?.(new Set(data.cards.map((c: CollectedCard) => c.cardId)));
             }
         } catch (err) {
             console.error("Failed to fetch collection:", err);
@@ -137,8 +143,56 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
         document.body.removeChild(link);
     };
 
+    const handleAddEntry = async () => {
+        if (!addEntryCard) return;
+        setAddingEntry(true);
+        try {
+            const res = await fetch("/api/card-manager/collected", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    cardId: addEntryCard.cardId,
+                    variant: addVariant,
+                    condition: addCondition,
+                    noIncrement: true,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (data.alreadyInCollection) {
+                    notifications.show({
+                        title: "Already Exists",
+                        message: `${addEntryCard.name} (${addVariant} / ${addCondition}) is already in your collection.`,
+                        color: "orange",
+                        autoClose: 3000,
+                    });
+                } else {
+                    notifications.show({
+                        title: "Entry Added",
+                        message: `${addEntryCard.name} — ${addVariant} / ${addCondition} added.`,
+                        color: "green",
+                        autoClose: 2000,
+                    });
+                    setAddEntryCard(null);
+                    fetchCollection();
+                }
+            } else {
+                notifications.show({
+                    title: "Failed",
+                    message: data.error || "Could not add entry.",
+                    color: "red",
+                    autoClose: 3000,
+                });
+            }
+        } catch (err) {
+            console.error("Add entry failed:", err);
+        } finally {
+            setAddingEntry(false);
+        }
+    };
+
     useImperativeHandle(ref, () => ({
-        refresh: fetchCollection
+        refresh: fetchCollection,
     }));
 
     useEffect(() => {
@@ -292,9 +346,25 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
                                                 </Menu>
                                             </Group>
                                         </Stack>
-                                        <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDelete(card.id)}>
-                                            <IconTrash size={14} />
-                                        </ActionIcon>
+                                        <Stack gap={4}>
+                                            <Tooltip label="Add new variant/condition entry" position="left" withArrow>
+                                                <ActionIcon
+                                                    variant="subtle"
+                                                    color="green"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setAddEntryCard(card);
+                                                        setAddVariant("NF");
+                                                        setAddCondition("NM");
+                                                    }}
+                                                >
+                                                    <IconPlus size={14} />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                            <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleDelete(card.id)}>
+                                                <IconTrash size={14} />
+                                            </ActionIcon>
+                                        </Stack>
                                     </Group>
                                 </Card>
                             ))}
@@ -302,6 +372,57 @@ export const CollectedCardsList = forwardRef(({ onImageClick }: { onImageClick?:
                     )}
                 </ScrollArea>
             </Stack>
+
+            <Modal
+                opened={!!addEntryCard}
+                onClose={() => setAddEntryCard(null)}
+                title="Add Variant / Condition"
+                centered
+                size="sm"
+                overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
+            >
+                {addEntryCard && (
+                    <Stack gap="md">
+                        <Group gap="md" wrap="nowrap">
+                            <Image
+                                src={addEntryCard.imageUrl}
+                                w={50}
+                                h={70}
+                                radius="xs"
+                                style={{ objectFit: 'contain', flexShrink: 0 }}
+                            />
+                            <Stack gap={4}>
+                                <Text fw={700} size="sm">{addEntryCard.name}</Text>
+                                <Text size="xs" c="dimmed">{addEntryCard.collectionName}</Text>
+                                <Group gap={6}>
+                                    <Text size="xs" fw={600} c="blue.7" bg="blue.0" px={4} style={{ borderRadius: '2px' }}>#{addEntryCard.cardNo}</Text>
+                                    <Text size="xs" fw={500} bg="gray.1" px={4} style={{ borderRadius: '2px' }}>{addEntryCard.rarity}</Text>
+                                </Group>
+                            </Stack>
+                        </Group>
+                        <Select
+                            label="Variant"
+                            value={addVariant}
+                            onChange={(v) => setAddVariant(v || "NF")}
+                            data={[{ value: "NF", label: "Non-Foil" }, { value: "F", label: "Foil" }]}
+                            size="sm"
+                        />
+                        <Select
+                            label="Condition"
+                            value={addCondition}
+                            onChange={(v) => setAddCondition(v || "NM")}
+                            data={CONDITIONS.map(c => ({ value: c.value, label: c.label }))}
+                            size="sm"
+                        />
+                        <Group justify="flex-end" gap="xs">
+                            <Button variant="default" size="sm" onClick={() => setAddEntryCard(null)}>Cancel</Button>
+                            <Button size="sm" color="green" loading={addingEntry} onClick={handleAddEntry}>
+                                Add Entry
+                            </Button>
+                        </Group>
+                    </Stack>
+                )}
+            </Modal>
         </Card>
     );
 });

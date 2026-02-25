@@ -30,7 +30,10 @@ export default function CardManagerPage() {
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
     const [resetTrigger, setResetTrigger] = useState(0);
+    const [collectedCardIds, setCollectedCardIds] = useState<Set<number>>(new Set());
     const consecutiveNoCard = useRef(0);
+
+    const refreshCollection = () => listRef.current?.refresh();
 
     // Initial load from localStorage
     useEffect(() => {
@@ -161,55 +164,44 @@ export default function CardManagerPage() {
 
     const handleAddToCollection = async (card: SearchedCard) => {
         setAddingId(card.id);
-        const autoMode = autoAdd || autoCapture;
         try {
             const res = await fetch("/api/card-manager/collected", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     cardId: card.id,
-                    variant: "NF", // Default to Non-Foil for now
-                    condition: "NM", // Default to Near Mint
-                    noIncrement: autoMode // Don't add more if in auto mode
+                    variant: "NF",
+                    condition: "NM",
+                    noIncrement: true, // never auto-increment; user confirms via modal
                 })
             });
             const data = await res.json();
             if (data.success) {
-                // Refresh the left sidebar list
-                listRef.current?.refresh();
-
+                refreshCollection();
                 setWaitingForSelection(false);
 
-                const isDuplicate = data.alreadyInCollection;
-
-                if (isDuplicate && autoMode) {
-                    notifications.show({
-                        title: "Already in Collection",
-                        message: `${card.name} (${card.collectionCode}) is already in your collection. No changes made.`,
-                        color: "blue",
-                        autoClose: 2000,
-                    });
-                } else {
-                    notifications.show({
-                        title: isDuplicate ? "Quantity Increased" : "Added to Collection",
-                        message: `${card.name} (${card.collectionCode}) ${isDuplicate ? "count increased" : "added"}.`,
-                        color: isDuplicate ? "blue" : "green",
-                        autoClose: 2000,
-                    });
-                }
-
-                // Stop auto-capture loop if card already in collection during auto-capture
-                if (autoCapture && isDuplicate) {
-                    setAutoCaptureActive(false);
-                    notifications.show({
-                        title: "Auto Loop Paused",
-                        message: "Found a duplicate card. Automated capture has been suspended.",
-                        color: "info"
-                    });
-                }
+                notifications.show({
+                    title: "Added to Collection",
+                    message: `${card.name} (${card.collectionCode}) added.`,
+                    color: "green",
+                    autoClose: 2000,
+                });
+            } else {
+                notifications.show({
+                    title: "Failed to Add",
+                    message: data.error || "Could not add card to collection.",
+                    color: "red",
+                    autoClose: 3000,
+                });
             }
         } catch (err) {
             console.error("Failed to add card:", err);
+            notifications.show({
+                title: "Error",
+                message: "Network error while adding card.",
+                color: "red",
+                autoClose: 3000,
+            });
         } finally {
             setAddingId(null);
         }
@@ -246,7 +238,7 @@ export default function CardManagerPage() {
                     {/* Left Sidebar: Collected Cards (1/4) */}
                     {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_COLLECTION && (
                         <Grid.Col span={{ base: 12, md: APP_CONFIG.CARD_MANAGER_LAYOUT.COLLECTION_SPAN }} h="100%">
-                            <CollectedCardsList ref={listRef} onImageClick={setPreviewImage} />
+                            <CollectedCardsList ref={listRef} onImageClick={setPreviewImage} onCollectionChange={setCollectedCardIds} />
                         </Grid.Col>
                     )}
 
@@ -280,6 +272,7 @@ export default function CardManagerPage() {
                                         loading={loading}
                                         query={searchQuery}
                                         addingId={addingId}
+                                        collectedCardIds={collectedCardIds}
                                         onAddToCollection={handleAddToCollection}
                                         onImageClick={setPreviewImage}
                                     />
@@ -400,6 +393,7 @@ export default function CardManagerPage() {
                     </Stack>
                 )}
             </Modal>
+
         </Container>
     );
 }

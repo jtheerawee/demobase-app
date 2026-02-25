@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollArea, SimpleGrid, Card, Group, Image, Stack, Text, ActionIcon, Badge, Box, Loader } from "@mantine/core";
+import { ScrollArea, SimpleGrid, Card, Group, Image, Stack, Text, ActionIcon, Badge, Box, Loader, Tooltip } from "@mantine/core";
 import { IconExternalLink, IconPlus } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -20,6 +20,7 @@ interface CardManagerResultProps {
     loading: boolean;
     query: string;
     addingId: number | null;
+    collectedCardIds: Set<number>;
     onAddToCollection: (card: SearchedCard) => void;
     onImageClick: (url: string) => void;
 }
@@ -29,6 +30,7 @@ export function CardManagerResult({
     loading,
     query,
     addingId,
+    collectedCardIds,
     onAddToCollection,
     onImageClick
 }: CardManagerResultProps) {
@@ -80,16 +82,22 @@ export function CardManagerResult({
                                         >
                                             <IconExternalLink size={12} />
                                         </ActionIcon>
-                                        <ActionIcon
-                                            variant="light"
-                                            color="grape"
-                                            size="xs"
-                                            title="Add to collection"
-                                            onClick={() => onAddToCollection(card)}
-                                            loading={addingId === card.id}
+                                        <Tooltip
+                                            label={collectedCardIds.has(card.id) ? "Already in your collection" : "Add to collection"}
+                                            position="top"
+                                            withArrow
                                         >
-                                            <IconPlus size={12} />
-                                        </ActionIcon>
+                                            <ActionIcon
+                                                variant="light"
+                                                color={collectedCardIds.has(card.id) ? "gray" : "green"}
+                                                size="xs"
+                                                disabled={collectedCardIds.has(card.id)}
+                                                onClick={() => onAddToCollection(card)}
+                                                loading={addingId === card.id}
+                                            >
+                                                <IconPlus size={12} />
+                                            </ActionIcon>
+                                        </Tooltip>
                                     </Group>
                                 </Group>
 

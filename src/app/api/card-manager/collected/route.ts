@@ -72,14 +72,19 @@ export async function POST(request: Request) {
         // But Supabase client doesn't support expressions in upsert easily without RPC
         // So we'll do: Check exists -> Insert or Update
 
-        const { data: existing } = await supabase
+        const variantValue = variant || null;
+        const conditionValue = condition || 'NM';
+
+        let query = supabase
             .from("collected_cards")
             .select("id, quantity")
             .eq("user_id", user.id)
             .eq("card_id", cardId)
-            .eq("variant", variant || null)
-            .eq("condition", condition || 'NM')
-            .single();
+            .eq("condition", conditionValue);
+
+        query = variantValue ? query.eq("variant", variantValue) : query.is("variant", null);
+
+        const { data: existing } = await query.maybeSingle();
 
         if (existing) {
             if (!noIncrement) {
