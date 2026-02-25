@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
 import { CollectedCardsList } from "@/components/CardManager/CollectedCardsList";
-import { CardManagerSearch } from "@/components/CardManager/CardManagerSearch";
+import { CardManagerSearch, type SearchMode } from "@/components/CardManager/CardManagerSearch";
 import { CardManagerResult, SearchedCard } from "@/components/CardManager/CardManagerResult";
 import { LANGUAGE_OPTIONS, FRANCHISE_OPTIONS } from "@/constants/languages";
 
@@ -22,6 +22,7 @@ export default function CardManagerPage() {
     const [addingId, setAddingId] = useState<number | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [imgDimensions, setImgDimensions] = useState<{ w: number; h: number } | null>(null);
+    const [searchMode, setSearchMode] = useState<SearchMode>("text");
 
     // Initial load from localStorage
     useEffect(() => {
@@ -153,6 +154,8 @@ export default function CardManagerPage() {
                                         query={searchQuery}
                                         setQuery={setSearchQuery}
                                         loading={loading}
+                                        searchMode={searchMode}
+                                        onSearchModeChange={setSearchMode}
                                     />
 
                                     {results.length > 0 && (

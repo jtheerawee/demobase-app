@@ -42,4 +42,7 @@ export const APP_CONFIG = {
     CARD_MANAGER_COLLECTION: true,
     CARD_MANAGER_SEARCH: true,
   },
+
+  // OCR
+  OCR_API_URL: "http://localhost:8000/ocr",
 } as const;
