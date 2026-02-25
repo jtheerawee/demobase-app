@@ -132,8 +132,13 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                         onTextResult?.(text);
                         notifications.show({
                             title: "Text Recognized",
-                            message: "Query updated with card text",
+                            message: (
+                                <Box component="pre" style={{ margin: 0, fontSize: '10px', maxHeight: '150px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+                                    {JSON.stringify(data, null, 2)}
+                                </Box>
+                            ),
                             color: "green",
+                            autoClose: 8000,
                         });
                     }
                 } else {
