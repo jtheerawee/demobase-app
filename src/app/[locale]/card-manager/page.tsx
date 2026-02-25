@@ -1,9 +1,9 @@
 "use client";
 
-import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge, Box, Loader as MantineLoader } from "@mantine/core";
+import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge, Box, Loader as MantineLoader, ActionIcon } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
-import { IconLayoutDashboard } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconTrash } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
@@ -29,6 +29,7 @@ export default function CardManagerPage() {
     const [autoCaptureInterval, setAutoCaptureInterval] = useState<number>(APP_CONFIG.AUTO_CAPTURE_INTERVAL);
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
+    const [resetTrigger, setResetTrigger] = useState(0);
     const consecutiveNoCard = useRef(0);
 
     // Initial load from localStorage
@@ -213,6 +214,19 @@ export default function CardManagerPage() {
         }
     };
 
+    const handleReset = () => {
+        setSearchQuery("");
+        setResults([]);
+        setWaitingForSelection(false);
+        setResetTrigger(prev => prev + 1);
+        notifications.show({
+            title: "Scanner Reset",
+            message: "Clear results and snapshot",
+            color: "gray",
+            autoClose: 2000,
+        });
+    };
+
     return (
         <Container size="xl" py="md">
             <Stack gap="lg">
@@ -241,11 +255,23 @@ export default function CardManagerPage() {
                             <Stack gap="md" h="100%">
                                 <Group justify="space-between" align="center">
                                     <Text fw={700} size="lg">Search Results</Text>
-                                    {results.length > 0 && (
-                                        <Badge color="blue" variant="filled" h={18} styles={{ label: { fontSize: '10px' } }}>
-                                            {results.length}
-                                        </Badge>
-                                    )}
+                                    <Group gap="xs">
+                                        {results.length > 0 && (
+                                            <Badge color="blue" variant="filled" h={18} styles={{ label: { fontSize: '10px' } }}>
+                                                {results.length}
+                                            </Badge>
+                                        )}
+                                        <ActionIcon
+                                            variant="subtle"
+                                            color="gray"
+                                            size="sm"
+                                            title="Clear results and snapshot"
+                                            onClick={handleReset}
+                                            disabled={loading || (results.length === 0 && searchQuery === "" && !waitingForSelection)}
+                                        >
+                                            <IconTrash size={16} />
+                                        </ActionIcon>
+                                    </Group>
                                 </Group>
                                 <Box style={{ flex: 1, minHeight: 0 }}>
                                     <CardManagerResult
@@ -312,6 +338,7 @@ export default function CardManagerPage() {
                                         onAutoCaptureIntervalChange={setAutoCaptureInterval}
                                         paused={waitingForSelection}
                                         onClear={() => setWaitingForSelection(false)}
+                                        resetTrigger={resetTrigger}
                                     />
                                 </Stack>
                             </Card>

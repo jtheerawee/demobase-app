@@ -1,9 +1,9 @@
 "use client";
 
-import { Group, TextInput, Loader, CloseButton, SegmentedControl, Stack, Center, Text } from "@mantine/core";
-import { IconSearch, IconAlphabetLatin, IconScan, IconCamera } from "@tabler/icons-react";
-import { APP_CONFIG } from "@/constants/app";
+import { SegmentedControl, Stack, Center } from "@mantine/core";
+import { IconAlphabetLatin, IconCamera } from "@tabler/icons-react";
 import { CardManagerOCR } from "./CardManagerOCR";
+import { CardManagerTextSearch } from "./CardManagerTextSearch";
 
 export type SearchMode = "text" | "scan_camera";
 
@@ -24,9 +24,10 @@ interface CardManagerSearchProps {
     onLoopActiveChange?: (val: boolean) => void;
     autoCaptureInterval: number;
     onAutoCaptureIntervalChange: (val: number) => void;
+    resetTrigger?: number;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange, autoCaptureInterval, onAutoCaptureIntervalChange }: CardManagerSearchProps) {
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange, autoCaptureInterval, onAutoCaptureIntervalChange, resetTrigger }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -48,7 +49,7 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                             label: (
                                 <Center style={{ gap: 10 }}>
                                     <IconCamera size={16} />
-                                    <span>Scan Card Using Camera</span>
+                                    <span>Camera</span>
                                 </Center>
                             ),
                         },
@@ -57,20 +58,10 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
             </Center>
 
             {searchMode === "text" ? (
-                <TextInput
-                    placeholder={`Type card name (min ${APP_CONFIG.SEARCH_MIN_CHARS} chars)...`}
-                    size="md"
-                    w="100%"
-                    leftSection={<IconSearch size={18} />}
-                    rightSection={
-                        loading ? (
-                            <Loader size="xs" />
-                        ) : query !== "" ? (
-                            <CloseButton onClick={() => setQuery("")} />
-                        ) : null
-                    }
-                    value={query}
-                    onChange={(e) => setQuery(e.currentTarget.value)}
+                <CardManagerTextSearch
+                    query={query}
+                    setQuery={setQuery}
+                    loading={loading}
                 />
             ) : (
                 <CardManagerOCR
@@ -87,6 +78,7 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     onLoopActiveChange={onLoopActiveChange}
                     autoCaptureInterval={autoCaptureInterval}
                     onAutoCaptureIntervalChange={onAutoCaptureIntervalChange}
+                    resetTrigger={resetTrigger}
                 />
             )}
         </Stack>
