@@ -1,6 +1,7 @@
 "use client";
 
-import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge } from "@mantine/core";
+import { Container, Stack, Group, Card, Image, Text, Grid, Modal, Select, Badge, Loader as MantineLoader } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
@@ -23,15 +24,22 @@ export default function CardManagerPage() {
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [imgDimensions, setImgDimensions] = useState<{ w: number; h: number } | null>(null);
     const [searchMode, setSearchMode] = useState<SearchMode>("text");
+    const [autoAdd, setAutoAdd] = useState(false);
+    const [autoCapture, setAutoCapture] = useState(false);
+    const consecutiveNoCard = useRef(0);
 
     // Initial load from localStorage
     useEffect(() => {
         const savedFranchise = localStorage.getItem("manager_selected_franchise") || "all";
         const savedLanguage = localStorage.getItem("manager_selected_language") || "all";
         const savedMode = localStorage.getItem("manager_search_mode") as SearchMode || "text";
+        const savedAutoAdd = localStorage.getItem("manager_auto_add") === "true";
+        const savedAutoCapture = localStorage.getItem("manager_auto_capture") === "true";
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
         setSearchMode(savedMode);
+        setAutoAdd(savedAutoAdd);
+        setAutoCapture(savedAutoCapture);
     }, []);
 
     // Save to localStorage when changed
@@ -39,7 +47,9 @@ export default function CardManagerPage() {
         if (selectedFranchise) localStorage.setItem("manager_selected_franchise", selectedFranchise);
         if (selectedLanguage) localStorage.setItem("manager_selected_language", selectedLanguage);
         localStorage.setItem("manager_search_mode", searchMode);
-    }, [selectedFranchise, selectedLanguage, searchMode]);
+        localStorage.setItem("manager_auto_add", autoAdd.toString());
+        localStorage.setItem("manager_auto_capture", autoCapture.toString());
+    }, [selectedFranchise, selectedLanguage, searchMode, autoAdd, autoCapture]);
 
     const languageOptions = useMemo(() => {
         if (!selectedFranchise || selectedFranchise === "all") return [{ value: "all", label: "All Languages" }];
@@ -69,6 +79,11 @@ export default function CardManagerPage() {
             const data = await res.json();
             if (data.success) {
                 setResults(data.cards);
+
+                // Auto-add if exactly one card found and autoAdd is enabled
+                if (autoAdd && data.cards.length === 1) {
+                    handleAddToCollection(data.cards[0]);
+                }
             }
         } catch (err) {
             console.error("Search failed:", err);
@@ -78,7 +93,21 @@ export default function CardManagerPage() {
     };
 
     const handleScanIds = async (ids: string[]) => {
-        if (ids.length === 0) return;
+        if (ids.length === 0) {
+            if (autoCapture) {
+                consecutiveNoCard.current += 1;
+                if (consecutiveNoCard.current >= 2) {
+                    setAutoCapture(false);
+                    notifications.show({
+                        title: "Auto-capture Stopped",
+                        message: "No card detected for 2 consecutive captures.",
+                        color: "orange"
+                    });
+                }
+            }
+            return;
+        }
+
         setLoading(true);
         try {
             const params = new URLSearchParams({
@@ -90,9 +119,34 @@ export default function CardManagerPage() {
             const data = await res.json();
             if (data.success) {
                 setResults(data.cards);
+
+                if (data.cards.length > 0) {
+                    consecutiveNoCard.current = 0;
+                } else {
+                    consecutiveNoCard.current += 1;
+                }
+
+                // Stop auto-capture if 2 times in a row no card detected
+                if (autoCapture && consecutiveNoCard.current >= 2) {
+                    setAutoCapture(false);
+                    notifications.show({
+                        title: "Auto-capture Stopped",
+                        message: "No card detected for 2 consecutive captures.",
+                        color: "orange"
+                    });
+                }
+
+                // Auto-add if exactly one card found and autoAdd is enabled
+                if (autoAdd && data.cards.length === 1) {
+                    handleAddToCollection(data.cards[0]);
+                }
             }
         } catch (err) {
             console.error("Scan fetch failed:", err);
+            consecutiveNoCard.current += 1;
+            if (autoCapture && consecutiveNoCard.current >= 2) {
+                setAutoCapture(false);
+            }
         } finally {
             setLoading(false);
         }
@@ -114,6 +168,26 @@ export default function CardManagerPage() {
             if (data.success) {
                 // Refresh the left sidebar list
                 listRef.current?.refresh();
+
+                const isDuplicate = data.alreadyInCollection;
+
+                notifications.show({
+                    title: isDuplicate ? "Quantity Increased" : "Added to Collection",
+                    message: `${card.name} (${card.collectionCode}) ${isDuplicate ? "count increased" : "added"}.`,
+                    color: isDuplicate ? "blue" : "green",
+                    autoClose: 2000,
+                });
+
+                // Stop auto mode entirely if card already in collection during auto-capture
+                if (autoCapture && isDuplicate) {
+                    setAutoCapture(false);
+                    setAutoAdd(false);
+                    notifications.show({
+                        title: "Auto Mode Exited",
+                        message: "Found a duplicate card. Hands-free mode has been disabled.",
+                        color: "info"
+                    });
+                }
             }
         } catch (err) {
             console.error("Failed to add card:", err);
@@ -181,6 +255,13 @@ export default function CardManagerPage() {
                                         searchMode={searchMode}
                                         onSearchModeChange={setSearchMode}
                                         onScanIds={handleScanIds}
+                                        autoAdd={autoAdd}
+                                        onAutoAddChange={setAutoAdd}
+                                        autoCapture={autoCapture}
+                                        onAutoCaptureChange={(val) => {
+                                            setAutoCapture(val);
+                                            if (val) setAutoAdd(true);
+                                        }}
                                     />
 
                                     {results.length > 0 && (

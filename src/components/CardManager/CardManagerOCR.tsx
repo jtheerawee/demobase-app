@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Group, Text, Stack, Image, Button, Loader, ActionIcon, Box } from "@mantine/core";
+import { Group, Text, Stack, Image, Button, Loader, ActionIcon, Box, Select, LoadingOverlay, Checkbox, Badge } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE, FileWithPath } from "@mantine/dropzone";
-import { IconPhoto, IconUpload, IconX, IconScan, IconTrash, IconCamera } from "@tabler/icons-react";
+import { IconPhoto, IconUpload, IconX, IconScan, IconCamera, IconRefresh, IconSpace } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -14,13 +14,21 @@ interface CardManagerOCRProps {
     onScan?: (ids: string[]) => void;
     onTextResult?: (query: string) => void;
     onClear?: () => void;
+    autoAdd?: boolean;
+    onAutoAddChange?: (val: boolean) => void;
+    autoCapture?: boolean;
+    onAutoCaptureChange?: (val: boolean) => void;
 }
 
-export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardManagerOCRProps) {
+export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [cameraActive, setCameraActive] = useState(false);
+    const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+    const [countdown, setCountdown] = useState<number | null>(null);
+    const [loopStarted, setLoopStarted] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
@@ -30,6 +38,13 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
             stopCamera();
         };
     }, [mode]);
+
+    // Reset loopStarted when autoCapture is turned off
+    useEffect(() => {
+        if (!autoCapture) {
+            setLoopStarted(false);
+        }
+    }, [autoCapture]);
 
     // Auto-start camera when mode is "camera"
     useEffect(() => {
@@ -43,15 +58,99 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
         if (cameraActive && videoRef.current && streamRef.current) {
             videoRef.current.srcObject = streamRef.current;
         }
-    }, [cameraActive]);
+    }, [cameraActive, selectedDeviceId]);
 
-    const startCamera = async () => {
+    // Handle Auto-capture timer and countdown
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        let countdownInterval: NodeJS.Timeout;
+
+        if (autoCapture && loopStarted && cameraActive && !preview && !loading && mode === "camera") {
+            setCountdown(APP_CONFIG.AUTO_CAPTURE_INTERVAL);
+
+            countdownInterval = setInterval(() => {
+                setCountdown(prev => (prev !== null && prev > 1) ? prev - 1 : prev);
+            }, 1000);
+
+            interval = setInterval(() => {
+                capturePhoto();
+            }, APP_CONFIG.AUTO_CAPTURE_INTERVAL * 1000);
+        } else {
+            setCountdown(null);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+            if (countdownInterval) clearInterval(countdownInterval);
+        };
+    }, [autoCapture, loopStarted, cameraActive, preview, loading, mode]);
+
+    // Auto-return to live view after scan if auto-capture is on
+    useEffect(() => {
+        if (autoCapture && !loading && preview && mode === "camera") {
+            const timer = setTimeout(() => {
+                handleClear();
+            }, 2000); // Give user 2 seconds to see the result
+            return () => clearTimeout(timer);
+        }
+    }, [autoCapture, loading, preview, mode]);
+
+    // Handle Space key to capture or re-scan
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === " ") {
+                if (cameraActive && !preview) {
+                    e.preventDefault();
+                    capturePhoto();
+                } else if (preview && mode === "camera") {
+                    e.preventDefault();
+                    handleClear();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [cameraActive, preview, mode]);
+
+    // Load available camera devices
+    const loadDevices = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
+            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = allDevices
+                .filter(device => device.kind === 'videoinput')
+                .map(device => ({
+                    value: device.deviceId,
+                    label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`
+                }));
+            setDevices(videoDevices);
+
+            // Auto-select first device if none selected
+            if (videoDevices.length > 0 && !selectedDeviceId) {
+                setSelectedDeviceId(videoDevices[0].value);
+            }
+        } catch (err) {
+            console.error("Error loading devices:", err);
+        }
+    };
+
+    const startCamera = async (deviceId?: string) => {
+        // Stop any existing stream first
+        stopCamera();
+
+        try {
+            const constraints: MediaStreamConstraints = {
+                video: deviceId
+                    ? { deviceId: { exact: deviceId } }
+                    : { facingMode: "environment" }
+            };
+
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = stream;
             setCameraActive(true);
+
+            // Re-load devices to get labels (labels are often empty until permission is granted)
+            loadDevices();
         } catch (err) {
             console.error("Camera error:", err);
             notifications.show({
@@ -59,6 +158,13 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                 message: "Could not access camera. Please check permissions.",
                 color: "red"
             });
+        }
+    };
+
+    const handleDeviceChange = (deviceId: string | null) => {
+        if (deviceId) {
+            setSelectedDeviceId(deviceId);
+            startCamera(deviceId);
         }
     };
 
@@ -74,6 +180,11 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
 
     const capturePhoto = () => {
         if (!videoRef.current) return;
+
+        // Start the auto-capture loop if enabled
+        if (autoCapture && !loopStarted) {
+            setLoopStarted(true);
+        }
 
         const canvas = document.createElement("canvas");
         canvas.width = videoRef.current.videoWidth;
@@ -98,6 +209,8 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
         const droppedFile = files[0];
         setFile(droppedFile);
         setPreview(URL.createObjectURL(droppedFile));
+        // Automatically trigger scan after drop
+        handleScan(droppedFile);
     };
 
     const handleClear = () => {
@@ -262,11 +375,11 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                             backgroundColor: 'var(--mantine-color-gray-0)',
                             overflow: 'hidden',
                             position: 'relative',
-                            minHeight: 220
+                            height: APP_CONFIG.CAMERA_VIEW_HEIGHT
                         }}
                     >
                         {!cameraActive ? (
-                            <Stack align="center" justify="center" p="xl" mih={220}>
+                            <Stack align="center" justify="center" p="xl" mih={APP_CONFIG.CAMERA_VIEW_HEIGHT}>
                                 <Loader size="md" />
                                 <Text fw={700}>Starting Camera...</Text>
                                 <Text size="xs" c="dimmed">Please allow camera access if prompted</Text>
@@ -280,12 +393,32 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                                     muted
                                     style={{
                                         width: '100%',
-                                        height: 'auto',
+                                        height: APP_CONFIG.CAMERA_VIEW_HEIGHT,
                                         display: 'block',
-                                        minHeight: '220px',
+                                        objectFit: 'contain',
                                         backgroundColor: '#000'
                                     }}
                                 />
+
+                                {devices.length > 1 && (
+                                    <Box pos="absolute" top={10} left={10} right={10} style={{ zIndex: 10 }}>
+                                        <Select
+                                            size="xs"
+                                            placeholder="Select Camera"
+                                            data={devices}
+                                            value={selectedDeviceId}
+                                            onChange={handleDeviceChange}
+                                            styles={{
+                                                input: {
+                                                    backgroundColor: 'rgba(255,255,255,0.8)',
+                                                    backdropFilter: 'blur(4px)',
+                                                    borderColor: 'transparent'
+                                                }
+                                            }}
+                                        />
+                                    </Box>
+                                )}
+
                                 <Group justify="center" pos="absolute" bottom={10} left={0} right={0}>
                                     <Button
                                         color="blue"
@@ -294,17 +427,23 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                                         leftSection={<IconCamera size={20} />}
                                         onClick={capturePhoto}
                                     >
-                                        Capture Card
-                                    </Button>
-                                    <Button
-                                        color="red"
-                                        variant="light"
-                                        radius="xl"
-                                        onClick={stopCamera}
-                                    >
-                                        Close
+                                        Scan (<IconSpace size={16} style={{ verticalAlign: 'middle', display: 'inline-block' }} /> Space)
                                     </Button>
                                 </Group>
+
+                                {countdown !== null && (
+                                    <Badge
+                                        pos="absolute"
+                                        top={10}
+                                        right={10}
+                                        size="xl"
+                                        variant="filled"
+                                        color="blue"
+                                        style={{ zIndex: 11 }}
+                                    >
+                                        Auto-capturing in {countdown}s...
+                                    </Badge>
+                                )}
                             </Box>
                         )}
                     </Box>
@@ -352,36 +491,51 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear }: CardMana
                     </Dropzone>
                 )
             ) : (
-                <Box pos="relative">
+                <Box pos="relative" style={{ borderRadius: 'var(--mantine-radius-md)', overflow: 'hidden' }}>
+                    <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} loaderProps={{ size: 'md' }} />
                     <Image
                         src={preview}
                         alt="Preview"
                         radius="md"
-                        style={{ maxHeight: 300, objectFit: "contain" }}
+                        style={{ height: APP_CONFIG.CAMERA_VIEW_HEIGHT, objectFit: "contain", backgroundColor: '#000' }}
                     />
-                    <Stack gap="xs" mt="md">
-                        <Group grow>
-                            <Button
-                                variant="filled"
-                                color="blue"
-                                leftSection={loading ? <Loader size="xs" /> : <IconScan size={18} />}
-                                onClick={() => handleScan()}
-                                disabled={loading}
-                            >
-                                {loading ? "Scanning..." : (mode === "vision" ? "Find Identity" : "Read Text")}
-                            </Button>
-                            <Button
-                                variant="light"
-                                color="red"
-                                leftSection={<IconTrash size={18} />}
-                                onClick={handleClear}
-                                disabled={loading}
-                            >
-                                Clear
-                            </Button>
-                        </Group>
-                    </Stack>
+                    <Group justify="center" pos="absolute" bottom={10} left={0} right={0}>
+                        <Button
+                            variant="filled"
+                            color="blue"
+                            radius="xl"
+                            size="md"
+                            leftSection={<IconRefresh size={18} />}
+                            onClick={handleClear}
+                            disabled={loading}
+                        >
+                            Re-scan{mode === "camera" && (
+                                <> (<IconSpace size={16} style={{ verticalAlign: 'middle', display: 'inline-block' }} /> Space)</>
+                            )}
+                        </Button>
+                    </Group>
                 </Box>
+            )}
+
+            {onAutoAddChange && (
+                <Group justify="center" mt="xs" gap="xl">
+                    <Checkbox
+                        label="Auto-add to collection"
+                        checked={autoAdd}
+                        onChange={(e) => onAutoAddChange(e.currentTarget.checked)}
+                        size="sm"
+                        color="blue"
+                    />
+                    {mode === "camera" && onAutoCaptureChange && (
+                        <Checkbox
+                            label={`Auto-capture (${APP_CONFIG.AUTO_CAPTURE_INTERVAL}s)`}
+                            checked={autoCapture}
+                            onChange={(e) => onAutoCaptureChange(e.currentTarget.checked)}
+                            size="sm"
+                            color="blue"
+                        />
+                    )}
+                </Group>
             )}
         </Stack>
     );

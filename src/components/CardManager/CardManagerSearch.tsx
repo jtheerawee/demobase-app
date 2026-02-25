@@ -14,9 +14,13 @@ interface CardManagerSearchProps {
     searchMode: SearchMode;
     onSearchModeChange: (mode: SearchMode) => void;
     onScanIds: (ids: string[]) => void;
+    autoAdd: boolean;
+    onAutoAddChange: (val: boolean) => void;
+    autoCapture: boolean;
+    onAutoCaptureChange: (val: boolean) => void;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds }: CardManagerSearchProps) {
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -81,13 +85,17 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     onChange={(e) => setQuery(e.currentTarget.value)}
                 />
             ) : searchMode === "scan" ? (
-                <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => setQuery("")} />
+                <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => setQuery("")} autoAdd={autoAdd} onAutoAddChange={onAutoAddChange} autoCapture={autoCapture} onAutoCaptureChange={onAutoCaptureChange} />
             ) : searchMode === "scan_text" ? (
                 <CardManagerOCR
                     mode="text"
                     onScan={onScanIds}
                     onTextResult={setQuery}
                     onClear={() => setQuery("")}
+                    autoAdd={autoAdd}
+                    onAutoAddChange={onAutoAddChange}
+                    autoCapture={autoCapture}
+                    onAutoCaptureChange={onAutoCaptureChange}
                 />
             ) : (
                 <CardManagerOCR
@@ -95,6 +103,10 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     onScan={onScanIds}
                     onTextResult={setQuery}
                     onClear={() => setQuery("")}
+                    autoAdd={autoAdd}
+                    onAutoAddChange={onAutoAddChange}
+                    autoCapture={autoCapture}
+                    onAutoCaptureChange={onAutoCaptureChange}
                 />
             )}
         </Stack>

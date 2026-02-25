@@ -102,7 +102,7 @@ export async function POST(request: Request) {
             if (insertError) throw insertError;
         }
 
-        return NextResponse.json({ success: true });
+        return NextResponse.json({ success: true, alreadyInCollection: !!existing });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }

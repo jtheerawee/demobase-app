@@ -51,6 +51,8 @@ export const APP_CONFIG = {
   OCR_WORKERS: 2,
   OCR_SCAN_WIDTH: "50%",
   OCR_SCAN_MAX_WIDTH: 500,
+  CAMERA_VIEW_HEIGHT: 400,
+  AUTO_CAPTURE_INTERVAL: 5,
 
   // OCR TEXT
   OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
