@@ -8,11 +8,11 @@ import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 
 interface CardManagerOCRProps {
-    onResult: (text: string) => void;
+    onScan: (ids: string[]) => void;
     onClear?: () => void;
 }
 
-export function CardManagerOCR({ onResult, onClear }: CardManagerOCRProps) {
+export function CardManagerOCR({ onScan, onClear }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -59,50 +59,45 @@ export function CardManagerOCR({ onResult, onClear }: CardManagerOCRProps) {
             const data = await res.json();
 
             // Show raw JSON response for debugging
-            // notifications.show({
-            //     title: "OCR Debug: Server Response",
-            //     message: (
-            //         <Box component="pre" style={{ margin: 0, fontSize: '10px', maxHeight: '150px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
-            //             {JSON.stringify(data, null, 2)}
-            //         </Box>
-            //     ),
-            //     color: "blue",
-            //     autoClose: 8000,
-            // });
+            notifications.show({
+                title: "OCR Debug: Server Response",
+                message: (
+                    <Box component="pre" style={{ margin: 0, fontSize: '10px', maxHeight: '150px', overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+                        {JSON.stringify(data, null, 2)}
+                    </Box>
+                ),
+                color: "blue",
+                autoClose: 8000,
+            });
 
             // The API returns a list of results and a bestMatch (which is results[0])
             const matches = data.results || [];
-            const bestMatch = data.bestMatch || (matches.length > 0 ? matches[0] : null);
+            const scanIds = matches.map((m: any) => {
+                const filename = m.path.split("/").pop()?.split(".").shift() || "";
 
-            if (bestMatch && bestMatch.path) {
-                const fullPath = bestMatch.path;
-                // Extract filename without extension (e.g., "[WOE]-180-Redtooth_Vanguard")
-                const filename = fullPath.split("/").pop()?.split(".").shift() || "";
-
-                if (filename) {
-                    let finalQuery = filename;
-
-                    // Simple parser for [SET]-NO-NAME format
-                    // e.g. [WOE]-180-Redtooth_Vanguard -> 180 Redtooth Vanguard
-                    const parts = filename.split("-");
-                    if (parts.length >= 3) {
-                        const cardNo = parts[1];
-                        const cardName = parts.slice(2).join(" ").replace(/_/g, " ");
-                        finalQuery = `${cardNo} ${cardName}`.trim();
-                    }
-
-                    onResult(finalQuery);
-
-                    // Show a subtle notification about the match quality and total candidates
-                    notifications.show({
-                        title: "Card Identified",
-                        message: `Best match: ${finalQuery}${matches.length > 1 ? ` (from ${matches.length} candidates)` : ''} with ${Math.round(bestMatch.score * 100)}% confidence`,
-                        color: "green",
-                        autoClose: 3000,
-                    });
-                } else {
-                    throw new Error("Could not extract card identifier from result");
+                // Use Regex to capture [SET] and NO
+                // e.g. [WOE]-173-Hamlet_Glutton -> SET: WOE, NO: 173
+                const match = filename.match(/\[(.*?)\]-([^-]+)/);
+                if (match) {
+                    const set = match[1];
+                    const no = match[2];
+                    return `${set}:${no}`;
                 }
+                return null;
+            }).filter(Boolean);
+
+            if (scanIds.length > 0) {
+                onScan(scanIds);
+
+                // Optional: Notify about best match
+                const bestMatch = matches[0];
+                const bestFilename = bestMatch.path.split("/").pop()?.split(".").shift() || "";
+                notifications.show({
+                    title: "Scan Completed",
+                    message: `Found ${matches.length} matches. Best: ${bestFilename}`,
+                    color: "green",
+                    autoClose: 3000,
+                });
             } else {
                 throw new Error("No clear match found for this card");
             }

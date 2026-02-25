@@ -77,6 +77,27 @@ export default function CardManagerPage() {
         }
     };
 
+    const handleScanIds = async (ids: string[]) => {
+        if (ids.length === 0) return;
+        setLoading(true);
+        try {
+            const params = new URLSearchParams({
+                scan_ids: ids.join(","),
+                franchise: selectedFranchise || "all",
+                language: selectedLanguage || "all"
+            });
+            const res = await fetch(`/api/card-manager/search?${params.toString()}`);
+            const data = await res.json();
+            if (data.success) {
+                setResults(data.cards);
+            }
+        } catch (err) {
+            console.error("Scan fetch failed:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleAddToCollection = async (card: SearchedCard) => {
         setAddingId(card.id);
         try {
@@ -159,6 +180,7 @@ export default function CardManagerPage() {
                                         loading={loading}
                                         searchMode={searchMode}
                                         onSearchModeChange={setSearchMode}
+                                        onScanIds={handleScanIds}
                                     />
 
                                     {results.length > 0 && (

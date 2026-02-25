@@ -13,13 +13,10 @@ interface CardManagerSearchProps {
     loading: boolean;
     searchMode: SearchMode;
     onSearchModeChange: (mode: SearchMode) => void;
+    onScanIds: (ids: string[]) => void;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange }: CardManagerSearchProps) {
-    const handleOCRResult = (text: string) => {
-        setQuery(text);
-    };
-
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -66,7 +63,7 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     onChange={(e) => setQuery(e.currentTarget.value)}
                 />
             ) : (
-                <CardManagerOCR onResult={handleOCRResult} onClear={() => setQuery("")} />
+                <CardManagerOCR onScan={onScanIds} onClear={() => setQuery("")} />
             )}
         </Stack>
     );
