@@ -1,11 +1,12 @@
 import { createClient } from "@/utils/supabase/server";
 import { Link } from "@/i18n/navigation";
-import { Box, Button, Container, Group, Text, Avatar, Badge } from "@mantine/core";
-import { IconNetwork } from "@tabler/icons-react";
+import { Box, Button, Container, Group, Text, Avatar, Badge, Tooltip } from "@mantine/core";
+import { IconNetwork, IconWorld } from "@tabler/icons-react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { SignInButton } from "./SignInButton";
 import { DevTokenBadge } from "./DevTokenBadge";
+import { headers } from "next/headers";
 
 import os from "os";
 
@@ -29,6 +30,10 @@ function getLocalIp() {
 }
 
 export async function Navbar() {
+    const headerList = await headers();
+    const forwarded = headerList.get('x-forwarded-for');
+    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (headerList.get('x-real-ip') || '127.0.0.1');
+
     const localIp = getLocalIp();
     const supabase = await createClient();
     const {
@@ -65,22 +70,39 @@ export async function Navbar() {
                             </Text>
                         </Link>
 
-                        {localIp && process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
-                            <Badge
-                                variant="light"
-                                color="blue"
-                                size="lg"
-                                leftSection={<IconNetwork size={14} />}
-                                radius="sm"
-                                style={{ textTransform: 'none' }}
-                            >
-                                {localIp}:3001
-                            </Badge>
-                        )}
+                        {/* {localIp && process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
+                            <Group gap={4}>
+                                <Tooltip label="Local Server IP">
+                                    <Badge
+                                        variant="light"
+                                        color="blue"
+                                        size="sm"
+                                        leftSection={<IconNetwork size={12} />}
+                                        radius="sm"
+                                        style={{ textTransform: 'none' }}
+                                    >
+                                        {localIp}:3001
+                                    </Badge>
+                                </Tooltip>
+
+                                <Tooltip label="Your Public IP (Client)">
+                                    <Badge
+                                        variant="light"
+                                        color="teal"
+                                        size="sm"
+                                        leftSection={<IconWorld size={12} />}
+                                        radius="sm"
+                                        style={{ textTransform: 'none' }}
+                                    >
+                                        {clientIp}
+                                    </Badge>
+                                </Tooltip>
+                            </Group>
+                        )} */}
                     </Group>
 
                     <Group gap="sm">
-                        {accessToken && <DevTokenBadge token={accessToken} />}
+                        {/* {accessToken && <DevTokenBadge token={accessToken} />} */}
 
                         {user && (
                             <Avatar

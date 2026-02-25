@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Group, Text, Stack, Image, Button, Loader, ActionIcon, Box, Select, LoadingOverlay, Checkbox, Badge } from "@mantine/core";
+import { Group, Text, Stack, Image, Button, Loader, ActionIcon, Box, Select, LoadingOverlay, Checkbox, Badge, NumberInput } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE, FileWithPath } from "@mantine/dropzone";
 import { IconPhoto, IconUpload, IconX, IconScan, IconCamera, IconRefresh, IconSpace, IconPlayerStop } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
@@ -21,9 +21,11 @@ interface CardManagerOCRProps {
     paused?: boolean;
     loopActive?: boolean;
     onLoopActiveChange?: (val: boolean) => void;
+    autoCaptureInterval?: number;
+    onAutoCaptureIntervalChange?: (val: number) => void;
 }
 
-export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, loopActive, onLoopActiveChange }: CardManagerOCRProps) {
+export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, loopActive, onLoopActiveChange, autoCaptureInterval = 5, onAutoCaptureIntervalChange }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -68,7 +70,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
         let countdownInterval: NodeJS.Timeout;
 
         if (autoCapture && loopActive && cameraActive && !preview && !loading && !paused && mode === "camera") {
-            setCountdown(APP_CONFIG.AUTO_CAPTURE_INTERVAL);
+            setCountdown(autoCaptureInterval);
 
             countdownInterval = setInterval(() => {
                 setCountdown(prev => (prev !== null && prev > 1) ? prev - 1 : prev);
@@ -76,7 +78,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
 
             interval = setInterval(() => {
                 capturePhoto();
-            }, APP_CONFIG.AUTO_CAPTURE_INTERVAL * 1000);
+            }, autoCaptureInterval * 1000);
         } else {
             setCountdown(null);
         }
@@ -85,7 +87,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
             if (interval) clearInterval(interval);
             if (countdownInterval) clearInterval(countdownInterval);
         };
-    }, [autoCapture, loopActive, cameraActive, preview, loading, paused, mode]);
+    }, [autoCapture, loopActive, cameraActive, preview, loading, paused, mode, autoCaptureInterval]);
 
     // Auto-return to live view after scan if auto-capture is on
     useEffect(() => {
@@ -373,7 +375,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
 
 
     return (
-        <Stack gap="md" maw={APP_CONFIG.OCR_SCAN_MAX_WIDTH} w={APP_CONFIG.OCR_SCAN_WIDTH} mx="auto">
+        <Stack gap="md" maw={APP_CONFIG.OCR_SCAN_MAX_WIDTH} w="100%" mx="auto">
             {!preview ? (
                 mode === "camera" ? (
                     <Box
@@ -555,7 +557,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
             )}
 
             {onAutoAddChange && (
-                <Group justify="center" mt="xs" gap="xl">
+                <Group justify="center" mt="xs" gap="md" wrap="nowrap">
                     <Checkbox
                         label="Auto-add to collection"
                         checked={autoAdd}
@@ -564,13 +566,36 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                         color="blue"
                     />
                     {mode === "camera" && onAutoCaptureChange && (
-                        <Checkbox
-                            label={`Auto-capture (${APP_CONFIG.AUTO_CAPTURE_INTERVAL}s)`}
-                            checked={autoCapture}
-                            onChange={(e) => onAutoCaptureChange(e.currentTarget.checked)}
-                            size="sm"
-                            color="blue"
-                        />
+                        <Group gap={2} wrap="nowrap" align="center">
+                            <Checkbox
+                                label="Auto-capture ("
+                                checked={autoCapture}
+                                onChange={(e) => onAutoCaptureChange(e.currentTarget.checked)}
+                                size="sm"
+                                color="blue"
+                                styles={{ body: { alignItems: 'center' }, label: { paddingRight: 0 } }}
+                            />
+                            <NumberInput
+                                size="xs"
+                                w={35}
+                                min={5}
+                                value={autoCaptureInterval}
+                                onChange={(val) => onAutoCaptureIntervalChange?.(Number(val))}
+                                variant="unstyled"
+                                styles={{
+                                    input: {
+                                        padding: 0,
+                                        textAlign: 'center',
+                                        minHeight: 'auto',
+                                        height: 20,
+                                        fontWeight: 700,
+                                        color: 'var(--mantine-color-blue-7)',
+                                        fontSize: 'var(--mantine-font-size-sm)'
+                                    }
+                                }}
+                            />
+                            <Text size="sm" color="blue" fw={500} ml={-2}>s)</Text>
+                        </Group>
                     )}
                 </Group>
             )}

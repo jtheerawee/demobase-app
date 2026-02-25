@@ -43,18 +43,6 @@ export function PageHeader({
                     )}
                 </Stack>
             </Group>
-
-            <Badge
-                variant="gradient"
-                gradient={{ from: 'grape', to: 'violet', deg: 45 }}
-                size="lg"
-                radius="sm"
-                tt="none"
-                leftSection={<IconCamera size={16} />}
-                style={{ cursor: "default" }}
-            >
-                Card Scanner Coming Soon
-            </Badge>
         </Group>
     );
 }

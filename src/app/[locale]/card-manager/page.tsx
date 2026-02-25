@@ -26,6 +26,7 @@ export default function CardManagerPage() {
     const [searchMode, setSearchMode] = useState<SearchMode>("text");
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
+    const [autoCaptureInterval, setAutoCaptureInterval] = useState<number>(APP_CONFIG.AUTO_CAPTURE_INTERVAL);
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
     const consecutiveNoCard = useRef(0);
@@ -37,11 +38,13 @@ export default function CardManagerPage() {
         const savedMode = localStorage.getItem("manager_search_mode") as SearchMode || "text";
         const savedAutoAdd = localStorage.getItem("manager_auto_add") === "true";
         const savedAutoCapture = localStorage.getItem("manager_auto_capture") === "true";
+        const savedInterval = parseInt(localStorage.getItem("manager_auto_capture_interval") || "5");
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
         setSearchMode(savedMode);
         setAutoAdd(savedAutoAdd);
         setAutoCapture(savedAutoCapture);
+        setAutoCaptureInterval(Math.max(5, savedInterval));
     }, []);
 
     // Save to localStorage when changed
@@ -51,7 +54,8 @@ export default function CardManagerPage() {
         localStorage.setItem("manager_search_mode", searchMode);
         localStorage.setItem("manager_auto_add", autoAdd.toString());
         localStorage.setItem("manager_auto_capture", autoCapture.toString());
-    }, [selectedFranchise, selectedLanguage, searchMode, autoAdd, autoCapture]);
+        localStorage.setItem("manager_auto_capture_interval", autoCaptureInterval.toString());
+    }, [selectedFranchise, selectedLanguage, searchMode, autoAdd, autoCapture, autoCaptureInterval]);
 
     const languageOptions = useMemo(() => {
         if (!selectedFranchise || selectedFranchise === "all") return [{ value: "all", label: "All Languages" }];
@@ -304,6 +308,8 @@ export default function CardManagerPage() {
                                         }}
                                         loopActive={autoCaptureActive}
                                         onLoopActiveChange={setAutoCaptureActive}
+                                        autoCaptureInterval={autoCaptureInterval}
+                                        onAutoCaptureIntervalChange={setAutoCaptureInterval}
                                         paused={waitingForSelection}
                                         onClear={() => setWaitingForSelection(false)}
                                     />

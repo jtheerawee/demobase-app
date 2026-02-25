@@ -22,9 +22,11 @@ interface CardManagerSearchProps {
     onClear?: () => void;
     loopActive?: boolean;
     onLoopActiveChange?: (val: boolean) => void;
+    autoCaptureInterval: number;
+    onAutoCaptureIntervalChange: (val: number) => void;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange }: CardManagerSearchProps) {
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear, loopActive, onLoopActiveChange, autoCaptureInterval, onAutoCaptureIntervalChange }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -83,6 +85,8 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     paused={paused}
                     loopActive={loopActive}
                     onLoopActiveChange={onLoopActiveChange}
+                    autoCaptureInterval={autoCaptureInterval}
+                    onAutoCaptureIntervalChange={onAutoCaptureIntervalChange}
                 />
             )}
         </Stack>
