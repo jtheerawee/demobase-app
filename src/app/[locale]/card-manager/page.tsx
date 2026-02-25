@@ -26,6 +26,7 @@ export default function CardManagerPage() {
     const [searchMode, setSearchMode] = useState<SearchMode>("text");
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
+    const [waitingForSelection, setWaitingForSelection] = useState(false);
     const consecutiveNoCard = useRef(0);
 
     // Initial load from localStorage
@@ -96,11 +97,11 @@ export default function CardManagerPage() {
         if (ids.length === 0) {
             if (autoCapture) {
                 consecutiveNoCard.current += 1;
-                if (consecutiveNoCard.current >= 2) {
+                if (consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
                     setAutoCapture(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
-                        message: "No card detected for 2 consecutive captures.",
+                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures.`,
                         color: "orange"
                     });
                 }
@@ -126,12 +127,12 @@ export default function CardManagerPage() {
                     consecutiveNoCard.current += 1;
                 }
 
-                // Stop auto-capture if 2 times in a row no card detected
-                if (autoCapture && consecutiveNoCard.current >= 2) {
+                // Stop auto-capture if X times in a row no card detected
+                if (autoCapture && consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
                     setAutoCapture(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
-                        message: "No card detected for 2 consecutive captures.",
+                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures.`,
                         color: "orange"
                     });
                 }
@@ -139,13 +140,18 @@ export default function CardManagerPage() {
                 // Auto-add if exactly one card found and autoAdd is enabled
                 if (autoAdd && data.cards.length === 1) {
                     handleAddToCollection(data.cards[0]);
+                } else if (data.cards.length > 1) {
+                    setWaitingForSelection(true);
+                } else {
+                    setWaitingForSelection(false);
                 }
             }
         } catch (err) {
             console.error("Scan fetch failed:", err);
             consecutiveNoCard.current += 1;
-            if (autoCapture && consecutiveNoCard.current >= 2) {
+            if (autoCapture && consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD) {
                 setAutoCapture(false);
+                setAutoAdd(false);
             }
         } finally {
             setLoading(false);
@@ -154,6 +160,7 @@ export default function CardManagerPage() {
 
     const handleAddToCollection = async (card: SearchedCard) => {
         setAddingId(card.id);
+        const autoMode = autoAdd || autoCapture;
         try {
             const res = await fetch("/api/card-manager/collected", {
                 method: "POST",
@@ -161,7 +168,8 @@ export default function CardManagerPage() {
                 body: JSON.stringify({
                     cardId: card.id,
                     variant: "NF", // Default to Non-Foil for now
-                    condition: "NM" // Default to Near Mint
+                    condition: "NM", // Default to Near Mint
+                    noIncrement: autoMode // Don't add more if in auto mode
                 })
             });
             const data = await res.json();
@@ -169,14 +177,25 @@ export default function CardManagerPage() {
                 // Refresh the left sidebar list
                 listRef.current?.refresh();
 
+                setWaitingForSelection(false);
+
                 const isDuplicate = data.alreadyInCollection;
 
-                notifications.show({
-                    title: isDuplicate ? "Quantity Increased" : "Added to Collection",
-                    message: `${card.name} (${card.collectionCode}) ${isDuplicate ? "count increased" : "added"}.`,
-                    color: isDuplicate ? "blue" : "green",
-                    autoClose: 2000,
-                });
+                if (isDuplicate && autoMode) {
+                    notifications.show({
+                        title: "Already in Collection",
+                        message: `${card.name} (${card.collectionCode}) is already in your collection. No changes made.`,
+                        color: "blue",
+                        autoClose: 2000,
+                    });
+                } else {
+                    notifications.show({
+                        title: isDuplicate ? "Quantity Increased" : "Added to Collection",
+                        message: `${card.name} (${card.collectionCode}) ${isDuplicate ? "count increased" : "added"}.`,
+                        color: isDuplicate ? "blue" : "green",
+                        autoClose: 2000,
+                    });
+                }
 
                 // Stop auto mode entirely if card already in collection during auto-capture
                 if (autoCapture && isDuplicate) {
@@ -262,6 +281,8 @@ export default function CardManagerPage() {
                                             setAutoCapture(val);
                                             if (val) setAutoAdd(true);
                                         }}
+                                        paused={waitingForSelection}
+                                        onClear={() => setWaitingForSelection(false)}
                                     />
 
                                     {results.length > 0 && (

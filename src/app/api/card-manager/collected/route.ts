@@ -65,7 +65,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const { cardId, variant, condition } = await request.json();
+        const { cardId, variant, condition, noIncrement } = await request.json();
 
         // Upsert logic: if user+card+variant+condition matches, increment quantity
         // Since we have a unique constraint, we can use upsert with expression for quantity
@@ -82,12 +82,14 @@ export async function POST(request: Request) {
             .single();
 
         if (existing) {
-            const { error: updateError } = await supabase
-                .from("collected_cards")
-                .update({ quantity: existing.quantity + 1 })
-                .eq("id", existing.id);
+            if (!noIncrement) {
+                const { error: updateError } = await supabase
+                    .from("collected_cards")
+                    .update({ quantity: existing.quantity + 1 })
+                    .eq("id", existing.id);
 
-            if (updateError) throw updateError;
+                if (updateError) throw updateError;
+            }
         } else {
             const { error: insertError } = await supabase
                 .from("collected_cards")

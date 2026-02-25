@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Group, Text, Stack, Image, Button, Loader, ActionIcon, Box, Select, LoadingOverlay, Checkbox, Badge } from "@mantine/core";
 import { Dropzone, IMAGE_MIME_TYPE, FileWithPath } from "@mantine/dropzone";
-import { IconPhoto, IconUpload, IconX, IconScan, IconCamera, IconRefresh, IconSpace } from "@tabler/icons-react";
+import { IconPhoto, IconUpload, IconX, IconScan, IconCamera, IconRefresh, IconSpace, IconPlayerStop } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -18,9 +18,10 @@ interface CardManagerOCRProps {
     onAutoAddChange?: (val: boolean) => void;
     autoCapture?: boolean;
     onAutoCaptureChange?: (val: boolean) => void;
+    paused?: boolean;
 }
 
-export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange }: CardManagerOCRProps) {
+export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -65,7 +66,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
         let interval: NodeJS.Timeout;
         let countdownInterval: NodeJS.Timeout;
 
-        if (autoCapture && loopStarted && cameraActive && !preview && !loading && mode === "camera") {
+        if (autoCapture && loopStarted && cameraActive && !preview && !loading && !paused && mode === "camera") {
             setCountdown(APP_CONFIG.AUTO_CAPTURE_INTERVAL);
 
             countdownInterval = setInterval(() => {
@@ -83,7 +84,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
             if (interval) clearInterval(interval);
             if (countdownInterval) clearInterval(countdownInterval);
         };
-    }, [autoCapture, loopStarted, cameraActive, preview, loading, mode]);
+    }, [autoCapture, loopStarted, cameraActive, preview, loading, paused, mode]);
 
     // Auto-return to live view after scan if auto-capture is on
     useEffect(() => {
@@ -358,6 +359,12 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                 color: "red",
                 icon: <IconX size={18} />,
             });
+
+            // If auto-capture is on, we MUST tell the parent that scanning failed/found nothing
+            // so it can increment the 'consecutiveNoCard' counter and stop the loop if needed.
+            if (autoCapture) {
+                onScan?.([]);
+            }
         } finally {
             setLoading(false);
         }
@@ -419,7 +426,7 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                                     </Box>
                                 )}
 
-                                <Group justify="center" pos="absolute" bottom={10} left={0} right={0}>
+                                <Group justify="center" pos="absolute" bottom={10} left={0} right={0} gap="xs">
                                     <Button
                                         color="blue"
                                         radius="xl"
@@ -429,19 +436,34 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                                     >
                                         Scan (<IconSpace size={16} style={{ verticalAlign: 'middle', display: 'inline-block' }} /> Space)
                                     </Button>
+
+                                    {autoCapture && loopStarted && (
+                                        <Button
+                                            color="red"
+                                            radius="xl"
+                                            size="md"
+                                            leftSection={<IconPlayerStop size={20} />}
+                                            onClick={() => {
+                                                setLoopStarted(false);
+                                                onClear?.(); // Trigger clear on parent to reset waitingForSelection state
+                                            }}
+                                        >
+                                            Stop
+                                        </Button>
+                                    )}
                                 </Group>
 
-                                {countdown !== null && (
+                                {autoCapture && (countdown !== null || paused) && (
                                     <Badge
                                         pos="absolute"
                                         top={10}
                                         right={10}
                                         size="xl"
                                         variant="filled"
-                                        color="blue"
+                                        color={paused ? "orange" : "blue"}
                                         style={{ zIndex: 11 }}
                                     >
-                                        Auto-capturing in {countdown}s...
+                                        {paused ? "Waiting for response..." : `Auto-capturing in ${countdown}s...`}
                                     </Badge>
                                 )}
                             </Box>
@@ -514,6 +536,20 @@ export function CardManagerOCR({ mode, onScan, onTextResult, onClear, autoAdd, o
                             )}
                         </Button>
                     </Group>
+
+                    {autoCapture && paused && (
+                        <Badge
+                            pos="absolute"
+                            top={10}
+                            right={10}
+                            size="xl"
+                            variant="filled"
+                            color="orange"
+                            style={{ zIndex: 11 }}
+                        >
+                            Waiting for response...
+                        </Badge>
+                    )}
                 </Box>
             )}
 

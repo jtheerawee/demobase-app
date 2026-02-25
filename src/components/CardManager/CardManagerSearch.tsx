@@ -18,9 +18,11 @@ interface CardManagerSearchProps {
     onAutoAddChange: (val: boolean) => void;
     autoCapture: boolean;
     onAutoCaptureChange: (val: boolean) => void;
+    paused?: boolean;
+    onClear?: () => void;
 }
 
-export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange }: CardManagerSearchProps) {
+export function CardManagerSearch({ query, setQuery, loading, searchMode, onSearchModeChange, onScanIds, autoAdd, onAutoAddChange, autoCapture, onAutoCaptureChange, paused, onClear }: CardManagerSearchProps) {
     return (
         <Stack gap="sm" w="100%">
             <Center>
@@ -85,28 +87,30 @@ export function CardManagerSearch({ query, setQuery, loading, searchMode, onSear
                     onChange={(e) => setQuery(e.currentTarget.value)}
                 />
             ) : searchMode === "scan" ? (
-                <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => setQuery("")} autoAdd={autoAdd} onAutoAddChange={onAutoAddChange} autoCapture={autoCapture} onAutoCaptureChange={onAutoCaptureChange} />
+                <CardManagerOCR mode="vision" onScan={onScanIds} onClear={() => { setQuery(""); onClear?.(); }} autoAdd={autoAdd} onAutoAddChange={onAutoAddChange} autoCapture={autoCapture} onAutoCaptureChange={onAutoCaptureChange} paused={paused} />
             ) : searchMode === "scan_text" ? (
                 <CardManagerOCR
                     mode="text"
                     onScan={onScanIds}
                     onTextResult={setQuery}
-                    onClear={() => setQuery("")}
+                    onClear={() => { setQuery(""); onClear?.(); }}
                     autoAdd={autoAdd}
                     onAutoAddChange={onAutoAddChange}
                     autoCapture={autoCapture}
                     onAutoCaptureChange={onAutoCaptureChange}
+                    paused={paused}
                 />
             ) : (
                 <CardManagerOCR
                     mode="camera"
                     onScan={onScanIds}
                     onTextResult={setQuery}
-                    onClear={() => setQuery("")}
+                    onClear={() => { setQuery(""); onClear?.(); }}
                     autoAdd={autoAdd}
                     onAutoAddChange={onAutoAddChange}
                     autoCapture={autoCapture}
                     onAutoCaptureChange={onAutoCaptureChange}
+                    paused={paused}
                 />
             )}
         </Stack>
