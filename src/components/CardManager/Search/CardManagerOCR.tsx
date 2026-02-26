@@ -16,6 +16,7 @@ import { IconPhoto, IconX, IconScan, IconRefresh } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { OCR_CONFIG } from "@/constants/ocr";
 import { APP_CONFIG } from "@/constants/app";
+import { APP_MESSAGES } from "@/constants/messages";
 import { CameraView } from "./CameraView";
 
 interface CardManagerOCRProps {
@@ -129,7 +130,7 @@ export function CardManagerOCR({
                 if (scanIds.length > 0) {
                     onScan?.(scanIds);
                 } else {
-                    throw new Error("No clear match found");
+                    throw new Error(APP_MESSAGES.NO_MATCH_FOUND);
                 }
             } else {
                 formData.append("file", fileToUse);
@@ -171,14 +172,14 @@ export function CardManagerOCR({
                         onScan?.([]);
                     }
                 } else {
-                    throw new Error("No text found on card");
+                    throw new Error(APP_MESSAGES.NO_TEXT_FOUND);
                 }
             }
         } catch (err: any) {
             console.error("OCR Precise Error:", err);
             const isNoMatch =
-                err.message === "No clear match found" ||
-                err.message === "No text found on card";
+                err.message === APP_MESSAGES.NO_MATCH_FOUND ||
+                err.message === APP_MESSAGES.NO_TEXT_FOUND;
             if (!isNoMatch) {
                 notifications.show({
                     title:
@@ -190,6 +191,10 @@ export function CardManagerOCR({
                     icon: <IconX size={18} />,
                     autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
+            } else {
+                if (err.message === APP_MESSAGES.NO_TEXT_FOUND) {
+                    onResultInfo?.(APP_MESSAGES.NO_TEXT_FOUND);
+                }
             }
             onScan?.([]);
         } finally {
