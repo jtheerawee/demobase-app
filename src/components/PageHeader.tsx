@@ -1,7 +1,7 @@
 "use client";
 
-import { ActionIcon, Group, Stack, Text, Title, Badge } from "@mantine/core";
-import { IconArrowLeft, IconCamera } from "@tabler/icons-react";
+import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
+import { IconArrowLeft } from "@tabler/icons-react";
 import { Link } from "@/i18n/navigation";
 import type { ReactNode } from "react";
 
@@ -10,6 +10,7 @@ interface PageHeaderProps {
     description?: string;
     icon?: ReactNode;
     backHref?: string;
+    actions?: ReactNode;
 }
 
 export function PageHeader({
@@ -17,6 +18,7 @@ export function PageHeader({
     description,
     icon,
     backHref = "/",
+    actions,
 }: PageHeaderProps) {
     return (
         <Group justify="space-between" align="flex-start">
@@ -43,6 +45,8 @@ export function PageHeader({
                     )}
                 </Stack>
             </Group>
+
+            {actions && <Group gap="xs">{actions}</Group>}
         </Group>
     );
 }

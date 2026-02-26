@@ -1,9 +1,17 @@
 "use client";
 
-import { Container, Stack, Image, Modal, Badge } from "@mantine/core";
+import {
+    Container,
+    Stack,
+    Image,
+    Modal,
+    Badge,
+    Button,
+    Text,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
-import { IconLayoutDashboard } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconQuestionMark } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { MainLayout } from "@/components/CardManager/MainLayout";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -47,6 +55,7 @@ export default function CardManagerPage() {
     );
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
+    const [instructionOpened, setInstructionOpened] = useState(false);
     const [resetTrigger, setResetTrigger] = useState(0);
     const [collectedCardIds, setCollectedCardIds] = useState<Set<number>>(
         new Set(),
@@ -294,6 +303,16 @@ export default function CardManagerPage() {
                             color="var(--mantine-color-grape-6)"
                         />
                     }
+                    actions={
+                        <Button
+                            variant="light"
+                            color="blue"
+                            leftSection={<IconQuestionMark size={16} />}
+                            onClick={() => setInstructionOpened(true)}
+                        >
+                            How to use
+                        </Button>
+                    }
                 />
 
                 <MainLayout
@@ -416,6 +435,16 @@ export default function CardManagerPage() {
                         )}
                     </Stack>
                 )}
+            </Modal>
+
+            <Modal
+                opened={instructionOpened}
+                onClose={() => setInstructionOpened(false)}
+                title="How to use Card Manager"
+                size="lg"
+                centered
+            >
+                <Text>Instruction content goes here...</Text>
             </Modal>
         </Container>
     );

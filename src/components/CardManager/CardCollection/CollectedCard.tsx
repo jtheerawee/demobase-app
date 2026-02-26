@@ -16,7 +16,6 @@ import { IconTrash, IconPlus, IconMinus } from "@tabler/icons-react";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
 
-
 export interface CollectedCard {
     id: number;
     cardId: number;
