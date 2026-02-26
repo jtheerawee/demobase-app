@@ -19,7 +19,7 @@ import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { AutoOptions } from "./AutoOptions";
 import { CameraStatus } from "./CameraStatus";
 import { CameraShutter } from "./CameraShutter";
-import { CameraDevices } from "./CameraDevices";
+import { CameraDevices, useCameraDevices } from "./CameraDevices";
 
 interface CameraViewProps {
     onCapture: (file: FileWithPath) => void;
@@ -57,38 +57,12 @@ export function CameraView({
     setPreview,
 }: CameraViewProps) {
     const [cameraActive, setCameraActive] = useState(false);
-    const [devices, setDevices] = useState<{ value: string; label: string }[]>(
-        [],
-    );
-    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(
-        null,
-    );
+    const { devices, selectedDeviceId, setSelectedDeviceId, loadDevices } = useCameraDevices();
     const [countdown, setCountdown] = useState<number | null>(null);
     const [isEnlarged, setIsEnlarged] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
-
-    const loadDevices = async () => {
-        try {
-            const allDevices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = allDevices
-                .filter((device) => device.kind === "videoinput")
-                .map((device) => ({
-                    value: device.deviceId,
-                    label:
-                        device.label ||
-                        `Camera ${device.deviceId.slice(0, 5)}...`,
-                }));
-            setDevices(videoDevices);
-
-            if (videoDevices.length > 0 && !selectedDeviceId) {
-                setSelectedDeviceId(videoDevices[0].value);
-            }
-        } catch (err) {
-            console.error("Error loading devices:", err);
-        }
-    };
 
     const stopCamera = () => {
         if (streamRef.current) {
@@ -202,19 +176,6 @@ export function CameraView({
             if (countdownInterval) clearInterval(countdownInterval);
         };
     }, [autoCapture, loopActive, cameraActive, paused, autoCaptureInterval]);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === " ") {
-                if (cameraActive) {
-                    e.preventDefault();
-                    capturePhoto();
-                }
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [cameraActive]);
 
     return (
         <Stack gap="md" w="100%">

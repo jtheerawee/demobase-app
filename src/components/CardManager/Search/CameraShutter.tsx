@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Tooltip, Button, Center, Group } from "@mantine/core";
 import { IconCamera, IconPlayerStop } from "@tabler/icons-react";
 
@@ -22,6 +23,19 @@ export function CameraShutter({
     onLoopActiveChange,
     onClear,
 }: CameraShutterProps) {
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === " ") {
+                if (cameraActive && !loading) {
+                    e.preventDefault();
+                    onCapture();
+                }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [cameraActive, loading, onCapture]);
+
     return (
         <Center>
             <Group gap="xs">

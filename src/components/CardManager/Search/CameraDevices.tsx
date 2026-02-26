@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box, Select } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -32,4 +33,30 @@ export function CameraDevices({
             />
         </Box>
     );
+}
+
+export function useCameraDevices() {
+    const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+
+    const loadDevices = async () => {
+        try {
+            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = allDevices
+                .filter((device) => device.kind === "videoinput")
+                .map((device) => ({
+                    value: device.deviceId,
+                    label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`,
+                }));
+            setDevices(videoDevices);
+
+            if (videoDevices.length > 0 && !selectedDeviceId) {
+                setSelectedDeviceId(videoDevices[0].value);
+            }
+        } catch (err) {
+            console.error("Error loading devices:", err);
+        }
+    };
+
+    return { devices, selectedDeviceId, setSelectedDeviceId, loadDevices };
 }
