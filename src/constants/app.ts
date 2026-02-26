@@ -36,4 +36,5 @@ export const APP_CONFIG = {
         RESULTS_SPAN: 3, // 1/4
         CONTROLS_SPAN: 6, // 2/4
     },
+    CAMERA_DEVICES_WIDTH: "calc(33.33% - 15px)",
 } as const;

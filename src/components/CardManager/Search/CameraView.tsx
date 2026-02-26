@@ -19,6 +19,7 @@ import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { AutoOptions } from "./AutoOptions";
 import { CameraStatus } from "./CameraStatus";
 import { CameraShutter } from "./CameraShutter";
+import { CameraDevices } from "./CameraDevices";
 
 interface CameraViewProps {
     onCapture: (file: FileWithPath) => void;
@@ -253,31 +254,11 @@ export function CameraView({
                                 objectFit: "contain",
                             }}
                         />
-                        {devices.length > 1 && (
-                            <Box
-                                pos="absolute"
-                                top={10}
-                                left={10}
-                                right={10}
-                                style={{ zIndex: 10 }}
-                            >
-                                <Select
-                                    size="xs"
-                                    placeholder="Select Camera"
-                                    data={devices}
-                                    value={selectedDeviceId}
-                                    onChange={handleDeviceChange}
-                                    styles={{
-                                        input: {
-                                            backgroundColor:
-                                                "rgba(255,255,255,0.8)",
-                                            backdropFilter: "blur(4px)",
-                                            borderColor: "transparent",
-                                        },
-                                    }}
-                                />
-                            </Box>
-                        )}
+                        <CameraDevices
+                            devices={devices}
+                            selectedDeviceId={selectedDeviceId}
+                            onDeviceChange={handleDeviceChange}
+                        />
                     </>
                 )}
 
