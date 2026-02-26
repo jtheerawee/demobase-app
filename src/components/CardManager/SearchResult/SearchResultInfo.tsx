@@ -6,13 +6,13 @@ import { APP_CONFIG } from "@/constants/app";
 interface SearchResultInfoProps {
     loading: boolean;
     resultsCount: number;
-    query: string;
+    info: string;
 }
 
 export function SearchResultInfo({
     loading,
     resultsCount,
-    query,
+    info,
 }: SearchResultInfoProps) {
     if (resultsCount > 0) return null;
 
@@ -27,9 +27,9 @@ export function SearchResultInfo({
                 </Stack>
             ) : (
                 <>
-                    {query.length >= APP_CONFIG.SEARCH_MIN_CHARS ? (
+                    {info.length >= APP_CONFIG.SEARCH_MIN_CHARS ? (
                         <Text c="dimmed" size="xs">
-                            No cards found matching "{query}"
+                            No cards found matching "{info}"
                         </Text>
                     ) : (
                         <Text c="dimmed" size="xs">

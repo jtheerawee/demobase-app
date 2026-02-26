@@ -26,7 +26,7 @@ export interface SearchedCard {
 interface SearchResultWidgetProps {
     results: SearchedCard[];
     loading: boolean;
-    query: string;
+    info: string;
     addingId: number | null;
     collectedCardIds: Set<number>;
     onAddToCollection: (card: SearchedCard) => void;
@@ -38,7 +38,7 @@ interface SearchResultWidgetProps {
 export function SearchResultWidget({
     results,
     loading,
-    query,
+    info,
     addingId,
     collectedCardIds,
     onAddToCollection,
@@ -64,7 +64,7 @@ export function SearchResultWidget({
                         disabled={
                             loading ||
                             (results.length === 0 &&
-                                query === "" &&
+                                info === "" &&
                                 !waitingForSelection)
                         }
                     >
@@ -95,7 +95,7 @@ export function SearchResultWidget({
                     <SearchResultInfo
                         loading={loading}
                         resultsCount={results.length}
-                        query={query}
+                        info={info}
                     />
                 </ScrollArea>
             </Box>

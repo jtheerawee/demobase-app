@@ -15,6 +15,7 @@ interface SearchWidgetProps {
     onSearchModeChange: (mode: SearchMode) => void;
     onScanIds: (ids: string[]) => void;
     onScanStart?: () => void;
+    onResultInfo?: (info: string) => void;
     autoAdd: boolean;
     onAutoAddChange: (val: boolean) => void;
     autoCapture: boolean;
@@ -42,6 +43,7 @@ export function SearchWidget({
     onSearchModeChange,
     onScanIds,
     onScanStart,
+    onResultInfo,
     autoAdd,
     onAutoAddChange,
     autoCapture,
@@ -106,7 +108,7 @@ export function SearchWidget({
                         mode="camera"
                         onScan={onScanIds}
                         onScanStart={onScanStart}
-                        onTextResult={setQuery}
+                        onResultInfo={onResultInfo}
                         onClear={() => {
                             setQuery("");
                             onClear?.();

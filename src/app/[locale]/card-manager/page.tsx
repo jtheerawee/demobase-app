@@ -39,6 +39,7 @@ export default function CardManagerPage() {
         null,
     );
     const [debouncedQuery] = useDebouncedValue(searchQuery, 400);
+    const [resultInfo, setResultInfo] = useState("");
     const [results, setResults] = useState<SearchedCard[]>([]);
     const [loading, setLoading] = useState(false);
     const [addingId, setAddingId] = useState<number | null>(null);
@@ -276,6 +277,7 @@ export default function CardManagerPage() {
 
     const handleReset = () => {
         setSearchQuery("");
+        setResultInfo("");
         setResults([]);
         setWaitingForSelection(false);
         setResetTrigger((prev) => prev + 1);
@@ -312,7 +314,7 @@ export default function CardManagerPage() {
                         <SearchResultWidget
                             results={results}
                             loading={loading}
-                            query={searchQuery}
+                            info={searchMode === "text" ? searchQuery : resultInfo}
                             addingId={addingId}
                             collectedCardIds={collectedCardIds}
                             onAddToCollection={handleAddToCollection}
@@ -330,8 +332,10 @@ export default function CardManagerPage() {
                             onScanIds={handleScanIds}
                             onScanStart={() => {
                                 setResults([]);
+                                setResultInfo("");
                                 setLoading(true);
                             }}
+                            onResultInfo={setResultInfo}
                             autoAdd={autoAdd}
                             onAutoAddChange={setAutoAdd}
                             autoCapture={autoCapture}
@@ -347,7 +351,10 @@ export default function CardManagerPage() {
                                 setAutoCaptureInterval
                             }
                             paused={waitingForSelection}
-                            onClear={() => setWaitingForSelection(false)}
+                            onClear={() => {
+                                setWaitingForSelection(false);
+                                setResultInfo("");
+                            }}
                             resetTrigger={resetTrigger}
                             selectedFranchise={selectedFranchise}
                             onFranchiseChange={(val) => {

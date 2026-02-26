@@ -22,7 +22,7 @@ interface CardManagerOCRProps {
     mode: "vision" | "text" | "camera";
     onScan?: (ids: string[]) => void;
     onScanStart?: () => void;
-    onTextResult?: (query: string) => void;
+    onResultInfo?: (info: string) => void;
     onClear?: () => void;
     autoAdd?: boolean;
     onAutoAddChange?: (val: boolean) => void;
@@ -40,7 +40,7 @@ export function CardManagerOCR({
     mode,
     onScan,
     onScanStart,
-    onTextResult,
+    onResultInfo,
     onClear,
     autoAdd,
     onAutoAddChange,
@@ -167,7 +167,7 @@ export function CardManagerOCR({
                     if (setCode && cardNo) {
                         onScan?.([`${setCode}:${cardNo}`]);
                     } else {
-                        onTextResult?.(text);
+                        onResultInfo?.(text);
                     }
                 } else {
                     throw new Error("No text found on card");
