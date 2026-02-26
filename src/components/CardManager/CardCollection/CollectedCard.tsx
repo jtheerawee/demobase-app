@@ -1,17 +1,14 @@
 "use client";
 
 import {
-    Card,
     Group,
-    Image,
-    Stack,
     Text,
     ActionIcon,
-    Box,
     Badge,
     Menu,
     Tooltip,
 } from "@mantine/core";
+import { BaseCard } from "../BaseCard";
 import { IconTrash, IconPlus, IconMinus } from "@tabler/icons-react";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
@@ -25,6 +22,7 @@ export interface CollectedCard {
     cardNo: string;
     rarity: string;
     collectionName: string;
+    collectionCode?: string;
     franchise?: string;
     quantity: number;
     variant?: string;
@@ -51,179 +49,114 @@ export function CollectedCard({
     onAddEntry,
 }: CollectedCardProps) {
     return (
-        <Card
-            withBorder
-            padding="xs"
-            radius="sm"
-            h={115}
-            style={{
-                transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                cursor: "default",
+        <BaseCard
+            card={{
+                name: card.name,
+                imageUrl: card.imageUrl,
+                cardNo: card.cardNo || "",
+                rarity: card.rarity || "",
+                collectionName: card.collectionName || "",
+                collectionCode: card.collectionCode || "",
+                franchise: card.franchise || "",
             }}
-        >
-            <Group gap="sm" wrap="nowrap" h="100%" align="center">
-                <Box
-                    w={65}
-                    style={{ display: "flex", justifyContent: "center" }}
-                >
-                    <Image
-                        src={card.imageUrl}
-                        w={60}
-                        h={85}
-                        radius="xs"
-                        style={{
-                            objectFit: "contain",
-                            cursor: "pointer",
-                            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                        }}
-                        onClick={() => onImageClick?.(card.imageUrl)}
-                    />
-                </Box>
-
-                <Stack
-                    gap={2}
-                    style={{
-                        flex: 1,
-                        minWidth: 0,
-                        height: "100%",
-                        justifyContent: "center",
-                    }}
-                >
-                    <Text
-                        size="xs"
-                        fw={700}
-                        lineClamp={1}
-                        style={{ lineHeight: 1.2 }}
+            onImageClick={onImageClick}
+            bottomLeftActions={
+                <>
+                    <Group
+                        gap={2}
+                        wrap="nowrap"
+                        bg="gray.1"
+                        px={4}
+                        py={2}
+                        style={{ borderRadius: "4px" }}
                     >
-                        {card.name}
-                    </Text>
-                    <Text size="10px" c="dimmed" lineClamp={1}>
-                        {card.franchise
-                            ? `${card.franchise.toUpperCase()} • `
-                            : ""}
-                        {card.collectionName}
-                    </Text>
-
-                    <Group gap={6} mt={2} align="center">
-                        <Text
-                            size="10px"
-                            fw={600}
-                            c="blue.7"
-                            bg="blue.0"
-                            px={4}
-                            style={{ borderRadius: "2px" }}
+                        <ActionIcon
+                            size="xs"
+                            variant="subtle"
+                            color="gray"
+                            onClick={() =>
+                                onUpdateQuantity(card.id, card.quantity - 1)
+                            }
+                            disabled={card.quantity <= 1}
                         >
-                            #{card.cardNo}
+                            <IconMinus size={10} />
+                        </ActionIcon>
+                        <Text size="10px" fw={700} w={14} ta="center">
+                            {card.quantity}
                         </Text>
-                        <Text
-                            size="10px"
-                            fw={500}
-                            bg="gray.1"
-                            px={4}
-                            style={{ borderRadius: "2px" }}
+                        <ActionIcon
+                            size="xs"
+                            variant="subtle"
+                            color="gray"
+                            onClick={() =>
+                                onUpdateQuantity(card.id, card.quantity + 1)
+                            }
                         >
-                            {card.rarity}
-                        </Text>
+                            <IconPlus size={10} />
+                        </ActionIcon>
                     </Group>
 
-                    <Group gap={4} mt={4} align="center" wrap="nowrap">
-                        <Group
-                            gap={2}
-                            wrap="nowrap"
-                            bg="gray.1"
-                            px={4}
-                            py={2}
-                            style={{ borderRadius: "4px" }}
-                        >
-                            <ActionIcon
-                                size="xs"
-                                variant="subtle"
-                                color="gray"
-                                onClick={() =>
-                                    onUpdateQuantity(card.id, card.quantity - 1)
-                                }
-                                disabled={card.quantity <= 1}
+                    <Menu shadow="md">
+                        <Menu.Target>
+                            <Badge
+                                size="9px"
+                                h={18}
+                                px={6}
+                                variant="outline"
+                                color="orange"
+                                style={{ cursor: "pointer" }}
                             >
-                                <IconMinus size={10} />
-                            </ActionIcon>
-                            <Text size="10px" fw={700} w={14} ta="center">
-                                {card.quantity}
-                            </Text>
-                            <ActionIcon
-                                size="xs"
-                                variant="subtle"
+                                {(card.variant || "nf").toUpperCase()}
+                            </Badge>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <Menu.Label>Variant</Menu.Label>
+                            {VARIANTS.map((v) => (
+                                <Menu.Item
+                                    key={v.value}
+                                    onClick={() =>
+                                        onUpdateVariant(card.id, v.value)
+                                    }
+                                    style={{ fontSize: "10px" }}
+                                >
+                                    {v.label}
+                                </Menu.Item>
+                            ))}
+                        </Menu.Dropdown>
+                    </Menu>
+
+                    <Menu shadow="md">
+                        <Menu.Target>
+                            <Badge
+                                size="9px"
+                                h={18}
+                                px={6}
+                                variant="outline"
                                 color="gray"
-                                onClick={() =>
-                                    onUpdateQuantity(card.id, card.quantity + 1)
-                                }
+                                style={{ cursor: "pointer" }}
                             >
-                                <IconPlus size={10} />
-                            </ActionIcon>
-                        </Group>
-
-                        <Menu shadow="md">
-                            <Menu.Target>
-                                <Badge
-                                    size="9px"
-                                    h={18}
-                                    px={6}
-                                    variant="outline"
-                                    color="orange"
-                                    style={{ cursor: "pointer" }}
+                                {(card.condition || "nm").toUpperCase()}
+                            </Badge>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                            <Menu.Label>Condition</Menu.Label>
+                            {CONDITIONS.map((cond) => (
+                                <Menu.Item
+                                    key={cond.value}
+                                    onClick={() =>
+                                        onUpdateCondition(card.id, cond.value)
+                                    }
+                                    style={{ fontSize: "10px" }}
                                 >
-                                    {(card.variant || "nf").toUpperCase()}
-                                </Badge>
-                            </Menu.Target>
-                            <Menu.Dropdown>
-                                <Menu.Label>Variant</Menu.Label>
-                                {VARIANTS.map((v) => (
-                                    <Menu.Item
-                                        key={v.value}
-                                        onClick={() =>
-                                            onUpdateVariant(card.id, v.value)
-                                        }
-                                        style={{ fontSize: "10px" }}
-                                    >
-                                        {v.label}
-                                    </Menu.Item>
-                                ))}
-                            </Menu.Dropdown>
-                        </Menu>
-
-                        <Menu shadow="md">
-                            <Menu.Target>
-                                <Badge
-                                    size="9px"
-                                    h={18}
-                                    px={6}
-                                    variant="outline"
-                                    color="gray"
-                                    style={{ cursor: "pointer" }}
-                                >
-                                    {(card.condition || "nm").toUpperCase()}
-                                </Badge>
-                            </Menu.Target>
-                            <Menu.Dropdown>
-                                <Menu.Label>Condition</Menu.Label>
-                                {CONDITIONS.map((cond) => (
-                                    <Menu.Item
-                                        key={cond.value}
-                                        onClick={() =>
-                                            onUpdateCondition(
-                                                card.id,
-                                                cond.value,
-                                            )
-                                        }
-                                        style={{ fontSize: "10px" }}
-                                    >
-                                        {cond.label}
-                                    </Menu.Item>
-                                ))}
-                            </Menu.Dropdown>
-                        </Menu>
-                    </Group>
-                </Stack>
-                <Stack gap={4}>
+                                    {cond.label}
+                                </Menu.Item>
+                            ))}
+                        </Menu.Dropdown>
+                    </Menu>
+                </>
+            }
+            rightActions={
+                <>
                     <Tooltip
                         label="Add new variant/condition entry"
                         position="left"
@@ -246,8 +179,8 @@ export function CollectedCard({
                     >
                         <IconTrash size={14} />
                     </ActionIcon>
-                </Stack>
-            </Group>
-        </Card>
+                </>
+            }
+        />
     );
 }

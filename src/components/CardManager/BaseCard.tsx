@@ -1,0 +1,146 @@
+"use client";
+
+import {
+    Card,
+    Group,
+    Image,
+    Stack,
+    Text,
+    Box,
+} from "@mantine/core";
+import { ReactNode } from "react";
+
+export interface BaseCardData {
+    name: string;
+    imageUrl: string;
+    cardNo: string;
+    rarity: string;
+    collectionName: string;
+    collectionCode: string;
+    franchise: string;
+}
+
+export interface BaseCardProps {
+    card: BaseCardData;
+    onImageClick?: (url: string) => void;
+    topRightActions?: ReactNode;
+    rightActions?: ReactNode;
+    bottomLeftActions?: ReactNode;
+}
+
+export function BaseCard({
+    card,
+    onImageClick,
+    topRightActions,
+    rightActions,
+    bottomLeftActions,
+}: BaseCardProps) {
+    return (
+        <Card
+            withBorder
+            padding="xs"
+            radius="sm"
+            h={115}
+            style={{
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                cursor: "default",
+            }}
+        >
+            <Group gap="sm" wrap="nowrap" h="100%" align="center">
+                <Box
+                    w={65}
+                    style={{ display: "flex", justifyContent: "center" }}
+                >
+                    <Image
+                        src={card.imageUrl}
+                        fallbackSrc="https://placehold.co/100x140?text=No+Image"
+                        w={60}
+                        h={85}
+                        radius="xs"
+                        style={{
+                            objectFit: "contain",
+                            cursor: "pointer",
+                            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
+                        }}
+                        onClick={() => onImageClick?.(card.imageUrl)}
+                    />
+                </Box>
+
+                <Stack
+                    gap={2}
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                        height: "100%",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Group justify="space-between" wrap="nowrap" gap={4}>
+                        <Text
+                            size="xs"
+                            fw={700}
+                            lineClamp={1}
+                            style={{ lineHeight: 1.2 }}
+                        >
+                            {card.name}
+                        </Text>
+                        {topRightActions && (
+                            <Group gap={2}>{topRightActions}</Group>
+                        )}
+                    </Group>
+
+                    <Text size="10px" c="dimmed" lineClamp={1}>
+                        {card.franchise ? `${card.franchise.toUpperCase()} • ` : ""}
+                        {card.collectionName}
+                    </Text>
+
+                    <Group gap={6} mt={2} align="center">
+                        {card.collectionCode && (
+                            <Text
+                                size="10px"
+                                fw={600}
+                                c="grape.7"
+                                bg="grape.0"
+                                px={4}
+                                style={{ borderRadius: "2px" }}
+                            >
+                                {card.collectionCode}
+                            </Text>
+                        )}
+                        <Text
+                            size="10px"
+                            fw={600}
+                            c="blue.7"
+                            bg="blue.0"
+                            px={4}
+                            style={{ borderRadius: "2px" }}
+                        >
+                            #{card.cardNo || "---"}
+                        </Text>
+                        <Text
+                            size="10px"
+                            fw={500}
+                            bg="gray.1"
+                            px={4}
+                            style={{ borderRadius: "2px" }}
+                        >
+                            {card.rarity || "---"}
+                        </Text>
+                    </Group>
+
+                    {bottomLeftActions && (
+                        <Group gap={4} mt={4} align="center" wrap="nowrap">
+                            {bottomLeftActions}
+                        </Group>
+                    )}
+                </Stack>
+
+                {rightActions && (
+                    <Stack gap={4}>
+                        {rightActions}
+                    </Stack>
+                )}
+            </Group>
+        </Card>
+    );
+}

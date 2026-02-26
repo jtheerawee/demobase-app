@@ -90,6 +90,7 @@ export async function GET(request: Request) {
                 rarity: card.rarity,
                 collectionName: card.scraped_collections?.name,
                 collectionCode: card.scraped_collections?.collection_code,
+                franchise: card.scraped_collections?.franchise,
             }));
 
             return NextResponse.json({ success: true, cards });
@@ -125,6 +126,7 @@ export async function GET(request: Request) {
             rarity: card.rarity,
             collectionName: card.scraped_collections?.name,
             collectionCode: card.scraped_collections?.collection_code,
+            franchise: card.scraped_collections?.franchise,
         }));
 
         return NextResponse.json({

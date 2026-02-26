@@ -21,6 +21,7 @@ export interface SearchedCard {
     rarity: string;
     collectionName: string;
     collectionCode: string;
+    franchise?: string;
 }
 
 interface SearchResultWidgetProps {

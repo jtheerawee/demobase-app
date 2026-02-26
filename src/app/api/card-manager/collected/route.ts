@@ -32,6 +32,7 @@ export async function GET() {
                     scraped_collections (
                         id,
                         name,
+                        collection_code,
                         franchise
                     )
                 )
@@ -51,6 +52,7 @@ export async function GET() {
             cardNo: item.scraped_cards?.card_no,
             rarity: item.scraped_cards?.rarity,
             collectionName: item.scraped_cards?.scraped_collections?.name,
+            collectionCode: item.scraped_cards?.scraped_collections?.collection_code,
             franchise: item.scraped_cards?.scraped_collections?.franchise,
             quantity: item.quantity,
             variant: item.variant,
