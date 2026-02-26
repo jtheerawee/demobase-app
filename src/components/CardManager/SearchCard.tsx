@@ -11,9 +11,9 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { IconExternalLink, IconPlus } from "@tabler/icons-react";
-import { SearchedCard } from "./CardManagerResult";
+import { SearchedCard } from "./SearchResult";
 
-interface CardManagerSearchCardProps {
+interface SearchCardProps {
     card: SearchedCard;
     addingId: number | null;
     collectedCardIds: Set<number>;
@@ -21,13 +21,13 @@ interface CardManagerSearchCardProps {
     onImageClick: (url: string) => void;
 }
 
-export function CardManagerSearchCard({
+export function SearchCard({
     card,
     addingId,
     collectedCardIds,
     onAddToCollection,
     onImageClick,
-}: CardManagerSearchCardProps) {
+}: SearchCardProps) {
     const isCollected = collectedCardIds.has(card.id);
 
     return (

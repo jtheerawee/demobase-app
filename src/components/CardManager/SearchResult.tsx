@@ -5,15 +5,15 @@ import {
     SimpleGrid,
     Text,
     Box,
-    Loader,
     Stack,
     Card,
     ActionIcon,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
-import { CardManagerSearchCard } from "./CardManagerSearchCard";
+import { SearchCard } from "./SearchCard";
 import { CardManagerHeader } from "./CardManagerHeader";
+import { SearchResultLoader } from "./SearchResultLoader";
 
 export interface SearchedCard {
     id: number;
@@ -26,7 +26,7 @@ export interface SearchedCard {
     collectionCode: string;
 }
 
-interface CardManagerResultProps {
+interface SearchResultProps {
     results: SearchedCard[];
     loading: boolean;
     query: string;
@@ -38,7 +38,7 @@ interface CardManagerResultProps {
     waitingForSelection: boolean;
 }
 
-export function CardManagerResult({
+export function SearchResult({
     results,
     loading,
     query,
@@ -48,7 +48,7 @@ export function CardManagerResult({
     onImageClick,
     onReset,
     waitingForSelection,
-}: CardManagerResultProps) {
+}: SearchResultProps) {
     return (
         <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
             <Stack gap="md" h="100%">
@@ -91,7 +91,7 @@ export function CardManagerResult({
                             spacing="xs"
                         >
                             {results.map((card) => (
-                                <CardManagerSearchCard
+                                <SearchCard
                                     key={card.id}
                                     card={card}
                                     addingId={addingId}
@@ -103,14 +103,7 @@ export function CardManagerResult({
                         </SimpleGrid>
 
                         {loading && results.length === 0 && (
-                            <Box py="xl" ta="center">
-                                <Stack align="center" gap="xs">
-                                    <Loader size="sm" />
-                                    <Text c="dimmed" size="xs">
-                                        Scanning and looking for cards...
-                                    </Text>
-                                </Stack>
-                            </Box>
+                            <SearchResultLoader />
                         )}
 
                         {results.length === 0 && !loading && (

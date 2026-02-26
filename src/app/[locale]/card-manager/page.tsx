@@ -14,9 +14,9 @@ import {
     type SearchMode,
 } from "@/components/CardManager/CardManagerSearch";
 import {
-    CardManagerResult,
+    SearchResult,
     SearchedCard,
-} from "@/components/CardManager/CardManagerResult";
+} from "@/components/CardManager/SearchResult";
 import { LANGUAGE_OPTIONS } from "@/constants/languages";
 import { FRANCHISE_OPTIONS } from "@/constants/franchises";
 
@@ -322,7 +322,7 @@ export default function CardManagerPage() {
                         }}
                         h="100%"
                     >
-                        <CardManagerResult
+                        <SearchResult
                             results={results}
                             loading={loading}
                             query={searchQuery}
