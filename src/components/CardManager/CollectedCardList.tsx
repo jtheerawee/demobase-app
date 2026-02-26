@@ -1,10 +1,11 @@
 "use client";
 
-import { Card, Stack, Text, ScrollArea, Group, Image, Badge, ActionIcon, Box, Loader, Modal, Select, Button } from "@mantine/core";
+import { Card, Stack, Text, ScrollArea, Group, Image, ActionIcon, Box, Modal, Select, Button } from "@mantine/core";
 import { IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
 import { CollectedCard, CONDITIONS } from "./CollectedCard";
+import { CardManagerHeader } from "./CardManagerHeader";
 
 export const CollectedCardList = forwardRef(({ onImageClick, onCollectionChange }: { onImageClick?: (url: string) => void; onCollectionChange?: (ids: Set<number>) => void }, ref) => {
     const [collectedCards, setCollectedCards] = useState<CollectedCard[]>([]);
@@ -179,14 +180,12 @@ export const CollectedCardList = forwardRef(({ onImageClick, onCollectionChange 
     return (
         <Card withBorder radius="md" padding="md" shadow="sm" h="100%">
             <Stack gap="md" h="100%">
-                <Group justify="space-between" align="center">
-                    <Text fw={700} size="lg">My Collection</Text>
-                    <Group gap="xs">
-                        {loading ? <Loader size="xs" /> : (
-                            <Badge color="grape" variant="filled" h={18} styles={{ label: { fontSize: '10px' } }}>
-                                {collectedCards.length}
-                            </Badge>
-                        )}
+                <CardManagerHeader
+                    title="My Collection"
+                    count={collectedCards.length}
+                    loading={loading}
+                    badgeColor="grape"
+                    actions={
                         <ActionIcon
                             variant="subtle"
                             color="gray"
@@ -196,8 +195,8 @@ export const CollectedCardList = forwardRef(({ onImageClick, onCollectionChange 
                         >
                             <IconDownload size={18} />
                         </ActionIcon>
-                    </Group>
-                </Group>
+                    }
+                />
 
                 <ScrollArea flex={1} offsetScrollbars>
                     {collectedCards.length === 0 && !loading ? (

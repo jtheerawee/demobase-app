@@ -3,21 +3,14 @@
 import {
   Container,
   Stack,
-  Group,
-  Card,
   Image,
-  Text,
   Grid,
   Modal,
-  Select,
   Badge,
-  Box,
-  Loader as MantineLoader,
-  ActionIcon,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
-import { IconLayoutDashboard, IconTrash } from "@tabler/icons-react";
+import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
@@ -319,53 +312,17 @@ export default function CardManagerPage() {
             span={{ base: 12, md: APP_CONFIG.CARD_MANAGER_LAYOUT.RESULTS_SPAN }}
             h="100%"
           >
-            <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
-              <Stack gap="md" h="100%">
-                <Group justify="space-between" align="center">
-                  <Text fw={700} size="lg">
-                    Search Results
-                  </Text>
-                  <Group gap="xs">
-                    {results.length > 0 && (
-                      <Badge
-                        color="blue"
-                        variant="filled"
-                        h={18}
-                        styles={{ label: { fontSize: "10px" } }}
-                      >
-                        {results.length}
-                      </Badge>
-                    )}
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      size="sm"
-                      title="Clear results and snapshot"
-                      onClick={handleReset}
-                      disabled={
-                        loading ||
-                        (results.length === 0 &&
-                          searchQuery === "" &&
-                          !waitingForSelection)
-                      }
-                    >
-                      <IconTrash size={16} />
-                    </ActionIcon>
-                  </Group>
-                </Group>
-                <Box style={{ flex: 1, minHeight: 0 }}>
-                  <CardManagerResult
-                    results={results}
-                    loading={loading}
-                    query={searchQuery}
-                    addingId={addingId}
-                    collectedCardIds={collectedCardIds}
-                    onAddToCollection={handleAddToCollection}
-                    onImageClick={setPreviewImage}
-                  />
-                </Box>
-              </Stack>
-            </Card>
+            <CardManagerResult
+              results={results}
+              loading={loading}
+              query={searchQuery}
+              addingId={addingId}
+              collectedCardIds={collectedCardIds}
+              onAddToCollection={handleAddToCollection}
+              onImageClick={setPreviewImage}
+              onReset={handleReset}
+              waitingForSelection={waitingForSelection}
+            />
           </Grid.Col>
 
           {/* Right: Camera / Search Input (2/4) */}
@@ -377,67 +334,45 @@ export default function CardManagerPage() {
               }}
               h="100%"
             >
-              <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
-                <Stack gap="md" h="100%">
-                  <Group justify="space-between">
-                    <Text fw={700} size="lg">
-                      Search
-                    </Text>
-                    <Group gap="xs">
-                      <Select
-                        size="xs"
-                        placeholder="Franchise"
-                        value={selectedFranchise}
-                        onChange={(val) => {
-                          setSelectedFranchise(val);
-                          setSelectedLanguage("all");
-                        }}
-                        data={[
-                          { value: "all", label: "All Franchises" },
-                          ...FRANCHISE_OPTIONS,
-                        ]}
-                        style={{ width: 140 }}
-                      />
-                      <Select
-                        size="xs"
-                        placeholder="Language"
-                        value={selectedLanguage}
-                        onChange={setSelectedLanguage}
-                        data={languageOptions}
-                        style={{ width: 140 }}
-                      />
-                    </Group>
-                  </Group>
-
-                  <CardManagerSearch
-                    query={searchQuery}
-                    setQuery={setSearchQuery}
-                    loading={loading}
-                    searchMode={searchMode}
-                    onSearchModeChange={setSearchMode}
-                    onScanIds={handleScanIds}
-                    onScanStart={() => {
-                      setResults([]);
-                      setLoading(true);
-                    }}
-                    autoAdd={autoAdd}
-                    onAutoAddChange={setAutoAdd}
-                    autoCapture={autoCapture}
-                    onAutoCaptureChange={(val) => {
-                      setAutoCapture(val);
-                      if (val) setAutoAdd(true);
-                      else setAutoCaptureActive(false);
-                    }}
-                    loopActive={autoCaptureActive}
-                    onLoopActiveChange={setAutoCaptureActive}
-                    autoCaptureInterval={autoCaptureInterval}
-                    onAutoCaptureIntervalChange={setAutoCaptureInterval}
-                    paused={waitingForSelection}
-                    onClear={() => setWaitingForSelection(false)}
-                    resetTrigger={resetTrigger}
-                  />
-                </Stack>
-              </Card>
+              <CardManagerSearch
+                query={searchQuery}
+                setQuery={setSearchQuery}
+                loading={loading}
+                searchMode={searchMode}
+                onSearchModeChange={setSearchMode}
+                onScanIds={handleScanIds}
+                onScanStart={() => {
+                  setResults([]);
+                  setLoading(true);
+                }}
+                autoAdd={autoAdd}
+                onAutoAddChange={setAutoAdd}
+                autoCapture={autoCapture}
+                onAutoCaptureChange={(val) => {
+                  setAutoCapture(val);
+                  if (val) setAutoAdd(true);
+                  else setAutoCaptureActive(false);
+                }}
+                loopActive={autoCaptureActive}
+                onLoopActiveChange={setAutoCaptureActive}
+                autoCaptureInterval={autoCaptureInterval}
+                onAutoCaptureIntervalChange={setAutoCaptureInterval}
+                paused={waitingForSelection}
+                onClear={() => setWaitingForSelection(false)}
+                resetTrigger={resetTrigger}
+                selectedFranchise={selectedFranchise}
+                onFranchiseChange={(val) => {
+                  setSelectedFranchise(val);
+                  setSelectedLanguage("all");
+                }}
+                franchiseOptions={[
+                  { value: "all", label: "All Franchises" },
+                  ...FRANCHISE_OPTIONS,
+                ]}
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={setSelectedLanguage}
+                languageOptions={languageOptions}
+              />
             </Grid.Col>
           )}
         </Grid>
