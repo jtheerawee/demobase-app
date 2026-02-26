@@ -2,38 +2,25 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-    Group,
     Text,
     Stack,
-    Image,
-    Button,
     Loader,
-    ActionIcon,
     Box,
     Select,
     LoadingOverlay,
-    Checkbox,
-    Badge,
-    Tooltip,
     Center,
-    Modal,
 } from "@mantine/core";
 import { FileWithPath } from "@mantine/dropzone";
-import {
-    IconCamera,
-    IconRefresh,
-    IconPlayerStop,
-    IconPlus,
-    IconMinus,
-    IconMaximize,
-} from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
 import { ImageThumbnail } from "./ImageThumbnail";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
+import { AutoOptions } from "./AutoOptions";
+import { CameraStatus } from "./CameraStatus";
+import { CameraShutter } from "./CameraShutter";
 
-interface CardManagerCameraProps {
+interface CameraViewProps {
     onCapture: (file: FileWithPath) => void;
     onScanStart?: () => void;
     loading: boolean;
@@ -51,7 +38,7 @@ interface CardManagerCameraProps {
     setPreview: (url: string | null) => void;
 }
 
-export function CardManagerCamera({
+export function CameraView({
     onCapture,
     onScanStart,
     loading,
@@ -67,7 +54,7 @@ export function CardManagerCamera({
     onClear,
     preview,
     setPreview,
-}: CardManagerCameraProps) {
+}: CameraViewProps) {
     const [cameraActive, setCameraActive] = useState(false);
     const [devices, setDevices] = useState<{ value: string; label: string }[]>(
         [],
@@ -294,65 +281,25 @@ export function CardManagerCamera({
                     </>
                 )}
 
-                {autoCapture &&
-                    (countdown !== null || paused) &&
-                    loopActive && (
-                        <Badge
-                            pos="absolute"
-                            top={10}
-                            right={10}
-                            size="xl"
-                            variant="filled"
-                            color={paused ? "orange" : "blue"}
-                            style={{ zIndex: 11 }}
-                        >
-                            {paused
-                                ? "Waiting for response..."
-                                : `Auto-capturing in ${countdown}s...`}
-                        </Badge>
-                    )}
+                <CameraStatus
+                    autoCapture={autoCapture}
+                    countdown={countdown}
+                    paused={paused}
+                    loopActive={loopActive}
+                />
             </Box>
 
             <Box pos="relative" w="100%">
-                {/* Main Action (Centered) */}
-                <Center>
-                    <Group gap="xs">
-                        <Tooltip
-                            label="Press Space to scan"
-                            position="top"
-                            withArrow
-                        >
-                            <Button
-                                color="blue"
-                                radius="xl"
-                                size="md"
-                                leftSection={<IconCamera size={20} />}
-                                onClick={capturePhoto}
-                                disabled={loading || !cameraActive}
-                            >
-                                Scan
-                            </Button>
-                        </Tooltip>
+                <CameraShutter
+                    loading={loading}
+                    cameraActive={cameraActive}
+                    autoCapture={autoCapture}
+                    loopActive={loopActive}
+                    onCapture={capturePhoto}
+                    onLoopActiveChange={onLoopActiveChange}
+                    onClear={onClear}
+                />
 
-                        {/* Stop Button */}
-                        {autoCapture && loopActive && (
-                            <Button
-                                color="red"
-                                radius="xl"
-                                size="md"
-                                leftSection={<IconPlayerStop size={20} />}
-                                onClick={() => {
-                                    onLoopActiveChange?.(false);
-                                    onClear?.();
-                                }}
-                            >
-                                Stop
-                            </Button>
-                        )}
-                    </Group>
-                </Center>
-
-                {/* Snapshot Thumbnail (Right-aligned) */}
                 <ImageThumbnail
                     preview={preview || null}
                     onEnlarge={() => setIsEnlarged(true)}
@@ -366,94 +313,14 @@ export function CardManagerCamera({
                 title="Last Captured Snapshot"
             />
 
-            {onAutoAddChange && (
-                <Group justify="center" mt="xs" gap="md" wrap="nowrap">
-                    <Checkbox
-                        label="Auto-add to collection"
-                        checked={autoAdd}
-                        onChange={(e) =>
-                            onAutoAddChange(e.currentTarget.checked)
-                        }
-                        size="sm"
-                        color="blue"
-                    />
-                    {onAutoCaptureChange && (
-                        <Group gap={4} wrap="nowrap" align="center">
-                            <Tooltip
-                                label="Turning on Auto-capture will also enable Auto-add to collection for a fully automated workflow."
-                                position="bottom"
-                                withArrow
-                            >
-                                <Checkbox
-                                    label="Auto-capture"
-                                    checked={autoCapture}
-                                    onChange={(e) =>
-                                        onAutoCaptureChange(
-                                            e.currentTarget.checked,
-                                        )
-                                    }
-                                    size="sm"
-                                    color="blue"
-                                />
-                            </Tooltip>
-                            <Group
-                                gap={2}
-                                wrap="nowrap"
-                                ml={2}
-                                bg={autoCapture ? "gray.0" : "gray.1"}
-                                px={4}
-                                style={{
-                                    borderRadius: "4px",
-                                    border: `1px solid ${autoCapture ? "var(--mantine-color-gray-2)" : "var(--mantine-color-gray-3)"}`,
-                                    opacity: autoCapture ? 1 : 0.6,
-                                    pointerEvents: autoCapture ? "all" : "none",
-                                }}
-                            >
-                                <ActionIcon
-                                    variant="subtle"
-                                    color="blue"
-                                    size="xs"
-                                    onClick={() =>
-                                        onAutoCaptureIntervalChange?.(
-                                            Math.max(
-                                                5,
-                                                (autoCaptureInterval || 5) - 1,
-                                            ),
-                                        )
-                                    }
-                                    disabled={
-                                        !autoCapture || autoCaptureInterval <= 5
-                                    }
-                                >
-                                    <IconMinus size={10} stroke={3} />
-                                </ActionIcon>
-                                <Text
-                                    size="11px"
-                                    fw={700}
-                                    w={20}
-                                    ta="center"
-                                    c={autoCapture ? "blue.7" : "dimmed"}
-                                >
-                                    {autoCaptureInterval || 5}s
-                                </Text>
-                                <ActionIcon
-                                    variant="subtle"
-                                    color="blue"
-                                    size="xs"
-                                    onClick={() =>
-                                        onAutoCaptureIntervalChange?.(
-                                            (autoCaptureInterval || 5) + 1,
-                                        )
-                                    }
-                                    disabled={!autoCapture}
-                                >
-                                    <IconPlus size={10} stroke={3} />
-                                </ActionIcon>
-                            </Group>
-                        </Group>
-                    )}
-                </Group>
-            )}
+            <AutoOptions
+                autoAdd={autoAdd}
+                onAutoAddChange={onAutoAddChange}
+                autoCapture={autoCapture}
+                onAutoCaptureChange={onAutoCaptureChange}
+                autoCaptureInterval={autoCaptureInterval}
+                onAutoCaptureIntervalChange={onAutoCaptureIntervalChange}
+            />
         </Stack>
     );
 }

@@ -9,7 +9,7 @@ import { notifications } from "@mantine/notifications";
 import { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
 import { AddNewCardModal } from "./AddNewCardModal";
-import { CardManagerHeader } from "../Search";
+import { CardManagerHeader } from "../CardManagerHeader";
 import { APP_CONFIG } from "@/constants/app";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 

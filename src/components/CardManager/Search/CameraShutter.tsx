@@ -1,0 +1,63 @@
+"use client";
+
+import { Tooltip, Button, Center, Group } from "@mantine/core";
+import { IconCamera, IconPlayerStop } from "@tabler/icons-react";
+
+interface CameraShutterProps {
+    loading: boolean;
+    cameraActive: boolean;
+    autoCapture?: boolean;
+    loopActive?: boolean;
+    onCapture: () => void;
+    onLoopActiveChange?: (val: boolean) => void;
+    onClear?: () => void;
+}
+
+export function CameraShutter({
+    loading,
+    cameraActive,
+    autoCapture,
+    loopActive,
+    onCapture,
+    onLoopActiveChange,
+    onClear,
+}: CameraShutterProps) {
+    return (
+        <Center>
+            <Group gap="xs">
+                <Tooltip
+                    label="Press Space to scan"
+                    position="top"
+                    withArrow
+                >
+                    <Button
+                        color="blue"
+                        radius="xl"
+                        size="md"
+                        leftSection={<IconCamera size={20} />}
+                        onClick={onCapture}
+                        disabled={loading || !cameraActive}
+                    >
+                        Scan
+                    </Button>
+                </Tooltip>
+
+                {/* Stop Button */}
+                {autoCapture && loopActive && (
+                    <Button
+                        color="red"
+                        radius="xl"
+                        size="md"
+                        leftSection={<IconPlayerStop size={20} />}
+                        onClick={() => {
+                            onLoopActiveChange?.(false);
+                            onClear?.();
+                        }}
+                    >
+                        Stop
+                    </Button>
+                )}
+            </Group>
+        </Center>
+    );
+}

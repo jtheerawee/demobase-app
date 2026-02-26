@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Stack, Select } from "@mantine/core";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
-import { CardManagerHeader } from "./CardManagerHeader";
+import { CardManagerHeader } from "../CardManagerHeader";
 import { SearchModeSwitcher, type SearchMode } from "./SearchModeSwitcher";
 import { SearchInstructionModal } from "./SearchInstructionModal";
 

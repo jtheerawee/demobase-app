@@ -16,7 +16,7 @@ import { IconPhoto, IconX, IconScan, IconRefresh } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { OCR_CONFIG } from "@/constants/ocr";
 import { APP_CONFIG } from "@/constants/app";
-import { CardManagerCamera } from "./CardManagerCamera";
+import { CameraView } from "./CameraView";
 
 interface CardManagerOCRProps {
     mode: "vision" | "text" | "camera";
@@ -213,7 +213,7 @@ export function CardManagerOCR({
     if (mode === "camera") {
         return (
             <Box maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH} mx="auto" w="100%">
-                <CardManagerCamera
+                <CameraView
                     onCapture={(capturedFile) => {
                         setFile(capturedFile);
                         handleScan(capturedFile);

@@ -7,7 +7,7 @@ import {
     ActionIcon,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { CardManagerHeader } from "../Search";
+import { CardManagerHeader } from "../CardManagerHeader";
 import { SearchResultInfo } from "./SearchResultInfo";
 import { SearchCardList } from "./SearchCardList";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
