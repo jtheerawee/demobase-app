@@ -15,7 +15,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
 import { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
-import { CardManagerHeader } from "../CardManagerHeader";
+import { CardManagerHeader } from "../Search";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
 

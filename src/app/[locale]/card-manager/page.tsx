@@ -9,11 +9,11 @@ import { MainLayout } from "@/components/CardManager/MainLayout";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
-import { CollectedCardWidget } from "@/components/CardManager/CardCollection/CollectedCardWidget";
+import { CollectedCardWidget } from "@/components/CardManager/CardCollection";
 import {
-    CardManagerSearch,
+    SearchWidget,
     type SearchMode,
-} from "@/components/CardManager/CardManagerSearch";
+} from "@/components/CardManager/Search";
 import {
     SearchResultWidget,
     SearchedCard,
@@ -318,7 +318,7 @@ export default function CardManagerPage() {
                         />
                     }
                     controls={
-                        <CardManagerSearch
+                        <SearchWidget
                             query={searchQuery}
                             setQuery={setSearchQuery}
                             loading={loading}

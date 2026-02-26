@@ -6,7 +6,7 @@ import {
     ActionIcon,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { CardManagerHeader } from "../CardManagerHeader";
+import { CardManagerHeader } from "../Search";
 import { SearchResultInfo } from "./SearchResultInfo";
 import { SearchCardList } from "./SearchCardList";
 

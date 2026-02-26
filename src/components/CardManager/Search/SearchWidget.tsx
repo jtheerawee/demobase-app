@@ -6,7 +6,7 @@ import { CardManagerHeader } from "./CardManagerHeader";
 
 export type SearchMode = "text" | "camera";
 
-interface CardManagerSearchProps {
+interface SearchWidgetProps {
     query: string;
     setQuery: (query: string) => void;
     loading: boolean;
@@ -33,7 +33,7 @@ interface CardManagerSearchProps {
     languageOptions: { value: string; label: string }[];
 }
 
-export function CardManagerSearch({
+export function SearchWidget({
     query,
     setQuery,
     loading,
@@ -58,7 +58,7 @@ export function CardManagerSearch({
     selectedLanguage,
     onLanguageChange,
     languageOptions,
-}: CardManagerSearchProps) {
+}: SearchWidgetProps) {
     return (
         <>
             <CardManagerHeader
