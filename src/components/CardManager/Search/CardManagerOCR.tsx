@@ -150,27 +150,10 @@ export function CardManagerOCR({
 
                 if (data.text) {
                     const text = data.text;
-                    const lines = text
-                        .split(/\n/)
-                        .map((l: string) => l.trim())
-                        .filter(Boolean);
-                    const potentialName = lines[0] || "Unknown";
+                    const result = parseOcrText(text);
 
-                    const setMatch = text.match(
-                        /\b([A-Z0-9]{3,5})-(?:[A-Z]{2,})\b/i,
-                    );
-                    const setCode = setMatch ? setMatch[1].toUpperCase() : null;
-
-                    const noMatch =
-                        text.match(/\b[A-Z]?0*([1-9][0-9]{2,3})\b/) ||
-                        text.match(
-                            /(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/,
-                        );
-
-                    const cardNo = noMatch ? noMatch[1] : null;
-
-                    if (setCode && cardNo) {
-                        onScan?.([`${setCode}:${cardNo}`]);
+                    if (result.setCode && result.cardNo) {
+                        onScan?.([`${result.setCode}:${result.cardNo}`]);
                     } else {
                         onResultInfo?.(text);
                         onScan?.([]);
@@ -350,4 +333,48 @@ export function CardManagerOCR({
             )}
         </Stack>
     );
+}
+
+/**
+ * Parses OCR text to find Set Code and Card Number by trying multiple patterns.
+ */
+function parseOcrText(text: string) {
+    const lines = text
+        .split(/\n/)
+        .map((l: string) => l.trim())
+        .filter(Boolean);
+
+    // 1. Try MTG Pattern (ABC-EN)
+    const mtgSetMatch = text.match(/\b([A-Z0-9]{3,5})-(?:[A-Z]{2,})\b/i);
+    const mtgNoMatch =
+        text.match(/\b[A-Z]?0*([1-9][0-9]{2,3})\b/) ||
+        text.match(/(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/);
+
+    if (mtgSetMatch && mtgNoMatch) {
+        return {
+            setCode: mtgSetMatch[1].toUpperCase(),
+            cardNo: mtgNoMatch[1],
+            name: lines[0] || "Unknown"
+        };
+    }
+
+    // 2. Try Pokemon Pattern (MEWEN 067/165 or SVP 001 or 123/456)
+    // Matches MEWEN, SV1EN, etc. and extracts the code part
+    const pokemonSetMatch =
+        text.match(/\b([A-Z0-9]{2,4})(?:EN|JP|CN|KR|TW|FR|DE|IT|ES|PT)\b/i) ||
+        text.match(/\b([A-Z0-9]{2,4})\b/i);
+
+    const pokemonNoMatch =
+        text.match(/\b(\d{1,3})\/\d{2,3}\b/) ||
+        text.match(/\b(\d{1,3})\b/);
+
+    if (pokemonSetMatch && pokemonNoMatch) {
+        return {
+            setCode: pokemonSetMatch[1].toUpperCase(),
+            cardNo: pokemonNoMatch[1],
+            name: lines[0] || "Unknown"
+        };
+    }
+
+    return { setCode: null, cardNo: null, name: lines[0] || "Unknown" };
 }
