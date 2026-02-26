@@ -37,25 +37,26 @@ export function BaseCard({
 }: BaseCardProps) {
     return (
         <Card
-            withBorder
+            shadow="none"
+            withBorder={false}
             padding={0}
-            radius="sm"
-            h={115}
             style={{
-                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                transition: "background-color 0.2s ease",
                 cursor: "default",
+                backgroundColor: "transparent",
             }}
+            className="base-card-item"
         >
-            <Group gap="sm" wrap="nowrap" h="100%" align="center" px="xs">
+            <Group gap="sm" wrap="nowrap" align="center" px="sm" py="sm">
                 <Box
-                    w={65}
+                    w={85}
                     style={{ display: "flex", justifyContent: "center" }}
                 >
                     <Image
                         src={card.imageUrl}
                         fallbackSrc="https://placehold.co/100x140?text=No+Image"
-                        w={60}
-                        h={85}
+                        w={80}
+                        h={112}
                         radius="xs"
                         style={{
                             objectFit: "contain",
@@ -68,12 +69,11 @@ export function BaseCard({
 
                 <Stack
                     gap={2}
-                    pt={5}
                     style={{
                         flex: 1,
                         minWidth: 0,
                         height: "100%",
-                        justifyContent: "flex-start",
+                        justifyContent: "center",
                     }}
                 >
                     <Group justify="space-between" wrap="nowrap" gap={4}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { SimpleGrid } from "@mantine/core";
+import { Stack, Divider, Box } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 import { SearchCard } from "./SearchCard";
 import { SearchedCard } from "./SearchResultWidget";
@@ -23,25 +23,19 @@ export function SearchCardList({
     if (results.length === 0) return null;
 
     return (
-        <SimpleGrid
-            cols={{
-                base: 1,
-                sm: 1,
-                md: 2,
-                lg: APP_CONFIG.SEARCH_RESULTS_PER_ROW,
-            }}
-            spacing="xs"
-        >
-            {results.map((card) => (
-                <SearchCard
-                    key={card.id}
-                    card={card}
-                    addingId={addingId}
-                    collectedCardIds={collectedCardIds}
-                    onAddToCollection={onAddToCollection}
-                    onImageClick={onImageClick}
-                />
+        <Stack gap={0}>
+            {results.map((card, index) => (
+                <Box key={card.id}>
+                    <SearchCard
+                        card={card}
+                        addingId={addingId}
+                        collectedCardIds={collectedCardIds}
+                        onAddToCollection={onAddToCollection}
+                        onImageClick={onImageClick}
+                    />
+                    {index < results.length - 1 && <Divider />}
+                </Box>
             ))}
-        </SimpleGrid>
+        </Stack>
     );
 }

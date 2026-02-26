@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollArea, Box, Text, Stack } from "@mantine/core";
+import { ScrollArea, Box, Text, Stack, Divider } from "@mantine/core";
 import { CollectedCard } from "./CollectedCard";
 
 interface CollectedCardListProps {
@@ -36,18 +36,20 @@ export function CollectedCardList({
                     </Text>
                 </Box>
             ) : (
-                <Stack gap="sm">
-                    {cards.map((card) => (
-                        <CollectedCard
-                            key={card.id}
-                            card={card}
-                            onImageClick={onImageClick}
-                            onUpdateQuantity={onUpdateQuantity}
-                            onUpdateCondition={onUpdateCondition}
-                            onUpdateVariant={onUpdateVariant}
-                            onDelete={onDelete}
-                            onAddEntry={onAddEntry}
-                        />
+                <Stack gap={0}>
+                    {cards.map((card, index) => (
+                        <Box key={card.id}>
+                            <CollectedCard
+                                card={card}
+                                onImageClick={onImageClick}
+                                onUpdateQuantity={onUpdateQuantity}
+                                onUpdateCondition={onUpdateCondition}
+                                onUpdateVariant={onUpdateVariant}
+                                onDelete={onDelete}
+                                onAddEntry={onAddEntry}
+                            />
+                            {index < cards.length - 1 && <Divider />}
+                        </Box>
                     ))}
                 </Stack>
             )}

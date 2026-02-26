@@ -40,3 +40,15 @@ a {
         color-scheme: dark;
     }
 }
+
+.base-card-item {
+    transition: background-color 0.2s ease !important;
+}
+
+.base-card-item:hover {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-mantine-color-scheme="dark"] .base-card-item:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+}

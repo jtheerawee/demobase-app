@@ -65,7 +65,7 @@ export function SearchWidget({
     const [instructionOpened, setInstructionOpened] = useState(false);
 
     return (
-        <>
+        <Stack gap={0} h="100%">
             <WidgetHeader
                 title="Search"
                 actions={
@@ -90,7 +90,7 @@ export function SearchWidget({
                 }
             />
 
-            <Stack gap="sm" w="100%" flex={1}>
+            <Stack gap="sm" w="100%" flex={1} px="sm" py="sm">
                 <SearchModeSwitcher
                     value={searchMode}
                     onChange={onSearchModeChange}
@@ -134,6 +134,6 @@ export function SearchWidget({
                 onClose={() => setInstructionOpened(false)}
                 searchMode={searchMode}
             />
-        </>
+        </Stack>
     );
 }

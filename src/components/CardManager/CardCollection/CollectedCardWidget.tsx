@@ -2,6 +2,8 @@
 
 import {
     ActionIcon,
+    Divider,
+    Stack,
 } from "@mantine/core";
 import { IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
@@ -240,7 +242,7 @@ export const CollectedCardWidget = forwardRef(
         }, []);
 
         return (
-            <>
+            <Stack gap={0} h="100%">
                 <WidgetHeader
                     title="My Collection"
                     count={collectedCards.length}
@@ -302,7 +304,7 @@ export const CollectedCardWidget = forwardRef(
                         })()
                     }
                 />
-            </>
+            </Stack>
         );
     },
 );

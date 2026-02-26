@@ -5,6 +5,7 @@ import {
     ScrollArea,
     Box,
     ActionIcon,
+    Stack,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { WidgetHeader } from "@/components/WidgetHeader";
@@ -50,7 +51,7 @@ export function SearchResultWidget({
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     return (
-        <>
+        <Stack gap={0} h="100%">
             <WidgetHeader
                 title="Search Results"
                 count={results.length}
@@ -111,6 +112,6 @@ export function SearchResultWidget({
                     })()
                 }
             />
-        </>
+        </Stack>
     );
 }

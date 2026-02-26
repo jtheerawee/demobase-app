@@ -1,6 +1,6 @@
 "use client";
 
-import { Grid, Card, Stack } from "@mantine/core";
+import { Grid, Card } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 import { ReactNode } from "react";
 
@@ -24,10 +24,8 @@ export function MainLayout({ collection, results, controls }: MainLayoutProps) {
                 }}
                 h="100%"
             >
-                <Card withBorder radius="md" padding="md" shadow="sm" h="100%">
-                    <Stack gap="md" h="100%">
-                        {collection}
-                    </Stack>
+                <Card withBorder radius="md" padding={0} shadow="sm" h="100%">
+                    {collection}
                 </Card>
             </Grid.Col>
 
@@ -38,10 +36,8 @@ export function MainLayout({ collection, results, controls }: MainLayoutProps) {
                 }}
                 h="100%"
             >
-                <Card withBorder radius="md" padding="md" shadow="sm" h="100%">
-                    <Stack gap="md" h="100%">
-                        {results}
-                    </Stack>
+                <Card withBorder radius="md" padding={0} shadow="sm" h="100%">
+                    {results}
                 </Card>
             </Grid.Col>
 
@@ -52,10 +48,8 @@ export function MainLayout({ collection, results, controls }: MainLayoutProps) {
                 }}
                 h="100%"
             >
-                <Card withBorder radius="md" padding="md" shadow="sm" h="100%">
-                    <Stack gap="md" h="100%">
-                        {controls}
-                    </Stack>
+                <Card withBorder radius="md" padding={0} shadow="sm" h="100%">
+                    {controls}
                 </Card>
             </Grid.Col>
         </Grid>
