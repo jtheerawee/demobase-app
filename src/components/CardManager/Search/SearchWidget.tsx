@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Stack, Select } from "@mantine/core";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { CardManagerHeader } from "./CardManagerHeader";
 import { SearchModeSwitcher, type SearchMode } from "./SearchModeSwitcher";
+import { SearchInstructionModal } from "./SearchInstructionModal";
 
 
 interface SearchWidgetProps {
@@ -30,7 +32,6 @@ interface SearchWidgetProps {
     selectedLanguage: string | null;
     onLanguageChange: (val: string | null) => void;
     languageOptions: { value: string; label: string }[];
-    onInfoClick?: () => void;
 }
 
 export function SearchWidget({
@@ -58,8 +59,9 @@ export function SearchWidget({
     selectedLanguage,
     onLanguageChange,
     languageOptions,
-    onInfoClick,
 }: SearchWidgetProps) {
+    const [instructionOpened, setInstructionOpened] = useState(false);
+
     return (
         <>
             <CardManagerHeader
@@ -90,7 +92,7 @@ export function SearchWidget({
                 <SearchModeSwitcher
                     value={searchMode}
                     onChange={onSearchModeChange}
-                    onInfoClick={onInfoClick}
+                    onInfoClick={() => setInstructionOpened(true)}
                 />
 
                 {searchMode === "text" ? (
@@ -124,6 +126,12 @@ export function SearchWidget({
                     />
                 )}
             </Stack>
+
+            <SearchInstructionModal
+                opened={instructionOpened}
+                onClose={() => setInstructionOpened(false)}
+                searchMode={searchMode}
+            />
         </>
     );
 }

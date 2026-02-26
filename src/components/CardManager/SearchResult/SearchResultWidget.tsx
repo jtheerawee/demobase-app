@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
     ScrollArea,
     Box,
@@ -9,6 +10,7 @@ import { IconTrash } from "@tabler/icons-react";
 import { CardManagerHeader } from "../Search";
 import { SearchResultInfo } from "./SearchResultInfo";
 import { SearchCardList } from "./SearchCardList";
+import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 
 export interface SearchedCard {
     id: number;
@@ -28,7 +30,7 @@ interface SearchResultWidgetProps {
     addingId: number | null;
     collectedCardIds: Set<number>;
     onAddToCollection: (card: SearchedCard) => void;
-    onImageClick: (url: string) => void;
+    onImageClick?: (url: string) => void;
     onReset: () => void;
     waitingForSelection: boolean;
 }
@@ -44,6 +46,8 @@ export function SearchResultWidget({
     onReset,
     waitingForSelection,
 }: SearchResultWidgetProps) {
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+
     return (
         <>
             <CardManagerHeader
@@ -80,7 +84,12 @@ export function SearchResultWidget({
                         addingId={addingId}
                         collectedCardIds={collectedCardIds}
                         onAddToCollection={onAddToCollection}
-                        onImageClick={onImageClick}
+                        onImageClick={(url) => {
+                            setPreviewImage(url);
+                            if (onImageClick) {
+                                onImageClick(url);
+                            }
+                        }}
                     />
 
                     <SearchResultInfo
@@ -90,6 +99,12 @@ export function SearchResultWidget({
                     />
                 </ScrollArea>
             </Box>
+
+            <ImagePreviewModal
+                opened={!!previewImage}
+                onClose={() => setPreviewImage(null)}
+                src={previewImage}
+            />
         </>
     );
 }

@@ -11,6 +11,7 @@ import { CollectedCardList } from "./CollectedCardList";
 import { CollectedCardModal } from "./CollectedCardModal";
 import { CardManagerHeader } from "../Search";
 import { APP_CONFIG } from "@/constants/app";
+import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 
 export const CollectedCardWidget = forwardRef(
     (
@@ -33,6 +34,7 @@ export const CollectedCardWidget = forwardRef(
         const [addVariant, setAddVariant] = useState<string>("nf");
         const [addCondition, setAddCondition] = useState<string>("nm");
         const [addingEntry, setAddingEntry] = useState(false);
+        const [previewImage, setPreviewImage] = useState<string | null>(null);
 
         const fetchCollection = async () => {
             setLoading(true);
@@ -260,7 +262,12 @@ export const CollectedCardWidget = forwardRef(
                 <CollectedCardList
                     cards={collectedCards}
                     loading={loading}
-                    onImageClick={onImageClick}
+                    onImageClick={(url) => {
+                        setPreviewImage(url);
+                        if (onImageClick) {
+                            onImageClick(url);
+                        }
+                    }}
                     onUpdateQuantity={handleUpdateQuantity}
                     onUpdateCondition={handleUpdateCondition}
                     onUpdateVariant={handleUpdateVariant}
@@ -282,6 +289,12 @@ export const CollectedCardWidget = forwardRef(
                     onAdd={handleAddEntry}
                     adding={addingEntry}
                     onImageClick={onImageClick}
+                />
+
+                <ImagePreviewModal
+                    opened={!!previewImage}
+                    onClose={() => setPreviewImage(null)}
+                    src={previewImage}
                 />
             </>
         );

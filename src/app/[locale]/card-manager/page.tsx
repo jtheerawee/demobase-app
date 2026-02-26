@@ -20,7 +20,6 @@ import { OCR_CONFIG } from "@/constants/ocr";
 import { CollectedCardWidget } from "@/components/CardManager/CardCollection";
 import {
     SearchWidget,
-    SearchInstructionModal,
     type SearchMode,
 } from "@/components/CardManager/Search";
 import {
@@ -43,11 +42,6 @@ export default function CardManagerPage() {
     const [results, setResults] = useState<SearchedCard[]>([]);
     const [loading, setLoading] = useState(false);
     const [addingId, setAddingId] = useState<number | null>(null);
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
-    const [imgDimensions, setImgDimensions] = useState<{
-        w: number;
-        h: number;
-    } | null>(null);
     const [searchMode, setSearchMode] = useState<SearchMode>("text");
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
@@ -56,7 +50,6 @@ export default function CardManagerPage() {
     );
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
-    const [instructionOpened, setInstructionOpened] = useState(false);
     const [resetTrigger, setResetTrigger] = useState(0);
     const [collectedCardIds, setCollectedCardIds] = useState<Set<number>>(
         new Set(),
@@ -312,7 +305,6 @@ export default function CardManagerPage() {
                     collection={
                         <CollectedCardWidget
                             ref={listRef}
-                            onImageClick={setPreviewImage}
                             onCollectionChange={setCollectedCardIds}
                         />
                     }
@@ -324,7 +316,6 @@ export default function CardManagerPage() {
                             addingId={addingId}
                             collectedCardIds={collectedCardIds}
                             onAddToCollection={handleAddToCollection}
-                            onImageClick={setPreviewImage}
                             onReset={handleReset}
                             waitingForSelection={waitingForSelection}
                         />
@@ -370,72 +361,10 @@ export default function CardManagerPage() {
                             selectedLanguage={selectedLanguage}
                             onLanguageChange={setSelectedLanguage}
                             languageOptions={languageOptions}
-                            onInfoClick={() => setInstructionOpened(true)}
                         />
                     }
                 />
             </Stack>
-
-            <Modal
-                opened={!!previewImage}
-                onClose={() => {
-                    setPreviewImage(null);
-                    setImgDimensions(null);
-                }}
-                size="auto"
-                padding={0}
-                centered
-                withCloseButton={false}
-                overlayProps={{
-                    backgroundOpacity: 0.55,
-                    blur: 3,
-                }}
-            >
-                {previewImage && (
-                    <Stack gap={0} align="center" pos="relative">
-                        <Image
-                            src={previewImage}
-                            alt="Card Preview"
-                            style={{
-                                width: APP_CONFIG.PREVIEW_IMAGE_WIDTH,
-                                height: "auto",
-                                cursor: "pointer",
-                            }}
-                            onClick={() => {
-                                setPreviewImage(null);
-                                setImgDimensions(null);
-                            }}
-                            onLoad={(e) => {
-                                const img = e.currentTarget;
-                                setImgDimensions({
-                                    w: img.naturalWidth,
-                                    h: img.naturalHeight,
-                                });
-                            }}
-                        />
-                        {imgDimensions && (
-                            <Badge
-                                variant="filled"
-                                color="dark"
-                                size="sm"
-                                radius="xs"
-                                pos="absolute"
-                                bottom={8}
-                                right={8}
-                                style={{ opacity: 0.8, pointerEvents: "none" }}
-                            >
-                                {imgDimensions.w} × {imgDimensions.h} px
-                            </Badge>
-                        )}
-                    </Stack>
-                )}
-            </Modal>
-
-            <SearchInstructionModal
-                opened={instructionOpened}
-                onClose={() => setInstructionOpened(false)}
-                searchMode={searchMode}
-            />
         </Container>
     );
 }
