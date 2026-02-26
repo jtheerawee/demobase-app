@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Tooltip, Button, Center, Group } from "@mantine/core";
 import { IconCamera, IconPlayerStop } from "@tabler/icons-react";
 
@@ -74,4 +74,50 @@ export function CameraShutter({
             </Group>
         </Center>
     );
+}
+
+interface UseAutoCaptureProps {
+    autoCapture?: boolean;
+    loopActive?: boolean;
+    cameraActive: boolean;
+    paused?: boolean;
+    autoCaptureInterval: number;
+    onCapture: () => void;
+}
+
+export function useAutoCapture({
+    autoCapture,
+    loopActive,
+    cameraActive,
+    paused,
+    autoCaptureInterval,
+    onCapture,
+}: UseAutoCaptureProps) {
+    const [countdown, setCountdown] = useState<number | null>(null);
+
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        let countdownInterval: NodeJS.Timeout;
+
+        if (autoCapture && loopActive && cameraActive && !paused) {
+            setCountdown(autoCaptureInterval);
+            countdownInterval = setInterval(() => {
+                setCountdown((prev) =>
+                    prev !== null && prev > 1 ? prev - 1 : prev,
+                );
+            }, 1000);
+            interval = setInterval(() => {
+                onCapture();
+            }, autoCaptureInterval * 1000);
+        } else {
+            setCountdown(null);
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+            if (countdownInterval) clearInterval(countdownInterval);
+        };
+    }, [autoCapture, loopActive, cameraActive, paused, autoCaptureInterval, onCapture]);
+
+    return countdown;
 }

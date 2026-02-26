@@ -6,7 +6,6 @@ import {
     Stack,
     Loader,
     Box,
-    Select,
     LoadingOverlay,
     Center,
 } from "@mantine/core";
@@ -18,7 +17,7 @@ import { ImageThumbnail } from "./ImageThumbnail";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { AutoOptions } from "./AutoOptions";
 import { CameraStatus } from "./CameraStatus";
-import { CameraShutter } from "./CameraShutter";
+import { CameraShutter, useAutoCapture } from "./CameraShutter";
 import { CameraDevices, useCameraDevices } from "./CameraDevices";
 
 interface CameraViewProps {
@@ -58,7 +57,6 @@ export function CameraView({
 }: CameraViewProps) {
     const [cameraActive, setCameraActive] = useState(false);
     const { devices, selectedDeviceId, setSelectedDeviceId, loadDevices } = useCameraDevices();
-    const [countdown, setCountdown] = useState<number | null>(null);
     const [isEnlarged, setIsEnlarged] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -153,29 +151,14 @@ export function CameraView({
         }
     }, [cameraActive, selectedDeviceId]);
 
-    useEffect(() => {
-        let interval: NodeJS.Timeout;
-        let countdownInterval: NodeJS.Timeout;
-
-        if (autoCapture && loopActive && cameraActive && !paused) {
-            setCountdown(autoCaptureInterval);
-            countdownInterval = setInterval(() => {
-                setCountdown((prev) =>
-                    prev !== null && prev > 1 ? prev - 1 : prev,
-                );
-            }, 1000);
-            interval = setInterval(() => {
-                capturePhoto();
-            }, autoCaptureInterval * 1000);
-        } else {
-            setCountdown(null);
-        }
-
-        return () => {
-            if (interval) clearInterval(interval);
-            if (countdownInterval) clearInterval(countdownInterval);
-        };
-    }, [autoCapture, loopActive, cameraActive, paused, autoCaptureInterval]);
+    const countdown = useAutoCapture({
+        autoCapture,
+        loopActive,
+        cameraActive,
+        paused,
+        autoCaptureInterval,
+        onCapture: capturePhoto,
+    });
 
     return (
         <Stack gap="md" w="100%">
