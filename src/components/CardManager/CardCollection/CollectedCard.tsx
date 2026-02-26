@@ -9,7 +9,7 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { BaseCard } from "../BaseCard";
-import { IconTrash, IconPlus, IconMinus } from "@tabler/icons-react";
+import { IconTrash, IconPlus, IconMinus, IconExternalLink } from "@tabler/icons-react";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
 
@@ -19,6 +19,7 @@ export interface CollectedCard {
     collectionId?: number;
     name: string;
     imageUrl: string;
+    cardUrl?: string;
     cardNo: string;
     rarity: string;
     collectionName: string;
@@ -157,6 +158,18 @@ export function CollectedCard({
             }
             rightActions={
                 <>
+                    {card.cardUrl && (
+                        <ActionIcon
+                            variant="subtle"
+                            color="blue"
+                            size="sm"
+                            component="a"
+                            href={card.cardUrl}
+                            target="_blank"
+                        >
+                            <IconExternalLink size={14} />
+                        </ActionIcon>
+                    )}
                     <Tooltip
                         label="Add new variant/condition entry"
                         position="left"
