@@ -14,6 +14,15 @@ export const APP_CONFIG = {
 
   // MTG
   MTG_COLLECTION_URL: "https://gatherer.wizards.com/sets",
+  MTG_RARITY_MAP: {
+    Common: "C",
+    Uncommon: "U",
+    Rare: "R",
+    "Mythic Rare": "M",
+    Special: "S",
+    "Basic Land": "L",
+    Land: "L",
+  } as Record<string, string>,
 
   // Pokemon
   POKEMON_URL_EN:

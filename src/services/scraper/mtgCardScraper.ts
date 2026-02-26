@@ -245,7 +245,7 @@ export async function scrapeMTGCards({
                 }
 
                 const pageCardsRaw = await workerPage.evaluate(
-                    ({ langCode }: { langCode: string }) => {
+                    ({ langCode, mtgRarityMap }: { langCode: string; mtgRarityMap: Record<string, string> }) => {
                         const rows = document.querySelectorAll("tr.cardItem");
                         if (rows.length === 0) return [];
 
@@ -297,11 +297,13 @@ export async function scrapeMTGCards({
                                 setIdx !== -1
                                     ? cells[setIdx].querySelector("img")
                                     : row.querySelector("td.set img");
-                            const rarity =
+                            const rawRarity =
                                 setIcon
                                     ?.getAttribute("title")
                                     ?.split("(")[1]
                                     ?.replace(")", "") || "";
+
+                            const rarity = mtgRarityMap[rawRarity] || rawRarity;
 
                             const manaCostCells =
                                 manaIdx !== -1
@@ -349,7 +351,7 @@ export async function scrapeMTGCards({
                             };
                         });
                     },
-                    { langCode: language || "en" },
+                    { langCode: language || "en", mtgRarityMap: APP_CONFIG.MTG_RARITY_MAP },
                 );
 
                 if (pageCardsRaw.length === 0) {
@@ -460,7 +462,7 @@ export async function scrapeMTGCards({
                                     timeout: 30000,
                                 });
 
-                                const details = await wp.evaluate(() => {
+                                const details = await wp.evaluate((rarityMap: Record<string, string>) => {
                                     // Match both modern and detail layouts
                                     const oracleText = Array.from(
                                         document.querySelectorAll(
@@ -511,8 +513,10 @@ export async function scrapeMTGCards({
                                     const rarityEl = document.querySelector(
                                         "[data-testid='cardDetailsRarity'], .rarity",
                                     );
-                                    const rarity =
+                                    const rawRarity =
                                         rarityEl?.textContent?.trim() || "";
+
+                                    const rarity = rarityMap[rawRarity] || rawRarity;
 
                                     const artistEl = document.querySelector(
                                         "[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist",
@@ -537,7 +541,7 @@ export async function scrapeMTGCards({
                                         artist,
                                         imageUrl,
                                     };
-                                });
+                                }, APP_CONFIG.MTG_RARITY_MAP);
 
                                 Object.assign(card, details);
                                 send({
