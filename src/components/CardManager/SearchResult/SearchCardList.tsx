@@ -3,7 +3,7 @@
 import { SimpleGrid } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 import { SearchCard } from "./SearchCard";
-import { SearchedCard } from "./SearchResult";
+import { SearchedCard } from "./SearchResultWidget";
 
 interface SearchCardListProps {
     results: SearchedCard[];

@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { IconExternalLink, IconPlus } from "@tabler/icons-react";
-import { SearchedCard } from "./SearchResult";
+import { SearchedCard } from "./SearchResultWidget";
 
 interface SearchCardProps {
     card: SearchedCard;
@@ -118,6 +118,16 @@ export function SearchCard({
                     </Text>
 
                     <Group gap={6} mt={2} align="center">
+                        <Text
+                            size="10px"
+                            fw={600}
+                            c="grape.7"
+                            bg="grape.0"
+                            px={4}
+                            style={{ borderRadius: "2px" }}
+                        >
+                            {card.collectionCode || "---"}
+                        </Text>
                         <Text
                             size="10px"
                             fw={600}
