@@ -21,7 +21,7 @@ export interface SearchedCard {
     collectionCode: string;
 }
 
-interface SearchResultProps {
+interface SearchResultWidgetProps {
     results: SearchedCard[];
     loading: boolean;
     query: string;
@@ -33,7 +33,7 @@ interface SearchResultProps {
     waitingForSelection: boolean;
 }
 
-export function SearchResult({
+export function SearchResultWidget({
     results,
     loading,
     query,
@@ -43,7 +43,7 @@ export function SearchResult({
     onImageClick,
     onReset,
     waitingForSelection,
-}: SearchResultProps) {
+}: SearchResultWidgetProps) {
     return (
         <>
             <CardManagerHeader
