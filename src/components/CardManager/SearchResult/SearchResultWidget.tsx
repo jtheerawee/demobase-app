@@ -76,8 +76,7 @@ export function SearchResultWidget({
             <Box style={{ flex: 1, minHeight: 0 }}>
                 <ScrollArea
                     flex={1}
-                    offsetScrollbars
-                    type="always"
+                    type="hover"
                     h="100%"
                 >
                     <SearchCardList

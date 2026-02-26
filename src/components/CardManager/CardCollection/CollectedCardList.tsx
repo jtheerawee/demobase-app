@@ -25,7 +25,7 @@ export function CollectedCardList({
     onAddEntry,
 }: CollectedCardListProps) {
     return (
-        <ScrollArea flex={1} offsetScrollbars>
+        <ScrollArea flex={1}>
             {cards.length === 0 && !loading ? (
                 <Box py="xl" style={{ textAlign: "center" }}>
                     <Text c="dimmed" size="sm">

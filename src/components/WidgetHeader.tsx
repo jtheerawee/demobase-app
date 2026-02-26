@@ -19,7 +19,7 @@ export function WidgetHeader({
     actions,
 }: WidgetHeaderProps) {
     return (
-        <Group justify="space-between" align="center">
+        <Group justify="space-between" align="center" px="xs">
             <Text fw={700} size="lg">
                 {title}
             </Text>

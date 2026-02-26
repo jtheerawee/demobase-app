@@ -38,7 +38,7 @@ export function BaseCard({
     return (
         <Card
             withBorder
-            padding="xs"
+            padding={0}
             radius="sm"
             h={115}
             style={{
@@ -46,7 +46,7 @@ export function BaseCard({
                 cursor: "default",
             }}
         >
-            <Group gap="sm" wrap="nowrap" h="100%" align="center">
+            <Group gap="sm" wrap="nowrap" h="100%" align="center" px="xs">
                 <Box
                     w={65}
                     style={{ display: "flex", justifyContent: "center" }}
