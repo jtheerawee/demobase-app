@@ -12,7 +12,7 @@ export async function GET(request: Request) {
         let query = supabase
             .from("scraped_collections")
             .select(
-                "id, name, collection_code, image_url, collection_url, scraped_cards(count)",
+                "id, name, collection_code, image_url, collection_url, release_year, scraped_cards(count)",
             )
             .order("name", { ascending: true });
 
@@ -40,6 +40,7 @@ export async function GET(request: Request) {
             imageUrl: col.image_url,
             collectionUrl: col.collection_url,
             cardCount: col.scraped_cards?.[0]?.count || 0,
+            releaseYear: col.release_year,
         }));
 
         return NextResponse.json({

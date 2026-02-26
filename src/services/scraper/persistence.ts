@@ -43,6 +43,7 @@ export async function saveScrapedCollections(
         collection_url: col.collectionUrl,
         franchise: context.franchise,
         language: context.language,
+        release_year: col.releaseYear,
     }));
 
     const { data, error } = await supabase
@@ -61,6 +62,7 @@ export async function saveScrapedCollections(
         collectionUrl: d.collection_url,
         imageUrl: d.image_url,
         collectionCode: d.collection_code,
+        releaseYear: d.release_year,
     }));
 
     console.log(
@@ -68,6 +70,21 @@ export async function saveScrapedCollections(
         { added, matched, missed },
     );
     return { saved, added, matched, missed };
+}
+
+export async function updateScrapedCollectionYear(
+    id: number | string,
+    year: number,
+) {
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from("scraped_collections")
+        .update({ release_year: year })
+        .eq("id", id);
+
+    if (error) {
+        console.error("[Persistence] Error updating collection year:", error);
+    }
 }
 
 export async function saveScrapedCards(

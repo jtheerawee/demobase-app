@@ -11,6 +11,7 @@ export interface CollectionItem {
     franchise?: string;
     collectionCode?: string;
     collectionUrl?: string;
+    releaseYear?: number;
 }
 
 interface CardScraperCollectionItemProps {
@@ -56,6 +57,16 @@ export function CardScraperCollectionItem({
                                 style={{ flexShrink: 0 }}
                             >
                                 {item.collectionCode}
+                            </Badge>
+                        )}
+                        {item.releaseYear && (
+                            <Badge
+                                size="xs"
+                                variant="light"
+                                color="orange"
+                                style={{ flexShrink: 0 }}
+                            >
+                                {item.releaseYear}
                             </Badge>
                         )}
                     </Group>

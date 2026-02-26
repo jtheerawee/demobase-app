@@ -35,4 +35,5 @@ export interface ScrapedCollection {
     collectionUrl: string;
     franchise?: string;
     language?: string;
+    releaseYear?: number;
 }

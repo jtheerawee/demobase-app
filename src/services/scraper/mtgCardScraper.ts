@@ -1,5 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
-import { saveScrapedCards, computeMissedCards } from "./persistence";
+import { saveScrapedCards, computeMissedCards, updateScrapedCollectionYear } from "./persistence";
 import type { ScraperOptions } from "./types";
 
 export async function scrapeMTGCards({
@@ -130,12 +130,30 @@ export async function scrapeMTGCards({
                                 (c): c is NonNullable<typeof c> => c !== null,
                             );
 
-                        return { items };
+                        const releaseDateEl = document.querySelector(
+                            '[data-testid="setHeaderReleaseDate"]',
+                        );
+                        let releaseYear: number | undefined = undefined;
+                        if (releaseDateEl) {
+                            const dateMatch = releaseDateEl.textContent?.match(/\d{4}/);
+                            if (dateMatch) releaseYear = parseInt(dateMatch[0]);
+                        }
+
+                        return { items, releaseYear };
                     },
                     { sc: setCode, langCode: language || "en" },
                 );
 
                 const pageCards = pageResults.items;
+                const releaseYear = pageResults.releaseYear;
+
+                if (p === 1 && releaseYear && collectionId) {
+                    await updateScrapedCollectionYear(collectionId, releaseYear);
+                    send({
+                        type: "step",
+                        message: `Updated collection release year: ${releaseYear}`,
+                    });
+                }
 
                 if (pageCards.length === 0) {
                     send({

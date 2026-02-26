@@ -33,8 +33,8 @@ export async function scrapeMTGCollections({
                 p === 1
                     ? url
                     : url.includes("?")
-                      ? `${url}&page=${p}`
-                      : `${url}?page=${p}`;
+                        ? `${url}&page=${p}`
+                        : `${url}?page=${p}`;
             send({
                 type: "step",
                 message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
@@ -59,17 +59,29 @@ export async function scrapeMTGCollections({
                 message: `Searching for set links on page ${p}...`,
             });
             const pageResults = await workerPage.evaluate(
-                (currentUrl: string) => {
-                    const setLinks = document.querySelectorAll(
-                        'a[href*="/sets/"], a[href*="set="]',
-                    );
-                    const rawItems = Array.from(setLinks).map((el: any) => ({
-                        name: el.textContent?.trim() || "",
-                        href: el.getAttribute("href") || "",
-                    }));
-                    return { rawItems };
-                },
-                pageUrl,
+                () => {
+                    const rows = document.querySelectorAll("tr");
+                    const items: any[] = [];
+
+                    rows.forEach(row => {
+                        const cells = row.querySelectorAll("td");
+                        if (cells.length < 5) return;
+
+                        const setLink = row.querySelector('a[href*="/sets/"], a[href*="set="]') as HTMLAnchorElement;
+                        if (!setLink) return;
+
+                        const name = setLink.textContent?.trim() || "";
+                        const href = setLink.getAttribute("href") || "";
+
+                        // Release date is typically in td index 4
+                        const dateText = cells[4].textContent?.trim() || "";
+                        const releaseYear = dateText.match(/^\d{4}/) ? parseInt(dateText.slice(0, 4)) : undefined;
+
+                        items.push({ name, href, releaseYear });
+                    });
+
+                    return { rawItems: items };
+                }
             );
 
             const { rawItems } = pageResults;
@@ -96,6 +108,7 @@ export async function scrapeMTGCollections({
                         collectionUrl: collectionCode
                             ? `https://gatherer.wizards.com/sets/${collectionCode}`
                             : "",
+                        releaseYear: item.releaseYear,
                     };
                 })
                 .filter(

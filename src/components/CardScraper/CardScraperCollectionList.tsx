@@ -22,6 +22,7 @@ import {
     IconSortAscendingNumbers,
     IconDatabaseImport,
     IconRefresh,
+    IconCalendar,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import {
@@ -53,16 +54,17 @@ export function CardScraperCollectionList({
     loading,
 }: CardScraperCollectionListProps) {
     const [search, setSearch] = useState("");
-    const [sortBy, setSortBy] = useState<"name" | "cards">("name");
+    const [sortBy, setSortBy] = useState<"name" | "cards" | "year">("name");
     const [sortAsc, setSortAsc] = useState(true);
     const totalCount = collections.length;
 
-    const handleSort = (field: "name" | "cards") => {
+    const handleSort = (field: "name" | "cards" | "year") => {
         if (sortBy === field) {
             setSortAsc((prev) => !prev);
         } else {
             setSortBy(field);
-            setSortAsc(field === "name"); // name: asc by default, cards: desc by default
+            // Default: name A-Z, cards high-low, year high-low (newest first)
+            setSortAsc(field === "name");
         }
     };
 
@@ -80,10 +82,14 @@ export function CardScraperCollectionList({
                 return sortAsc
                     ? a.name.localeCompare(b.name)
                     : b.name.localeCompare(a.name);
-            } else {
+            } else if (sortBy === "cards") {
                 const ca = a.cardCount ?? 0;
                 const cb = b.cardCount ?? 0;
                 return sortAsc ? ca - cb : cb - ca;
+            } else {
+                const ya = a.releaseYear ?? 0;
+                const yb = b.releaseYear ?? 0;
+                return sortAsc ? ya - yb : yb - ya;
             }
         });
 
@@ -145,6 +151,20 @@ export function CardScraperCollectionList({
                                 ) : (
                                     <IconSortAZ size={14} />
                                 )}
+                            </ActionIcon>
+                        </Tooltip>
+                        <Tooltip
+                            label={`Sort by year (${sortBy === "year" ? (sortAsc ? "old→new" : "new→old") : "new→old"})`}
+                            withArrow
+                        >
+                            <ActionIcon
+                                variant={sortBy === "year" ? "light" : "subtle"}
+                                color={sortBy === "year" ? "blue" : "gray"}
+                                size="sm"
+                                onClick={() => handleSort("year")}
+                                disabled={totalCount === 0}
+                            >
+                                <IconCalendar size={14} />
                             </ActionIcon>
                         </Tooltip>
                         <Tooltip

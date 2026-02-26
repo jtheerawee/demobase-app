@@ -16,6 +16,7 @@ CREATE TABLE public.scraped_collections (
     collection_url  TEXT NOT NULL UNIQUE,
     franchise       TEXT NOT NULL, -- 'mtg', 'pokemon', etc.
     language        TEXT NOT NULL, -- 'en', 'jp', 'th', etc.
+    release_year    INTEGER,       -- Scraped year
     created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
