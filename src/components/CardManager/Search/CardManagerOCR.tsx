@@ -32,8 +32,10 @@ interface CardManagerOCRProps {
     paused?: boolean;
     loopActive?: boolean;
     onLoopActiveChange?: (val: boolean) => void;
-    autoCaptureInterval?: number;
-    onAutoCaptureIntervalChange?: (val: number) => void;
+    manualCaptureDelay?: number;
+    onManualCaptureDelayChange?: (val: number) => void;
+    autoCaptureDelay?: number;
+    onAutoCaptureDelayChange?: (val: number) => void;
     resetTrigger?: number;
 }
 
@@ -50,8 +52,10 @@ export function CardManagerOCR({
     paused,
     loopActive,
     onLoopActiveChange,
-    autoCaptureInterval = 5,
-    onAutoCaptureIntervalChange,
+    manualCaptureDelay,
+    onManualCaptureDelayChange,
+    autoCaptureDelay,
+    onAutoCaptureDelayChange,
     resetTrigger,
 }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
@@ -233,8 +237,10 @@ export function CardManagerOCR({
                     onAutoCaptureChange={onAutoCaptureChange}
                     loopActive={loopActive}
                     onLoopActiveChange={onLoopActiveChange}
-                    autoCaptureInterval={autoCaptureInterval}
-                    onAutoCaptureIntervalChange={onAutoCaptureIntervalChange}
+                    manualCaptureDelay={manualCaptureDelay}
+                    onManualCaptureDelayChange={onManualCaptureDelayChange}
+                    autoCaptureDelay={autoCaptureDelay}
+                    onAutoCaptureDelayChange={onAutoCaptureDelayChange}
                     onClear={handleClear}
                     preview={preview}
                     setPreview={setPreview}

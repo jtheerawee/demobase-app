@@ -1,14 +1,6 @@
 "use client";
 
-import {
-    Container,
-    Stack,
-    Image,
-    Modal,
-    Badge,
-    Button,
-    Text,
-} from "@mantine/core";
+import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
@@ -46,9 +38,8 @@ export default function CardManagerPage() {
     const [searchMode, setSearchMode] = useState<SearchMode>("text");
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
-    const [autoCaptureInterval, setAutoCaptureInterval] = useState<number>(
-        OCR_CONFIG.AUTO_CAPTURE_INTERVAL,
-    );
+    const [manualCaptureDelay, setManualCaptureDelay] = useState(OCR_CONFIG.MANUAL_CAPTURE_DELAY);
+    const [autoCaptureDelay, setAutoCaptureDelay] = useState(OCR_CONFIG.AUTO_CAPTURE_DELAY);
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
     const [resetTrigger, setResetTrigger] = useState(0);
@@ -74,15 +65,19 @@ export default function CardManagerPage() {
             localStorage.getItem("manager_auto_add") === "true";
         const savedAutoCapture =
             localStorage.getItem("manager_auto_capture") === "true";
-        const savedInterval = parseInt(
-            localStorage.getItem("manager_auto_capture_interval") || "5",
+        const savedManualDelay = parseInt(
+            localStorage.getItem("manager_manual_capture_delay") || String(OCR_CONFIG.MANUAL_CAPTURE_DELAY),
+        );
+        const savedAutoDelay = parseInt(
+            localStorage.getItem("manager_auto_capture_delay") || String(OCR_CONFIG.AUTO_CAPTURE_DELAY),
         );
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
         setSearchMode(savedMode);
         setAutoAdd(savedAutoAdd);
         setAutoCapture(savedAutoCapture);
-        setAutoCaptureInterval(Math.max(5, savedInterval));
+        setManualCaptureDelay(Math.max(OCR_CONFIG.MANUAL_CAPTURE_DELAY, savedManualDelay));
+        setAutoCaptureDelay(Math.max(OCR_CONFIG.AUTO_CAPTURE_DELAY, savedAutoDelay));
     }, []);
 
     // Save to localStorage when changed
@@ -97,17 +92,16 @@ export default function CardManagerPage() {
         localStorage.setItem("manager_search_mode", searchMode);
         localStorage.setItem("manager_auto_add", autoAdd.toString());
         localStorage.setItem("manager_auto_capture", autoCapture.toString());
-        localStorage.setItem(
-            "manager_auto_capture_interval",
-            autoCaptureInterval.toString(),
-        );
+        localStorage.setItem("manager_manual_capture_delay", manualCaptureDelay.toString());
+        localStorage.setItem("manager_auto_capture_delay", autoCaptureDelay.toString());
     }, [
         selectedFranchise,
         selectedLanguage,
         searchMode,
         autoAdd,
         autoCapture,
-        autoCaptureInterval,
+        manualCaptureDelay,
+        autoCaptureDelay,
     ]);
 
     const languageOptions = useMemo(() => {
@@ -380,6 +374,10 @@ export default function CardManagerPage() {
                                 if (val) setAutoAdd(true);
                                 else setAutoCaptureActive(false);
                             }}
+                            manualCaptureDelay={manualCaptureDelay}
+                            onManualCaptureDelayChange={setManualCaptureDelay}
+                            autoCaptureDelay={autoCaptureDelay}
+                            onAutoCaptureDelayChange={setAutoCaptureDelay}
                             loopActive={autoCaptureActive}
                             onLoopActiveChange={(val) => {
                                 if (!val) {
@@ -389,10 +387,6 @@ export default function CardManagerPage() {
                                 }
                                 setAutoCaptureActive(val);
                             }}
-                            autoCaptureInterval={autoCaptureInterval}
-                            onAutoCaptureIntervalChange={
-                                setAutoCaptureInterval
-                            }
                             paused={waitingForSelection}
                             onClear={() => {
                                 setWaitingForSelection(false);

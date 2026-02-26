@@ -16,8 +16,7 @@ import { OCR_CONFIG } from "@/constants/ocr";
 import { ImageThumbnail } from "./ImageThumbnail";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { AutoOptions } from "./AutoOptions";
-import { CameraStatus } from "./CameraStatus";
-import { CameraShutter, useAutoCapture } from "./CameraShutter";
+import { CameraShutter } from "./CameraShutter";
 import { CameraDevices, useCameraDevices } from "./CameraDevices";
 
 interface CameraViewProps {
@@ -31,8 +30,10 @@ interface CameraViewProps {
     onAutoCaptureChange?: (val: boolean) => void;
     loopActive?: boolean;
     onLoopActiveChange?: (val: boolean) => void;
-    autoCaptureInterval?: number;
-    onAutoCaptureIntervalChange?: (val: number) => void;
+    manualCaptureDelay?: number;
+    onManualCaptureDelayChange?: (val: number) => void;
+    autoCaptureDelay?: number;
+    onAutoCaptureDelayChange?: (val: number) => void;
     onClear?: () => void;
     preview?: string | null;
     setPreview: (url: string | null) => void;
@@ -93,8 +94,10 @@ export function CameraView({
     onAutoCaptureChange,
     loopActive,
     onLoopActiveChange,
-    autoCaptureInterval = 5,
-    onAutoCaptureIntervalChange,
+    manualCaptureDelay = OCR_CONFIG.MANUAL_CAPTURE_DELAY,
+    onManualCaptureDelayChange,
+    autoCaptureDelay = OCR_CONFIG.AUTO_CAPTURE_DELAY,
+    onAutoCaptureDelayChange,
     onClear,
     preview,
     setPreview,
@@ -236,24 +239,35 @@ export function CameraView({
         }
     }, [cameraActive, selectedDeviceId]);
 
-    const { delayCount, fading, trigger: triggerDelayCapture, cancel: cancelDelay } = useDelayCapture(
-        OCR_CONFIG.DELAY_CAPTURE,
+    const { delayCount: manualDelayCount, fading: manualFading, trigger: triggerManual, cancel: cancelManual } = useDelayCapture(
+        manualCaptureDelay,
+        capturePhoto,
+    );
+    const { delayCount: autoDelayCount, fading: autoFading, trigger: triggerAuto, cancel: cancelAuto } = useDelayCapture(
+        autoCaptureDelay,
         capturePhoto,
     );
 
-    // Cancel any in-progress delay when loop stops
-    useEffect(() => {
-        if (!loopActive) cancelDelay();
-    }, [loopActive, cancelDelay]);
+    const delayCount = autoCapture ? autoDelayCount : manualDelayCount;
+    const fading = autoCapture ? autoFading : manualFading;
 
-    const countdown = useAutoCapture({
-        autoCapture,
-        loopActive,
-        cameraActive,
-        paused: paused || delayCount !== null,
-        autoCaptureInterval,
-        onCapture: triggerDelayCapture,
-    });
+    // Cancel delays when loop stops
+    useEffect(() => {
+        if (!loopActive) {
+            cancelManual();
+            cancelAuto();
+        }
+    }, [loopActive, cancelManual, cancelAuto]);
+
+    // Re-trigger auto delay after each scan completes if loop is active and not paused
+    const prevLoadingRef = useRef(loading);
+    useEffect(() => {
+        const wasLoading = prevLoadingRef.current;
+        prevLoadingRef.current = loading;
+        if (wasLoading && !loading && loopActive && !paused && cameraActive) {
+            triggerAuto();
+        }
+    }, [loading, loopActive, paused, cameraActive, triggerAuto]);
 
     return (
         <Stack gap="md" w="100%">
@@ -327,14 +341,6 @@ export function CameraView({
                     </Center>
                 )}
 
-                {delayCount === null && (
-                    <CameraStatus
-                        autoCapture={autoCapture}
-                        countdown={countdown}
-                        paused={paused}
-                        loopActive={loopActive}
-                    />
-                )}
             </Box>
 
             <Box pos="relative" w="100%">
@@ -343,7 +349,7 @@ export function CameraView({
                     cameraActive={cameraActive}
                     autoCapture={autoCapture}
                     loopActive={loopActive}
-                    onCapture={triggerDelayCapture}
+                    onCapture={autoCapture ? triggerAuto : triggerManual}
                     onLoopActiveChange={onLoopActiveChange}
                     onClear={onClear}
                 />
@@ -366,8 +372,10 @@ export function CameraView({
                 onAutoAddChange={onAutoAddChange}
                 autoCapture={autoCapture}
                 onAutoCaptureChange={onAutoCaptureChange}
-                autoCaptureInterval={autoCaptureInterval}
-                onAutoCaptureIntervalChange={onAutoCaptureIntervalChange}
+                manualCaptureDelay={manualCaptureDelay}
+                onManualCaptureDelayChange={onManualCaptureDelayChange}
+                autoCaptureDelay={autoCaptureDelay}
+                onAutoCaptureDelayChange={onAutoCaptureDelayChange}
             />
         </Stack>
     );

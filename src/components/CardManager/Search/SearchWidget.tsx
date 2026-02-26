@@ -24,8 +24,10 @@ interface SearchWidgetProps {
     onClear?: () => void;
     loopActive?: boolean;
     onLoopActiveChange?: (val: boolean) => void;
-    autoCaptureInterval: number;
-    onAutoCaptureIntervalChange: (val: number) => void;
+    manualCaptureDelay: number;
+    onManualCaptureDelayChange: (val: number) => void;
+    autoCaptureDelay: number;
+    onAutoCaptureDelayChange: (val: number) => void;
     resetTrigger?: number;
     selectedFranchise: string | null;
     onFranchiseChange: (val: string | null) => void;
@@ -52,8 +54,10 @@ export function SearchWidget({
     onClear,
     loopActive,
     onLoopActiveChange,
-    autoCaptureInterval,
-    onAutoCaptureIntervalChange,
+    manualCaptureDelay,
+    onManualCaptureDelayChange,
+    autoCaptureDelay,
+    onAutoCaptureDelayChange,
     resetTrigger,
     selectedFranchise,
     onFranchiseChange,
@@ -120,10 +124,10 @@ export function SearchWidget({
                         paused={paused}
                         loopActive={loopActive}
                         onLoopActiveChange={onLoopActiveChange}
-                        autoCaptureInterval={autoCaptureInterval}
-                        onAutoCaptureIntervalChange={
-                            onAutoCaptureIntervalChange
-                        }
+                        manualCaptureDelay={manualCaptureDelay}
+                        onManualCaptureDelayChange={onManualCaptureDelayChange}
+                        autoCaptureDelay={autoCaptureDelay}
+                        onAutoCaptureDelayChange={onAutoCaptureDelayChange}
                         resetTrigger={resetTrigger}
                     />
                 )}
