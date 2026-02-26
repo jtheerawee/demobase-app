@@ -12,7 +12,9 @@ export async function scrapePokemonCardsTh({
     send,
     deepScrape,
     collectionId,
+    cardLimit,
 }: ScraperOptions) {
+    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
@@ -21,8 +23,8 @@ export async function scrapePokemonCardsTh({
         url.includes("pageNo=")
             ? url.replace(/pageNo=\d+/, `pageNo=${p}`)
             : url.includes("?")
-              ? `${url}&pageNo=${p}`
-              : `${url}?pageNo=${p}`;
+                ? `${url}&pageNo=${p}`
+                : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
     const concurrency = APP_CONFIG.CARD_CONCURRENCY_LIMIT;
@@ -75,14 +77,14 @@ export async function scrapePokemonCardsTh({
                             const absoluteImageUrl = imageUrl.startsWith("http")
                                 ? imageUrl
                                 : window.location.origin +
-                                  (imageUrl.startsWith("/") ? "" : "/") +
-                                  imageUrl;
+                                (imageUrl.startsWith("/") ? "" : "/") +
+                                imageUrl;
                             const link = anchor?.getAttribute("href") || "";
                             const absoluteLink = link.startsWith("http")
                                 ? link
                                 : window.location.origin +
-                                  (link.startsWith("/") ? "" : "/") +
-                                  link;
+                                (link.startsWith("/") ? "" : "/") +
+                                link;
                             return {
                                 imageUrl: absoluteImageUrl,
                                 alt: img?.alt || "Pokemon Card",
@@ -125,9 +127,26 @@ export async function scrapePokemonCardsTh({
                         send({ type: "meta", totalPages });
                     }
 
-                    const startIndex = sharedCardList.length;
-                    sharedCardList.push(...pageData.items);
-                    send({ type: "chunk", items: pageData.items, startIndex });
+                    const beforeCount = sharedCardList.length;
+                    const canAdd = limit - beforeCount;
+
+                    if (canAdd <= 0) {
+                        shouldAbort = true;
+                        break;
+                    }
+
+                    const cardsToAdd = pageData.items.slice(0, canAdd);
+                    const startIndex = beforeCount;
+                    sharedCardList.push(...cardsToAdd);
+
+                    if (sharedCardList.length >= limit) {
+                        send({
+                            type: "step",
+                            message: `Reached card limit (${limit}). Stopping all workers...`,
+                        });
+                        shouldAbort = true;
+                    }
+                    send({ type: "chunk", items: cardsToAdd, startIndex });
                 } catch (pageErr) {
                     console.error(
                         `[Scraper] Worker ${workerId} failed at page ${p}:`,

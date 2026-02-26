@@ -9,6 +9,9 @@ import {
     Button,
     Text,
     Group,
+    NumberInput,
+    ActionIcon,
+    Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { PageHeader } from "@/components/PageHeader";
@@ -24,6 +27,7 @@ import {
     IconDatabaseExport,
     IconAlertCircle,
     IconCheck,
+    IconSettings,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { useState, useRef, useEffect } from "react";
@@ -65,6 +69,12 @@ export default function CardScraperPage() {
         message: "",
     });
 
+    const [settingsOpened, { open: openSettings, close: closeSettings }] =
+        useDisclosure(false);
+    const [cardScraperLimit, setCardScraperLimit] = useState<number>(
+        APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION,
+    );
+
     const askConfirm = (title: string, message: string, action: () => void) => {
         setConfirmConfig({ title, message });
         pendingActionRef.current = action;
@@ -83,8 +93,13 @@ export default function CardScraperPage() {
             localStorage.getItem("scraper_selected_franchise") || "mtg";
         const savedLanguage =
             localStorage.getItem("scraper_selected_language") || "en";
+        const savedLimit = localStorage.getItem("scraper_card_limit");
+
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
+        if (savedLimit) {
+            setCardScraperLimit(parseInt(savedLimit, 10));
+        }
     }, []);
 
     // 2. Save to localStorage and fetch collections when selections change
@@ -250,6 +265,7 @@ export default function CardScraperPage() {
                 skipSave: false,
                 deepScrape: true,
                 collectionId: col.id,
+                cardLimit: cardScraperLimit,
             };
 
             await runScraperStream(requestData, (items) => {
@@ -354,6 +370,7 @@ export default function CardScraperPage() {
             skipSave: false,
             deepScrape: true,
             collectionId: targetCollection.id,
+            cardLimit: cardScraperLimit,
         };
 
         await runScraperStream(requestData, (items) => {
@@ -625,6 +642,35 @@ export default function CardScraperPage() {
                 </Stack>
             </Modal>
 
+            <Modal
+                opened={settingsOpened}
+                onClose={closeSettings}
+                title={
+                    <Text fw={700}>
+                        Scraper Settings
+                    </Text>
+                }
+                radius="md"
+            >
+                <Stack gap="md">
+                    <NumberInput
+                        label="Max cards per collection"
+                        description="Limit the number of cards to scrape from each set."
+                        value={cardScraperLimit}
+                        onChange={(val) => {
+                            const num = Number(val);
+                            setCardScraperLimit(num);
+                            localStorage.setItem("scraper_card_limit", num.toString());
+                        }}
+                        min={1}
+                        max={1000}
+                    />
+                    <Button onClick={closeSettings} fullWidth>
+                        Save & Close
+                    </Button>
+                </Stack>
+            </Modal>
+
             <Stack gap="lg">
                 <PageHeader
                     title="Card Scraper"
@@ -634,6 +680,19 @@ export default function CardScraperPage() {
                             size={32}
                             color="var(--mantine-color-blue-6)"
                         />
+                    }
+                    actions={
+                        <Tooltip label="Scraper Settings">
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                size="lg"
+                                radius="md"
+                                onClick={openSettings}
+                            >
+                                <IconSettings size={22} />
+                            </ActionIcon>
+                        </Tooltip>
                     }
                 />
 

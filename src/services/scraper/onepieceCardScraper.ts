@@ -14,7 +14,9 @@ export async function scrapeOnepieceCards({
     context,
     collectionId,
     send,
+    cardLimit,
 }: ScraperOptions) {
+    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const cards: any[] = [];
     const baseUrl = url.split("#")[0];
 
@@ -113,7 +115,7 @@ export async function scrapeOnepieceCards({
                     () => {
                         const info = document.querySelector(
                             ".fancybox-slide--current .infoCol, .fancybox-slide--current .info_col," +
-                                ".fancybox-content .infoCol, .fancybox-content .info_col",
+                            ".fancybox-content .infoCol, .fancybox-content .info_col",
                         );
                         return !!info?.textContent?.includes("|");
                     },
@@ -209,6 +211,13 @@ export async function scrapeOnepieceCards({
                 message: `[${N}/${totalAnchors}] ${details.cardNo}: ${details.name} | Rarity="${details.rarity}"`,
             });
 
+            if (cards.length >= limit) {
+                send({
+                    type: "step",
+                    message: `Reached card limit (${limit}). Stopping...`
+                });
+                break;
+            }
             // Close modal before clicking next card
             const closed = await page.evaluate(() => {
                 const btn = document.querySelector(

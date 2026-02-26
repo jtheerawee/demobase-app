@@ -8,6 +8,7 @@ export interface ScraperOptions {
     send: (data: unknown) => void;
     collectionId?: number | string;
     skipSave?: boolean;
+    cardLimit?: number;
 }
 
 export interface ScraperResult {

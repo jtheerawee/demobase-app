@@ -9,7 +9,9 @@ export async function scrapeMTGCards({
     collectionId,
     deepScrape,
     language,
+    cardLimit,
 }: ScraperOptions) {
+    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     console.log(
         `[Scraper] Starting MTG card scrape. collectionId:`,
         collectionId,
@@ -44,8 +46,8 @@ export async function scrapeMTGCards({
                     p === 1
                         ? url
                         : url.includes("?")
-                          ? `${url}&page=${p}`
-                          : `${url}?page=${p}`;
+                            ? `${url}&page=${p}`
+                            : `${url}?page=${p}`;
                 send({
                     type: "step",
                     message: `Modern set page: Loading page ${p}...`,
@@ -156,17 +158,22 @@ export async function scrapeMTGCards({
                 }
                 newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
 
+                const beforeCount = allCards.length;
+                const canAdd = limit - beforeCount;
+                const cardsToAdd = newCards.slice(0, canAdd);
+
+                allCards.push(...cardsToAdd);
+
                 send({
                     type: "step",
-                    message: `Found ${newCards.length} new cards on page ${p}.`,
+                    message: `Found ${cardsToAdd.length} new cards on page ${p}.`,
                 });
-                allCards.push(...newCards);
 
                 // Save this page's cards immediately to get real-time stats
                 if (collectionId !== undefined && collectionId !== null) {
                     try {
                         const result = (await saveScrapedCards(
-                            newCards,
+                            cardsToAdd,
                             collectionId,
                         )) as any;
                         if (result) {
@@ -190,6 +197,14 @@ export async function scrapeMTGCards({
                     }
                 }
 
+                if (allCards.length >= limit) {
+                    send({
+                        type: "step",
+                        message: `Reached card limit (${limit}). Stopping pagination...`,
+                    });
+                    break;
+                }
+
                 p++;
                 if (p > 50) break; // Safety cap
             }
@@ -202,15 +217,15 @@ export async function scrapeMTGCards({
                         ? url.includes("output=checklist")
                             ? url
                             : url.includes("?")
-                              ? `${url}&output=checklist`
-                              : `${url}?output=checklist`
+                                ? `${url}&output=checklist`
+                                : `${url}?output=checklist`
                         : url.includes("output=checklist")
-                          ? url.includes("?")
-                              ? `${url}&page=${p}`
-                              : `${url}?page=${p}`
-                          : url.includes("?")
-                            ? `${url}&output=checklist&page=${p}`
-                            : `${url}?output=checklist&page=${p}`;
+                            ? url.includes("?")
+                                ? `${url}&page=${p}`
+                                : `${url}?page=${p}`
+                            : url.includes("?")
+                                ? `${url}&output=checklist&page=${p}`
+                                : `${url}?output=checklist&page=${p}`;
 
                 send({
                     type: "step",
@@ -357,17 +372,22 @@ export async function scrapeMTGCards({
                 }
                 newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
 
+                const beforeCount = allCards.length;
+                const canAdd = limit - beforeCount;
+                const cardsToAdd = newCards.slice(0, canAdd);
+
+                allCards.push(...cardsToAdd);
+
                 send({
                     type: "step",
-                    message: `Found ${newCards.length} new cards on page ${p}.`,
+                    message: `Found ${cardsToAdd.length} new cards on page ${p}.`,
                 });
-                allCards.push(...newCards);
 
                 // Save this page's cards immediately to get real-time stats
                 if (collectionId !== undefined && collectionId !== null) {
                     try {
                         const result = (await saveScrapedCards(
-                            newCards,
+                            cardsToAdd,
                             collectionId,
                         )) as any;
                         if (result) {
@@ -389,6 +409,14 @@ export async function scrapeMTGCards({
                     } catch (error) {
                         console.error(`Failed to save page ${p} cards:`, error);
                     }
+                }
+
+                if (allCards.length >= limit) {
+                    send({
+                        type: "step",
+                        message: `Reached card limit (${limit}). Stopping pagination...`,
+                    });
+                    break;
                 }
 
                 p++;

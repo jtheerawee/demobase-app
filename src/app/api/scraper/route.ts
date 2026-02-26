@@ -78,7 +78,7 @@ export async function POST(request: Request) {
                             controller.enqueue(
                                 encoder.encode(`${JSON.stringify(data)}\n`),
                             );
-                        } catch (_err) {}
+                        } catch (_err) { }
                     };
 
                     try {
@@ -118,6 +118,8 @@ export async function POST(request: Request) {
                                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                         });
 
+                        const cardLimit = body.cardLimit ? Number(body.cardLimit) : undefined;
+
                         const scraperOptions = {
                             url,
                             type,
@@ -128,6 +130,7 @@ export async function POST(request: Request) {
                             language,
                             collectionId,
                             skipSave,
+                            cardLimit,
                         };
 
                         if (
@@ -175,7 +178,7 @@ export async function POST(request: Request) {
                         }
                         try {
                             controller.close();
-                        } catch (_e) {}
+                        } catch (_e) { }
                     }
                 },
             }),
