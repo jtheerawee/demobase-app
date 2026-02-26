@@ -168,6 +168,7 @@ export function CardManagerOCR({
                         onScan?.([`${setCode}:${cardNo}`]);
                     } else {
                         onResultInfo?.(text);
+                        onScan?.([]);
                     }
                 } else {
                     throw new Error("No text found on card");
