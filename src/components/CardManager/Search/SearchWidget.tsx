@@ -5,7 +5,6 @@ import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { WidgetHeader } from "@/components/WidgetHeader";
 import { SearchModeSwitcher, type SearchMode } from "./SearchModeSwitcher";
 import { SearchInstructionModal } from "./SearchInstructionModal";
-import { AudioVolumeWidget } from "@/components/CardManager/AudioVolumeWidget";
 
 
 interface SearchWidgetProps {
@@ -68,7 +67,6 @@ export function SearchWidget({
     languageOptions,
 }: SearchWidgetProps) {
     const [instructionOpened, setInstructionOpened] = useState(false);
-    const [voiceTriggerToken, setVoiceTriggerToken] = useState(0);
 
     return (
         <Stack gap={0} h="100%">
@@ -132,17 +130,10 @@ export function SearchWidget({
                             autoCaptureDelay={autoCaptureDelay}
                             onAutoCaptureDelayChange={onAutoCaptureDelayChange}
                             resetTrigger={resetTrigger}
-                            voiceTrigger={voiceTriggerToken}
                         />
                     )}
                 </Stack>
             </ScrollArea>
-
-            {searchMode === "camera" && (
-                <div style={{ flexShrink: 0, padding: 8 }}>
-                    <AudioVolumeWidget onTrigger={() => setVoiceTriggerToken(t => t + 1)} />
-                </div>
-            )}
 
             <SearchInstructionModal
                 opened={instructionOpened}
