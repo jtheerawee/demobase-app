@@ -4,3 +4,4 @@ export * from "./CardManagerOCR";
 export * from "./CardManagerTextSearch";
 export * from "./CardManagerCamera";
 export * from "./SearchModeSwitcher";
+export * from "./SearchInstructionModal";
