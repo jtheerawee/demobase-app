@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
-import { IconLayoutDashboard, IconQuestionMark } from "@tabler/icons-react";
+import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { MainLayout } from "@/components/CardManager/MainLayout";
 import { useDebouncedValue } from "@mantine/hooks";
@@ -303,16 +303,6 @@ export default function CardManagerPage() {
                             color="var(--mantine-color-grape-6)"
                         />
                     }
-                    actions={
-                        <Button
-                            variant="light"
-                            color="blue"
-                            leftSection={<IconQuestionMark size={16} />}
-                            onClick={() => setInstructionOpened(true)}
-                        >
-                            How to use
-                        </Button>
-                    }
                 />
 
                 <MainLayout
@@ -377,6 +367,7 @@ export default function CardManagerPage() {
                             selectedLanguage={selectedLanguage}
                             onLanguageChange={setSelectedLanguage}
                             languageOptions={languageOptions}
+                            onInfoClick={() => setInstructionOpened(true)}
                         />
                     }
                 />
@@ -440,11 +431,34 @@ export default function CardManagerPage() {
             <Modal
                 opened={instructionOpened}
                 onClose={() => setInstructionOpened(false)}
-                title="How to use Card Manager"
+                title={
+                    searchMode === "text"
+                        ? "How to use Text Search"
+                        : "How to use Camera Scan"
+                }
                 size="lg"
                 centered
             >
-                <Text>Instruction content goes here...</Text>
+                {searchMode === "text" ? (
+                    <Stack gap="sm">
+                        <Text fw={700}>Text Search Guide</Text>
+                        <Text size="sm">
+                            Enter the card name, set, or number to find cards
+                            in our database. You can use the franchise and
+                            language filters to narrow down your results.
+                        </Text>
+                    </Stack>
+                ) : (
+                    <Stack gap="sm">
+                        <Text fw={700}>Camera Scan Guide</Text>
+                        <Text size="sm">
+                            Use your camera to identify cards instantly. Dual
+                            modes allow for either precise OCR text detection
+                            or visual matching. Enable "Auto-capture" for a
+                            faster workflow.
+                        </Text>
+                    </Stack>
+                )}
             </Modal>
         </Container>
     );

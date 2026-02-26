@@ -1,10 +1,9 @@
-import { SegmentedControl, Stack, Center, Select } from "@mantine/core";
-import { IconAlphabetLatin, IconCamera } from "@tabler/icons-react";
+import { Stack, Select } from "@mantine/core";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { CardManagerHeader } from "./CardManagerHeader";
+import { SearchModeSwitcher, type SearchMode } from "./SearchModeSwitcher";
 
-export type SearchMode = "text" | "camera";
 
 interface SearchWidgetProps {
     query: string;
@@ -31,6 +30,7 @@ interface SearchWidgetProps {
     selectedLanguage: string | null;
     onLanguageChange: (val: string | null) => void;
     languageOptions: { value: string; label: string }[];
+    onInfoClick?: () => void;
 }
 
 export function SearchWidget({
@@ -58,6 +58,7 @@ export function SearchWidget({
     selectedLanguage,
     onLanguageChange,
     languageOptions,
+    onInfoClick,
 }: SearchWidgetProps) {
     return (
         <>
@@ -86,34 +87,11 @@ export function SearchWidget({
             />
 
             <Stack gap="sm" w="100%" flex={1}>
-                <Center>
-                    <SegmentedControl
-                        value={searchMode}
-                        onChange={(val) =>
-                            onSearchModeChange(val as SearchMode)
-                        }
-                        data={[
-                            {
-                                value: "text",
-                                label: (
-                                    <Center style={{ gap: 10 }}>
-                                        <IconAlphabetLatin size={16} />
-                                        <span>Text Search</span>
-                                    </Center>
-                                ),
-                            },
-                            {
-                                value: "camera",
-                                label: (
-                                    <Center style={{ gap: 10 }}>
-                                        <IconCamera size={16} />
-                                        <span>Camera</span>
-                                    </Center>
-                                ),
-                            },
-                        ]}
-                    />
-                </Center>
+                <SearchModeSwitcher
+                    value={searchMode}
+                    onChange={onSearchModeChange}
+                    onInfoClick={onInfoClick}
+                />
 
                 {searchMode === "text" ? (
                     <CardManagerTextSearch
