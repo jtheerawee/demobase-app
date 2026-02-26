@@ -14,7 +14,7 @@ import {
 import { Dropzone, IMAGE_MIME_TYPE, FileWithPath } from "@mantine/dropzone";
 import { IconPhoto, IconX, IconScan, IconRefresh } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { APP_CONFIG } from "@/constants/app";
+import { OCR_CONFIG } from "@/constants/ocr";
 import { CardManagerCamera } from "./CardManagerCamera";
 
 interface CardManagerOCRProps {
@@ -76,15 +76,15 @@ export function CardManagerOCR({
 
             if (mode === "vision") {
                 formData.append("fileA", fileToUse);
-                formData.append("model", APP_CONFIG.OCR_MODEL);
+                formData.append("model", OCR_CONFIG.OCR_MODEL);
                 formData.append(
                     "score",
-                    APP_CONFIG.OCR_SCORE_THRESHOLD.toString(),
+                    OCR_CONFIG.OCR_SCORE_THRESHOLD.toString(),
                 );
-                formData.append("limit", APP_CONFIG.OCR_LIMIT.toString());
-                formData.append("workers", APP_CONFIG.OCR_WORKERS.toString());
+                formData.append("limit", OCR_CONFIG.OCR_LIMIT.toString());
+                formData.append("workers", OCR_CONFIG.OCR_WORKERS.toString());
 
-                const res = await fetch(APP_CONFIG.OCR_API_URL, {
+                const res = await fetch(OCR_CONFIG.OCR_API_URL, {
                     method: "POST",
                     body: formData,
                     signal: controller.signal,
@@ -132,7 +132,7 @@ export function CardManagerOCR({
                 }
             } else {
                 formData.append("file", fileToUse);
-                const res = await fetch(APP_CONFIG.OCR_TEXT_API_URL, {
+                const res = await fetch(OCR_CONFIG.OCR_TEXT_API_URL, {
                     method: "POST",
                     body: formData,
                     signal: controller.signal,
@@ -210,7 +210,7 @@ export function CardManagerOCR({
 
     if (mode === "camera") {
         return (
-            <Box maw={APP_CONFIG.OCR_SCAN_MAX_WIDTH} mx="auto" w="100%">
+            <Box maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH} mx="auto" w="100%">
                 <CardManagerCamera
                     onCapture={(capturedFile) => {
                         setFile(capturedFile);
@@ -236,13 +236,13 @@ export function CardManagerOCR({
     }
 
     return (
-        <Stack gap="md" maw={APP_CONFIG.OCR_SCAN_MAX_WIDTH} w="100%" mx="auto">
+        <Stack gap="md" maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH} w="100%" mx="auto">
             <Box
                 style={{
                     borderRadius: "var(--mantine-radius-md)",
                     overflow: "hidden",
                     position: "relative",
-                    height: APP_CONFIG.CAMERA_VIEW_HEIGHT,
+                    height: OCR_CONFIG.CAMERA_VIEW_HEIGHT,
                     backgroundColor: preview ? "#000" : "transparent",
                     border: preview
                         ? "none"

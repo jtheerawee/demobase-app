@@ -28,41 +28,10 @@ export const APP_CONFIG = {
     SEARCH_RESULTS_PER_ROW: 1,
     PREVIEW_IMAGE_WIDTH: 400,
 
-    // Feature Toggles (Widgets)
-    ENABLED_WIDGETS: {
-        EBAY_ASSISTANCE: true,
-        CARD_SCRAPER: true,
-        CARD_MANAGER: true,
-
-        // Card Scraper Page
-        SCRAPER_RUNNING_STEPS: true,
-        SCRAPER_STATS: true,
-
-        // Card Manager Page
-        CARD_MANAGER_COLLECTION: true,
-        CARD_MANAGER_SEARCH: true,
-    },
-
-    // OCR
-    OCR_API_URL: "http://localhost:3002/api/ocr/search",
-    OCR_MODEL: "CLIP",
-    OCR_SCORE_THRESHOLD: 0.8,
-    OCR_LIMIT: 5,
-    OCR_WORKERS: 2,
-    OCR_SCAN_WIDTH: "50%",
-    OCR_SCAN_MAX_WIDTH: 500,
-    CAMERA_VIEW_HEIGHT: 400,
-
-    AUTO_CAPTURE_INTERVAL: 5,
-    AUTO_CAPTURE_MAX_NO_CARD: 2,
-
     // Layout Spans (Mantine Grid 12-cols)
     CARD_MANAGER_LAYOUT: {
         COLLECTION_SPAN: 3, // 1/4
         RESULTS_SPAN: 3, // 1/4
         CONTROLS_SPAN: 6, // 2/4
     },
-
-    // OCR TEXT
-    OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
 } as const;

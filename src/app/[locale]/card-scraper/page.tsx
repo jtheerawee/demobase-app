@@ -171,7 +171,7 @@ export default function CardScraperPage() {
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during deletion",
+                        "An unexpected error occurred during deletion",
                     );
                 } finally {
                     setCollectionLoading(false);
@@ -211,7 +211,7 @@ export default function CardScraperPage() {
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during deletion",
+                        "An unexpected error occurred during deletion",
                     );
                 } finally {
                     setCollectionLoading(false);
@@ -398,7 +398,7 @@ export default function CardScraperPage() {
         } catch (err: any) {
             setError(
                 err.message ||
-                    "An unexpected error occurred during card deletion",
+                "An unexpected error occurred during card deletion",
             );
         }
     };
@@ -430,7 +430,7 @@ export default function CardScraperPage() {
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during bulk card deletion",
+                        "An unexpected error occurred during bulk card deletion",
                     );
                 }
             },
@@ -669,12 +669,8 @@ export default function CardScraperPage() {
                                 setSelectedCollection(null);
                             }}
                         />
-                        {APP_CONFIG.ENABLED_WIDGETS.SCRAPER_RUNNING_STEPS && (
-                            <CardScraperRunningSteps steps={steps} />
-                        )}
-                        {APP_CONFIG.ENABLED_WIDGETS.SCRAPER_STATS && (
-                            <CardScraperStats stats={scraperStats} />
-                        )}
+                        <CardScraperRunningSteps steps={steps} />
+                        <CardScraperStats stats={scraperStats} />
                     </Stack>
 
                     <div>

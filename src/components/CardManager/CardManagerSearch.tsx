@@ -4,7 +4,7 @@ import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { CardManagerHeader } from "./CardManagerHeader";
 
-export type SearchMode = "text" | "scan_camera";
+export type SearchMode = "text" | "camera";
 
 interface CardManagerSearchProps {
     query: string;
@@ -104,7 +104,7 @@ export function CardManagerSearch({
                                     ),
                                 },
                                 {
-                                    value: "scan_camera",
+                                    value: "camera",
                                     label: (
                                         <Center style={{ gap: 10 }}>
                                             <IconCamera size={16} />

@@ -1,0 +1,8 @@
+export const EBAY_CONFIG = {
+    ITEMS_PER_PAGE: 8,
+    HIDE_ABNORMAL_PRICES: false,
+    HIDE_UNMATCHED_SERVICES: true,
+    OUTLIER_THRESHOLD: 3.0,
+    OUTLIER_WINDOW_SAMPLES: 2,
+    API_HOST: "http://localhost:3002",
+};

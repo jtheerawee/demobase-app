@@ -28,7 +28,7 @@ import {
     IconMaximize,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { APP_CONFIG } from "@/constants/app";
+import { OCR_CONFIG } from "@/constants/ocr";
 
 interface CardManagerCameraProps {
     onCapture: (file: FileWithPath) => void;
@@ -231,7 +231,7 @@ export function CardManagerCamera({
                     borderRadius: "var(--mantine-radius-md)",
                     overflow: "hidden",
                     position: "relative",
-                    height: APP_CONFIG.CAMERA_VIEW_HEIGHT,
+                    height: OCR_CONFIG.CAMERA_VIEW_HEIGHT,
                     backgroundColor: "#000",
                 }}
             >

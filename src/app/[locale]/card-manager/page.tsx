@@ -7,6 +7,7 @@ import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
+import { OCR_CONFIG } from "@/constants/ocr";
 import { CollectedCardList } from "@/components/CardManager/CollectedCardList";
 import {
     CardManagerSearch,
@@ -16,7 +17,8 @@ import {
     CardManagerResult,
     SearchedCard,
 } from "@/components/CardManager/CardManagerResult";
-import { LANGUAGE_OPTIONS, FRANCHISE_OPTIONS } from "@/constants/languages";
+import { LANGUAGE_OPTIONS } from "@/constants/languages";
+import { FRANCHISE_OPTIONS } from "@/constants/franchises";
 
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
@@ -40,7 +42,7 @@ export default function CardManagerPage() {
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
     const [autoCaptureInterval, setAutoCaptureInterval] = useState<number>(
-        APP_CONFIG.AUTO_CAPTURE_INTERVAL,
+        OCR_CONFIG.AUTO_CAPTURE_INTERVAL,
     );
     const [autoCaptureActive, setAutoCaptureActive] = useState(false);
     const [waitingForSelection, setWaitingForSelection] = useState(false);
@@ -58,7 +60,7 @@ export default function CardManagerPage() {
             localStorage.getItem("manager_selected_franchise") || "all";
         const savedLanguage =
             localStorage.getItem("manager_selected_language") || "all";
-        const savedMode =
+        let savedMode =
             (localStorage.getItem("manager_search_mode") as SearchMode) ||
             "text";
         const savedAutoAdd =
@@ -147,12 +149,12 @@ export default function CardManagerPage() {
                 consecutiveNoCard.current += 1;
                 if (
                     consecutiveNoCard.current >=
-                    APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                    OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
                     setAutoCaptureActive(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
-                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
+                        message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange",
                     });
                 }
@@ -184,12 +186,12 @@ export default function CardManagerPage() {
                 if (
                     autoCapture &&
                     consecutiveNoCard.current >=
-                    APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                    OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
                     setAutoCaptureActive(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
-                        message: `No card detected for ${APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
+                        message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange",
                     });
                 }
@@ -208,7 +210,7 @@ export default function CardManagerPage() {
             consecutiveNoCard.current += 1;
             if (
                 autoCapture &&
-                consecutiveNoCard.current >= APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                consecutiveNoCard.current >= OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
             ) {
                 setAutoCaptureActive(false);
             }
@@ -298,23 +300,19 @@ export default function CardManagerPage() {
                     align="flex-start"
                     style={{ height: "calc(100vh - 180px)" }}
                 >
-                    {/* Left Sidebar: Collected Cards (1/4) */}
-                    {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_COLLECTION && (
-                        <Grid.Col
-                            span={{
-                                base: 12,
-                                md: APP_CONFIG.CARD_MANAGER_LAYOUT
-                                    .COLLECTION_SPAN,
-                            }}
-                            h="100%"
-                        >
-                            <CollectedCardList
-                                ref={listRef}
-                                onImageClick={setPreviewImage}
-                                onCollectionChange={setCollectedCardIds}
-                            />
-                        </Grid.Col>
-                    )}
+                    <Grid.Col
+                        span={{
+                            base: 12,
+                            md: APP_CONFIG.CARD_MANAGER_LAYOUT.COLLECTION_SPAN,
+                        }}
+                        h="100%"
+                    >
+                        <CollectedCardList
+                            ref={listRef}
+                            onImageClick={setPreviewImage}
+                            onCollectionChange={setCollectedCardIds}
+                        />
+                    </Grid.Col>
 
                     {/* Middle: Search Results (1/4) */}
                     <Grid.Col
@@ -338,58 +336,53 @@ export default function CardManagerPage() {
                     </Grid.Col>
 
                     {/* Right: Camera / Search Input (2/4) */}
-                    {APP_CONFIG.ENABLED_WIDGETS.CARD_MANAGER_SEARCH && (
-                        <Grid.Col
-                            span={{
-                                base: 12,
-                                md: APP_CONFIG.CARD_MANAGER_LAYOUT
-                                    .CONTROLS_SPAN,
+                    <Grid.Col
+                        span={{
+                            base: 12,
+                            md: APP_CONFIG.CARD_MANAGER_LAYOUT.CONTROLS_SPAN,
+                        }}
+                        h="100%"
+                    >
+                        <CardManagerSearch
+                            query={searchQuery}
+                            setQuery={setSearchQuery}
+                            loading={loading}
+                            searchMode={searchMode}
+                            onSearchModeChange={setSearchMode}
+                            onScanIds={handleScanIds}
+                            onScanStart={() => {
+                                setResults([]);
+                                setLoading(true);
                             }}
-                            h="100%"
-                        >
-                            <CardManagerSearch
-                                query={searchQuery}
-                                setQuery={setSearchQuery}
-                                loading={loading}
-                                searchMode={searchMode}
-                                onSearchModeChange={setSearchMode}
-                                onScanIds={handleScanIds}
-                                onScanStart={() => {
-                                    setResults([]);
-                                    setLoading(true);
-                                }}
-                                autoAdd={autoAdd}
-                                onAutoAddChange={setAutoAdd}
-                                autoCapture={autoCapture}
-                                onAutoCaptureChange={(val) => {
-                                    setAutoCapture(val);
-                                    if (val) setAutoAdd(true);
-                                    else setAutoCaptureActive(false);
-                                }}
-                                loopActive={autoCaptureActive}
-                                onLoopActiveChange={setAutoCaptureActive}
-                                autoCaptureInterval={autoCaptureInterval}
-                                onAutoCaptureIntervalChange={
-                                    setAutoCaptureInterval
-                                }
-                                paused={waitingForSelection}
-                                onClear={() => setWaitingForSelection(false)}
-                                resetTrigger={resetTrigger}
-                                selectedFranchise={selectedFranchise}
-                                onFranchiseChange={(val) => {
-                                    setSelectedFranchise(val);
-                                    setSelectedLanguage("all");
-                                }}
-                                franchiseOptions={[
-                                    { value: "all", label: "All Franchises" },
-                                    ...FRANCHISE_OPTIONS,
-                                ]}
-                                selectedLanguage={selectedLanguage}
-                                onLanguageChange={setSelectedLanguage}
-                                languageOptions={languageOptions}
-                            />
-                        </Grid.Col>
-                    )}
+                            autoAdd={autoAdd}
+                            onAutoAddChange={setAutoAdd}
+                            autoCapture={autoCapture}
+                            onAutoCaptureChange={(val) => {
+                                setAutoCapture(val);
+                                if (val) setAutoAdd(true);
+                                else setAutoCaptureActive(false);
+                            }}
+                            loopActive={autoCaptureActive}
+                            onLoopActiveChange={setAutoCaptureActive}
+                            autoCaptureInterval={autoCaptureInterval}
+                            onAutoCaptureIntervalChange={setAutoCaptureInterval}
+                            paused={waitingForSelection}
+                            onClear={() => setWaitingForSelection(false)}
+                            resetTrigger={resetTrigger}
+                            selectedFranchise={selectedFranchise}
+                            onFranchiseChange={(val) => {
+                                setSelectedFranchise(val);
+                                setSelectedLanguage("all");
+                            }}
+                            franchiseOptions={[
+                                { value: "all", label: "All Franchises" },
+                                ...FRANCHISE_OPTIONS,
+                            ]}
+                            selectedLanguage={selectedLanguage}
+                            onLanguageChange={setSelectedLanguage}
+                            languageOptions={languageOptions}
+                        />
+                    </Grid.Col>
                 </Grid>
             </Stack>
 

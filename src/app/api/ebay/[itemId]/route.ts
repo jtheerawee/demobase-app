@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { EBAY_CONFIG } from "@/constants/ebay";
 
-const CARD_API = process.env.EBAY_API_HOST ?? "http://localhost:3002";
+const CARD_API = EBAY_CONFIG.API_HOST;
 
 export async function GET(
     request: NextRequest,
