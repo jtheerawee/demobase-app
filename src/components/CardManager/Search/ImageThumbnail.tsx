@@ -3,12 +3,12 @@
 import { Box, Tooltip, Image } from "@mantine/core";
 import { IconMaximize } from "@tabler/icons-react";
 
-interface PreviewThumbnailProps {
+interface ImageThumbnailProps {
     preview: string | null;
     onEnlarge: () => void;
 }
 
-export function PreviewThumbnail({ preview, onEnlarge }: PreviewThumbnailProps) {
+export function ImageThumbnail({ preview, onEnlarge }: ImageThumbnailProps) {
     if (!preview) return null;
 
     return (

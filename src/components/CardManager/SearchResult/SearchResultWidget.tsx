@@ -104,6 +104,12 @@ export function SearchResultWidget({
                 opened={!!previewImage}
                 onClose={() => setPreviewImage(null)}
                 src={previewImage}
+                title={
+                    (() => {
+                        const card = results.find((c) => c.imageUrl === previewImage);
+                        return card ? `${card.name} (${card.collectionCode} #${card.cardNo})` : undefined;
+                    })()
+                }
             />
         </>
     );

@@ -295,6 +295,12 @@ export const CollectedCardWidget = forwardRef(
                     opened={!!previewImage}
                     onClose={() => setPreviewImage(null)}
                     src={previewImage}
+                    title={
+                        (() => {
+                            const card = collectedCards.find((c) => c.imageUrl === previewImage);
+                            return card ? `${card.name} (${card.collectionName} #${card.cardNo})` : undefined;
+                        })()
+                    }
                 />
             </>
         );

@@ -30,8 +30,8 @@ import {
 import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
-import { PreviewThumbnail } from "./PreviewThumbnail";
-import { EnlargeImageModal } from "@/components/EnlargeImageModal";
+import { ImageThumbnail } from "./ImageThumbnail";
+import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 
 interface CardManagerCameraProps {
     onCapture: (file: FileWithPath) => void;
@@ -353,16 +353,16 @@ export function CardManagerCamera({
                 </Center>
 
                 {/* Snapshot Thumbnail (Right-aligned) */}
-                <PreviewThumbnail
+                <ImageThumbnail
                     preview={preview || null}
                     onEnlarge={() => setIsEnlarged(true)}
                 />
             </Box>
 
-            <EnlargeImageModal
+            <ImagePreviewModal
                 opened={isEnlarged}
                 onClose={() => setIsEnlarged(false)}
-                preview={preview || null}
+                src={preview || null}
                 title="Last Captured Snapshot"
             />
 

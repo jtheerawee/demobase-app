@@ -8,12 +8,14 @@ interface ImagePreviewModalProps {
     opened: boolean;
     onClose: () => void;
     src: string | null;
+    title?: React.ReactNode;
 }
 
 export function ImagePreviewModal({
     opened,
     onClose,
     src,
+    title,
 }: ImagePreviewModalProps) {
     const [imgDimensions, setImgDimensions] = useState<{
         w: number;
@@ -31,10 +33,11 @@ export function ImagePreviewModal({
         <Modal
             opened={opened}
             onClose={handleClose}
+            title={title}
             size="auto"
-            padding={0}
+            padding={title ? "md" : 0}
             centered
-            withCloseButton={false}
+            withCloseButton={!!title}
             overlayProps={{
                 backgroundOpacity: 0.55,
                 blur: 3,
