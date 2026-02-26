@@ -1,14 +1,27 @@
 "use client";
 
-import { Card, Group, Text, Progress, ActionIcon, Stack, Select, Tooltip } from "@mantine/core";
+import { Card, Group, Text, Progress, ActionIcon, Stack, Select, Tooltip, Slider, Box } from "@mantine/core";
 import { IconMicrophone, IconMicrophoneOff } from "@tabler/icons-react";
 import { useState, useEffect, useRef } from "react";
 import { useLocalStorage } from "@mantine/hooks";
 
-export function AudioVolumeWidget() {
+interface AudioVolumeWidgetProps {
+    onTrigger?: () => void;
+}
+
+export function AudioVolumeWidget({ onTrigger }: AudioVolumeWidgetProps) {
     const [isListening, setIsListening] = useState(false);
     const [volume, setVolume] = useState(0);
     const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
+
+    // Threshold for voice trigger (0-100)
+    const [threshold, setThreshold] = useLocalStorage<number>({
+        key: "voice-trigger-threshold",
+        defaultValue: 60,
+    });
+
+    const lastTriggerTime = useRef(0);
+    const TRIGGER_COOLDOWN = 3000; // 3 seconds cooldown between voice triggers
     const [selectedDeviceId, setSelectedDeviceId] = useLocalStorage<string>({
         key: "preferred-microphone-device",
         defaultValue: "default",
@@ -67,7 +80,18 @@ export function AudioVolumeWidget() {
                 const buf = new Uint8Array(analyserRef.current.fftSize);
                 analyserRef.current.getByteTimeDomainData(buf);
                 const max = Math.max(...buf.map(v => Math.abs(v - 128)));
-                setVolume(Math.min(100, (max / 128) * 100 * 2.5));
+                const currentVolume = Math.min(100, (max / 128) * 100 * 3.0); // Slightly boosted for trigger sensitivity
+                setVolume(currentVolume);
+
+                // Voice trigger check
+                if (currentVolume >= threshold) {
+                    const now = Date.now();
+                    if (now - lastTriggerTime.current > TRIGGER_COOLDOWN) {
+                        lastTriggerTime.current = now;
+                        onTrigger?.();
+                    }
+                }
+
                 rafRef.current = requestAnimationFrame(tick);
             };
             tick();
@@ -119,14 +143,44 @@ export function AudioVolumeWidget() {
                     />
                 )}
 
-                <Progress
-                    value={volume}
-                    color={volume > 80 ? "red" : volume > 50 ? "yellow" : "blue"}
-                    size="xl"
-                    radius="xl"
-                    striped={isListening}
-                    animated={isListening}
-                />
+                <Box pos="relative" pt={4}>
+                    <Progress
+                        value={volume}
+                        color={volume > 80 ? "red" : volume > 50 ? "yellow" : "blue"}
+                        size="xl"
+                        radius="xl"
+                        striped={isListening}
+                        animated={isListening}
+                    />
+                    {/* Threshold marker */}
+                    <Box
+                        pos="absolute"
+                        top={0}
+                        bottom={0}
+                        left={`${threshold}%`}
+                        w={2}
+                        bg="red"
+                        style={{ zIndex: 1, opacity: 0.6, pointerEvents: "none" }}
+                    />
+                </Box>
+
+                <Stack gap={2}>
+                    <Group justify="space-between">
+                        <Text size="xs" c="dimmed">Voice Trigger Level</Text>
+                        <Text size="xs" fw={700} color={volume >= threshold ? "red" : "dimmed"}>
+                            {threshold}%
+                        </Text>
+                    </Group>
+                    <Slider
+                        size="xs"
+                        value={threshold}
+                        onChange={setThreshold}
+                        min={10}
+                        max={100}
+                        label={null}
+                        color="red"
+                    />
+                </Stack>
             </Stack>
         </Card>
     );

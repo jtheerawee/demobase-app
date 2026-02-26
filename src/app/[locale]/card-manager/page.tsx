@@ -20,7 +20,6 @@ import {
 } from "@/components/CardManager/SearchResult";
 import { LANGUAGE_OPTIONS } from "@/constants/languages";
 import { FRANCHISE_OPTIONS } from "@/constants/franchises";
-import { AudioVolumeWidget } from "@/components/CardManager/AudioVolumeWidget";
 
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
@@ -355,66 +354,59 @@ export default function CardManagerPage() {
                     }
                     controls={
                         <Stack gap="md" h="100%">
-                            <div style={{ flex: 1, minHeight: 0 }}>
-                                <SearchWidget
-                                    query={searchQuery}
-                                    setQuery={setSearchQuery}
-                                    loading={loading}
-                                    searchMode={searchMode}
-                                    onSearchModeChange={setSearchMode}
-                                    onScanIds={handleScanIds}
-                                    onScanStart={() => {
-                                        setResults([]);
-                                        setResultInfo("");
-                                        setLoading(true);
-                                    }}
-                                    onResultInfo={setResultInfo}
-                                    autoAdd={autoAdd}
-                                    onAutoAddChange={setAutoAdd}
-                                    autoCapture={autoCapture}
-                                    onAutoCaptureChange={(val) => {
-                                        setAutoCapture(val);
-                                        if (val) setAutoAdd(true);
-                                        else setAutoCaptureActive(false);
-                                    }}
-                                    manualCaptureDelay={manualCaptureDelay}
-                                    onManualCaptureDelayChange={setManualCaptureDelay}
-                                    autoCaptureDelay={autoCaptureDelay}
-                                    onAutoCaptureDelayChange={setAutoCaptureDelay}
-                                    loopActive={autoCaptureActive}
-                                    onLoopActiveChange={(val) => {
-                                        if (!val) {
-                                            consecutiveNoCard.current = 0;
-                                            consecutiveSameCard.current = 0;
-                                            lastDetectedCardId.current = null;
-                                        }
-                                        setAutoCaptureActive(val);
-                                    }}
-                                    paused={waitingForSelection}
-                                    onClear={() => {
-                                        setWaitingForSelection(false);
-                                        setResultInfo("");
-                                    }}
-                                    resetTrigger={resetTrigger}
-                                    selectedFranchise={selectedFranchise}
-                                    onFranchiseChange={(val) => {
-                                        setSelectedFranchise(val);
-                                        setSelectedLanguage("all");
-                                    }}
-                                    franchiseOptions={[
-                                        { value: "all", label: "All Franchises" },
-                                        ...FRANCHISE_OPTIONS,
-                                    ]}
-                                    selectedLanguage={selectedLanguage}
-                                    onLanguageChange={setSelectedLanguage}
-                                    languageOptions={languageOptions}
-                                />
-                            </div>
-                            {searchMode === "camera" && (
-                                <div style={{ flexShrink: 0 }}>
-                                    <AudioVolumeWidget />
-                                </div>
-                            )}
+                            <SearchWidget
+                                query={searchQuery}
+                                setQuery={setSearchQuery}
+                                loading={loading}
+                                searchMode={searchMode}
+                                onSearchModeChange={setSearchMode}
+                                onScanIds={handleScanIds}
+                                onScanStart={() => {
+                                    setResults([]);
+                                    setResultInfo("");
+                                    setLoading(true);
+                                }}
+                                onResultInfo={setResultInfo}
+                                autoAdd={autoAdd}
+                                onAutoAddChange={setAutoAdd}
+                                autoCapture={autoCapture}
+                                onAutoCaptureChange={(val) => {
+                                    setAutoCapture(val);
+                                    if (val) setAutoAdd(true);
+                                    else setAutoCaptureActive(false);
+                                }}
+                                manualCaptureDelay={manualCaptureDelay}
+                                onManualCaptureDelayChange={setManualCaptureDelay}
+                                autoCaptureDelay={autoCaptureDelay}
+                                onAutoCaptureDelayChange={setAutoCaptureDelay}
+                                loopActive={autoCaptureActive}
+                                onLoopActiveChange={(val) => {
+                                    if (!val) {
+                                        consecutiveNoCard.current = 0;
+                                        consecutiveSameCard.current = 0;
+                                        lastDetectedCardId.current = null;
+                                    }
+                                    setAutoCaptureActive(val);
+                                }}
+                                paused={waitingForSelection}
+                                onClear={() => {
+                                    setWaitingForSelection(false);
+                                    setResultInfo("");
+                                }}
+                                resetTrigger={resetTrigger}
+                                selectedFranchise={selectedFranchise}
+                                onFranchiseChange={(val) => {
+                                    setSelectedFranchise(val);
+                                    setSelectedLanguage("all");
+                                }}
+                                franchiseOptions={[
+                                    { value: "all", label: "All Franchises" },
+                                    ...FRANCHISE_OPTIONS,
+                                ]}
+                                selectedLanguage={selectedLanguage}
+                                onLanguageChange={setSelectedLanguage}
+                                languageOptions={languageOptions}
+                            />
                         </Stack>
                     }
                 />

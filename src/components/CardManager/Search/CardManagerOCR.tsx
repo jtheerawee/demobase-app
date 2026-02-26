@@ -37,6 +37,7 @@ interface CardManagerOCRProps {
     autoCaptureDelay?: number;
     onAutoCaptureDelayChange?: (val: number) => void;
     resetTrigger?: number;
+    voiceTrigger?: number;
 }
 
 export function CardManagerOCR({
@@ -57,6 +58,7 @@ export function CardManagerOCR({
     autoCaptureDelay,
     onAutoCaptureDelayChange,
     resetTrigger,
+    voiceTrigger,
 }: CardManagerOCRProps) {
     const [file, setFile] = useState<FileWithPath | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
@@ -244,6 +246,7 @@ export function CardManagerOCR({
                     onClear={handleClear}
                     preview={preview}
                     setPreview={setPreview}
+                    voiceTrigger={voiceTrigger}
                 />
             </Box>
         );

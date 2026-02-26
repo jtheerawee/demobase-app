@@ -37,6 +37,7 @@ interface CameraViewProps {
     onClear?: () => void;
     preview?: string | null;
     setPreview: (url: string | null) => void;
+    voiceTrigger?: number;
 }
 
 function useDelayCapture(delaySeconds: number, onCapture: () => void) {
@@ -101,6 +102,7 @@ export function CameraView({
     onClear,
     preview,
     setPreview,
+    voiceTrigger,
 }: CameraViewProps) {
     const [cameraActive, setCameraActive] = useState(false);
     const { devices, selectedDeviceId, setSelectedDeviceId, loadDevices, getSavedDeviceId } = useCameraDevices();
@@ -232,6 +234,17 @@ export function CameraView({
         startCamera(getSavedDeviceId() ?? undefined);
         return () => stopCamera();
     }, []);
+
+    // Handle voice trigger
+    useEffect(() => {
+        if (voiceTrigger && voiceTrigger > 0 && cameraActive && !paused && !loading) {
+            if (autoCapture) {
+                triggerAuto();
+            } else {
+                triggerManual();
+            }
+        }
+    }, [voiceTrigger]);
 
     useEffect(() => {
         if (cameraActive && videoRef.current && streamRef.current) {
