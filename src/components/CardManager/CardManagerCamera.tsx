@@ -1,9 +1,32 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Group, Text, Stack, Image, Button, Loader, ActionIcon, Box, Select, LoadingOverlay, Checkbox, Badge, Tooltip, Center, Modal } from "@mantine/core";
+import {
+    Group,
+    Text,
+    Stack,
+    Image,
+    Button,
+    Loader,
+    ActionIcon,
+    Box,
+    Select,
+    LoadingOverlay,
+    Checkbox,
+    Badge,
+    Tooltip,
+    Center,
+    Modal,
+} from "@mantine/core";
 import { FileWithPath } from "@mantine/dropzone";
-import { IconCamera, IconRefresh, IconPlayerStop, IconPlus, IconMinus, IconMaximize } from "@tabler/icons-react";
+import {
+    IconCamera,
+    IconRefresh,
+    IconPlayerStop,
+    IconPlus,
+    IconMinus,
+    IconMaximize,
+} from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -40,11 +63,15 @@ export function CardManagerCamera({
     onAutoCaptureIntervalChange,
     onClear,
     preview,
-    setPreview
+    setPreview,
 }: CardManagerCameraProps) {
     const [cameraActive, setCameraActive] = useState(false);
-    const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null);
+    const [devices, setDevices] = useState<{ value: string; label: string }[]>(
+        [],
+    );
+    const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(
+        null,
+    );
     const [countdown, setCountdown] = useState<number | null>(null);
     const [isEnlarged, setIsEnlarged] = useState(false);
 
@@ -55,10 +82,12 @@ export function CardManagerCamera({
         try {
             const allDevices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = allDevices
-                .filter(device => device.kind === 'videoinput')
-                .map(device => ({
+                .filter((device) => device.kind === "videoinput")
+                .map((device) => ({
                     value: device.deviceId,
-                    label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`
+                    label:
+                        device.label ||
+                        `Camera ${device.deviceId.slice(0, 5)}...`,
                 }));
             setDevices(videoDevices);
 
@@ -86,10 +115,11 @@ export function CardManagerCamera({
             const constraints: MediaStreamConstraints = {
                 video: deviceId
                     ? { deviceId: { exact: deviceId } }
-                    : { facingMode: "environment" }
+                    : { facingMode: "environment" },
             };
 
-            const stream = await navigator.mediaDevices.getUserMedia(constraints);
+            const stream =
+                await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = stream;
             setCameraActive(true);
             loadDevices();
@@ -98,7 +128,7 @@ export function CardManagerCamera({
             notifications.show({
                 title: "Camera Error",
                 message: "Could not access camera. Please check permissions.",
-                color: "red"
+                color: "red",
             });
         }
     };
@@ -120,14 +150,22 @@ export function CardManagerCamera({
         const ctx = canvas.getContext("2d");
         if (ctx) {
             ctx.drawImage(videoRef.current, 0, 0);
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    const capturedFile = new File([blob], `capture-${Date.now()}.jpg`, { type: "image/jpeg" }) as FileWithPath;
-                    const url = URL.createObjectURL(capturedFile);
-                    setPreview(url);
-                    onCapture(capturedFile);
-                }
-            }, "image/jpeg", 0.9);
+            canvas.toBlob(
+                (blob) => {
+                    if (blob) {
+                        const capturedFile = new File(
+                            [blob],
+                            `capture-${Date.now()}.jpg`,
+                            { type: "image/jpeg" },
+                        ) as FileWithPath;
+                        const url = URL.createObjectURL(capturedFile);
+                        setPreview(url);
+                        onCapture(capturedFile);
+                    }
+                },
+                "image/jpeg",
+                0.9,
+            );
         }
     };
 
@@ -156,7 +194,9 @@ export function CardManagerCamera({
         if (autoCapture && loopActive && cameraActive && !paused) {
             setCountdown(autoCaptureInterval);
             countdownInterval = setInterval(() => {
-                setCountdown(prev => (prev !== null && prev > 1) ? prev - 1 : prev);
+                setCountdown((prev) =>
+                    prev !== null && prev > 1 ? prev - 1 : prev,
+                );
             }, 1000);
             interval = setInterval(() => {
                 capturePhoto();
@@ -188,14 +228,18 @@ export function CardManagerCamera({
         <Stack gap="md" w="100%">
             <Box
                 style={{
-                    borderRadius: 'var(--mantine-radius-md)',
-                    overflow: 'hidden',
-                    position: 'relative',
+                    borderRadius: "var(--mantine-radius-md)",
+                    overflow: "hidden",
+                    position: "relative",
                     height: APP_CONFIG.CAMERA_VIEW_HEIGHT,
-                    backgroundColor: '#000'
+                    backgroundColor: "#000",
                 }}
             >
-                <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} loaderProps={{ size: 'md' }} />
+                <LoadingOverlay
+                    visible={loading}
+                    overlayProps={{ blur: 2 }}
+                    loaderProps={{ size: "md" }}
+                />
 
                 {!cameraActive ? (
                     <Center h="100%" bg="var(--mantine-color-gray-0)">
@@ -211,10 +255,21 @@ export function CardManagerCamera({
                             autoPlay
                             playsInline
                             muted
-                            style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }}
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                display: "block",
+                                objectFit: "contain",
+                            }}
                         />
                         {devices.length > 1 && (
-                            <Box pos="absolute" top={10} left={10} right={10} style={{ zIndex: 10 }}>
+                            <Box
+                                pos="absolute"
+                                top={10}
+                                left={10}
+                                right={10}
+                                style={{ zIndex: 10 }}
+                            >
                                 <Select
                                     size="xs"
                                     placeholder="Select Camera"
@@ -223,10 +278,11 @@ export function CardManagerCamera({
                                     onChange={handleDeviceChange}
                                     styles={{
                                         input: {
-                                            backgroundColor: 'rgba(255,255,255,0.8)',
-                                            backdropFilter: 'blur(4px)',
-                                            borderColor: 'transparent'
-                                        }
+                                            backgroundColor:
+                                                "rgba(255,255,255,0.8)",
+                                            backdropFilter: "blur(4px)",
+                                            borderColor: "transparent",
+                                        },
                                     }}
                                 />
                             </Box>
@@ -234,26 +290,34 @@ export function CardManagerCamera({
                     </>
                 )}
 
-                {autoCapture && (countdown !== null || paused) && loopActive && (
-                    <Badge
-                        pos="absolute"
-                        top={10}
-                        right={10}
-                        size="xl"
-                        variant="filled"
-                        color={paused ? "orange" : "blue"}
-                        style={{ zIndex: 11 }}
-                    >
-                        {paused ? "Waiting for response..." : `Auto-capturing in ${countdown}s...`}
-                    </Badge>
-                )}
+                {autoCapture &&
+                    (countdown !== null || paused) &&
+                    loopActive && (
+                        <Badge
+                            pos="absolute"
+                            top={10}
+                            right={10}
+                            size="xl"
+                            variant="filled"
+                            color={paused ? "orange" : "blue"}
+                            style={{ zIndex: 11 }}
+                        >
+                            {paused
+                                ? "Waiting for response..."
+                                : `Auto-capturing in ${countdown}s...`}
+                        </Badge>
+                    )}
             </Box>
 
             <Box pos="relative" w="100%">
                 {/* Main Action (Centered) */}
                 <Center>
                     <Group gap="xs">
-                        <Tooltip label="Press Space to scan" position="top" withArrow>
+                        <Tooltip
+                            label="Press Space to scan"
+                            position="top"
+                            withArrow
+                        >
                             <Button
                                 color="blue"
                                 radius="xl"
@@ -286,23 +350,47 @@ export function CardManagerCamera({
 
                 {/* Snapshot Thumbnail (Right-aligned) */}
                 {preview && (
-                    <Box pos="absolute" right={0} top="50%" style={{ transform: 'translateY(-50%)' }}>
-                        <Tooltip label="Click to enlarge last snapshot" position="top">
+                    <Box
+                        pos="absolute"
+                        right={0}
+                        top="50%"
+                        style={{ transform: "translateY(-50%)" }}
+                    >
+                        <Tooltip
+                            label="Click to enlarge last snapshot"
+                            position="top"
+                        >
                             <Box
                                 pos="relative"
                                 onClick={() => setIsEnlarged(true)}
                                 style={{
-                                    cursor: 'pointer',
-                                    borderRadius: '4px',
-                                    overflow: 'hidden',
-                                    border: '2px solid var(--mantine-color-blue-4)',
-                                    boxShadow: 'var(--mantine-shadow-xs)',
-                                    transition: 'transform 0.1s ease',
-                                    '&:hover': { transform: 'scale(1.05)' }
+                                    cursor: "pointer",
+                                    borderRadius: "4px",
+                                    overflow: "hidden",
+                                    border: "2px solid var(--mantine-color-blue-4)",
+                                    boxShadow: "var(--mantine-shadow-xs)",
+                                    transition: "transform 0.1s ease",
+                                    "&:hover": { transform: "scale(1.05)" },
                                 }}
                             >
-                                <Image src={preview} w={48} h={48} fallbackSrc="https://placehold.co/48x48?text=Scan" style={{ objectFit: 'cover' }} />
-                                <Box pos="absolute" bottom={2} right={2} bg="rgba(0,0,0,0.5)" style={{ borderRadius: '2px', display: 'flex', padding: 1 }}>
+                                <Image
+                                    src={preview}
+                                    w={48}
+                                    h={48}
+                                    fallbackSrc="https://placehold.co/48x48?text=Scan"
+                                    style={{ objectFit: "cover" }}
+                                />
+                                <Box
+                                    pos="absolute"
+                                    bottom={2}
+                                    right={2}
+                                    bg="rgba(0,0,0,0.5)"
+                                    style={{
+                                        borderRadius: "2px",
+                                        display: "flex",
+                                        padding: 1,
+                                    }}
+                                >
                                     <IconMaximize size={8} color="white" />
                                 </Box>
                             </Box>
@@ -311,22 +399,108 @@ export function CardManagerCamera({
                 )}
             </Box>
 
-            <Modal opened={isEnlarged} onClose={() => setIsEnlarged(false)} title="Last Captured Snapshot" size="lg" centered overlayProps={{ blur: 3 }}>
-                <Image src={preview || ""} radius="md" style={{ width: '100%', maxHeight: '70vh', objectFit: 'contain' }} />
+            <Modal
+                opened={isEnlarged}
+                onClose={() => setIsEnlarged(false)}
+                title="Last Captured Snapshot"
+                size="lg"
+                centered
+                overlayProps={{ blur: 3 }}
+            >
+                <Image
+                    src={preview || ""}
+                    radius="md"
+                    style={{
+                        width: "100%",
+                        maxHeight: "70vh",
+                        objectFit: "contain",
+                    }}
+                />
             </Modal>
 
             {onAutoAddChange && (
                 <Group justify="center" mt="xs" gap="md" wrap="nowrap">
-                    <Checkbox label="Auto-add to collection" checked={autoAdd} onChange={(e) => onAutoAddChange(e.currentTarget.checked)} size="sm" color="blue" />
+                    <Checkbox
+                        label="Auto-add to collection"
+                        checked={autoAdd}
+                        onChange={(e) =>
+                            onAutoAddChange(e.currentTarget.checked)
+                        }
+                        size="sm"
+                        color="blue"
+                    />
                     {onAutoCaptureChange && (
                         <Group gap={4} wrap="nowrap" align="center">
-                            <Tooltip label="Turning on Auto-capture will also enable Auto-add to collection for a fully automated workflow." position="bottom" withArrow>
-                                <Checkbox label="Auto-capture" checked={autoCapture} onChange={(e) => onAutoCaptureChange(e.currentTarget.checked)} size="sm" color="blue" />
+                            <Tooltip
+                                label="Turning on Auto-capture will also enable Auto-add to collection for a fully automated workflow."
+                                position="bottom"
+                                withArrow
+                            >
+                                <Checkbox
+                                    label="Auto-capture"
+                                    checked={autoCapture}
+                                    onChange={(e) =>
+                                        onAutoCaptureChange(
+                                            e.currentTarget.checked,
+                                        )
+                                    }
+                                    size="sm"
+                                    color="blue"
+                                />
                             </Tooltip>
-                            <Group gap={2} wrap="nowrap" ml={2} bg={autoCapture ? "gray.0" : "gray.1"} px={4} style={{ borderRadius: '4px', border: `1px solid ${autoCapture ? 'var(--mantine-color-gray-2)' : 'var(--mantine-color-gray-3)'}`, opacity: autoCapture ? 1 : 0.6, pointerEvents: autoCapture ? 'all' : 'none' }}>
-                                <ActionIcon variant="subtle" color="blue" size="xs" onClick={() => onAutoCaptureIntervalChange?.(Math.max(5, (autoCaptureInterval || 5) - 1))} disabled={!autoCapture || autoCaptureInterval <= 5}><IconMinus size={10} stroke={3} /></ActionIcon>
-                                <Text size="11px" fw={700} w={20} ta="center" c={autoCapture ? "blue.7" : "dimmed"}>{(autoCaptureInterval || 5)}s</Text>
-                                <ActionIcon variant="subtle" color="blue" size="xs" onClick={() => onAutoCaptureIntervalChange?.((autoCaptureInterval || 5) + 1)} disabled={!autoCapture}><IconPlus size={10} stroke={3} /></ActionIcon>
+                            <Group
+                                gap={2}
+                                wrap="nowrap"
+                                ml={2}
+                                bg={autoCapture ? "gray.0" : "gray.1"}
+                                px={4}
+                                style={{
+                                    borderRadius: "4px",
+                                    border: `1px solid ${autoCapture ? "var(--mantine-color-gray-2)" : "var(--mantine-color-gray-3)"}`,
+                                    opacity: autoCapture ? 1 : 0.6,
+                                    pointerEvents: autoCapture ? "all" : "none",
+                                }}
+                            >
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="blue"
+                                    size="xs"
+                                    onClick={() =>
+                                        onAutoCaptureIntervalChange?.(
+                                            Math.max(
+                                                5,
+                                                (autoCaptureInterval || 5) - 1,
+                                            ),
+                                        )
+                                    }
+                                    disabled={
+                                        !autoCapture || autoCaptureInterval <= 5
+                                    }
+                                >
+                                    <IconMinus size={10} stroke={3} />
+                                </ActionIcon>
+                                <Text
+                                    size="11px"
+                                    fw={700}
+                                    w={20}
+                                    ta="center"
+                                    c={autoCapture ? "blue.7" : "dimmed"}
+                                >
+                                    {autoCaptureInterval || 5}s
+                                </Text>
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="blue"
+                                    size="xs"
+                                    onClick={() =>
+                                        onAutoCaptureIntervalChange?.(
+                                            (autoCaptureInterval || 5) + 1,
+                                        )
+                                    }
+                                    disabled={!autoCapture}
+                                >
+                                    <IconPlus size={10} stroke={3} />
+                                </ActionIcon>
                             </Group>
                         </Group>
                     )}

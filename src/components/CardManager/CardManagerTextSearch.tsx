@@ -10,7 +10,11 @@ interface CardManagerTextSearchProps {
     loading: boolean;
 }
 
-export function CardManagerTextSearch({ query, setQuery, loading }: CardManagerTextSearchProps) {
+export function CardManagerTextSearch({
+    query,
+    setQuery,
+    loading,
+}: CardManagerTextSearchProps) {
     return (
         <TextInput
             placeholder={`Type card name (min ${APP_CONFIG.SEARCH_MIN_CHARS} chars)...`}

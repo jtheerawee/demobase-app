@@ -1,9 +1,33 @@
 "use client";
 
-import { Card, Group, ActionIcon, Stack, Text, Badge, ScrollArea, TextInput, Tooltip } from "@mantine/core";
-import { IconDownload, IconTrash, IconSearch, IconX, IconSortAZ, IconSortZA, IconSortDescendingNumbers, IconSortAscendingNumbers, IconDatabaseImport, IconRefresh } from "@tabler/icons-react";
+import {
+    Card,
+    Group,
+    ActionIcon,
+    Stack,
+    Text,
+    Badge,
+    ScrollArea,
+    TextInput,
+    Tooltip,
+} from "@mantine/core";
+import {
+    IconDownload,
+    IconTrash,
+    IconSearch,
+    IconX,
+    IconSortAZ,
+    IconSortZA,
+    IconSortDescendingNumbers,
+    IconSortAscendingNumbers,
+    IconDatabaseImport,
+    IconRefresh,
+} from "@tabler/icons-react";
 import { useState } from "react";
-import { CardScraperCollectionItem, type CollectionItem } from "./CardScraperCollectionItem";
+import {
+    CardScraperCollectionItem,
+    type CollectionItem,
+} from "./CardScraperCollectionItem";
 
 interface CardScraperCollectionListProps {
     collections?: CollectionItem[];
@@ -26,7 +50,7 @@ export function CardScraperCollectionList({
     onDeleteAllCollections,
     onDeleteCollection,
     onRefresh,
-    loading
+    loading,
 }: CardScraperCollectionListProps) {
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState<"name" | "cards">("name");
@@ -43,11 +67,12 @@ export function CardScraperCollectionList({
     };
 
     const filteredCollections = collections
-        .filter(item => {
+        .filter((item) => {
             const query = search.toLowerCase();
             return (
                 item.name.toLowerCase().includes(query) ||
-                (item.collectionCode && item.collectionCode.toLowerCase().includes(query))
+                (item.collectionCode &&
+                    item.collectionCode.toLowerCase().includes(query))
             );
         })
         .sort((a, b) => {
@@ -79,7 +104,10 @@ export function CardScraperCollectionList({
                                 <IconRefresh size={16} />
                             </ActionIcon>
                         </Tooltip>
-                        <Tooltip label="Fetch collections from source" withArrow>
+                        <Tooltip
+                            label="Fetch collections from source"
+                            withArrow
+                        >
                             <ActionIcon
                                 variant="light"
                                 color="violet"
@@ -101,7 +129,10 @@ export function CardScraperCollectionList({
                         >
                             <IconTrash size={16} />
                         </ActionIcon>
-                        <Tooltip label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`} withArrow>
+                        <Tooltip
+                            label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`}
+                            withArrow
+                        >
                             <ActionIcon
                                 variant={sortBy === "name" ? "light" : "subtle"}
                                 color={sortBy === "name" ? "blue" : "gray"}
@@ -109,18 +140,31 @@ export function CardScraperCollectionList({
                                 onClick={() => handleSort("name")}
                                 disabled={totalCount === 0}
                             >
-                                {sortBy === "name" && !sortAsc ? <IconSortZA size={14} /> : <IconSortAZ size={14} />}
+                                {sortBy === "name" && !sortAsc ? (
+                                    <IconSortZA size={14} />
+                                ) : (
+                                    <IconSortAZ size={14} />
+                                )}
                             </ActionIcon>
                         </Tooltip>
-                        <Tooltip label={`Sort by cards (${sortBy === "cards" ? (sortAsc ? "low→high" : "high→low") : "high→low"})`} withArrow>
+                        <Tooltip
+                            label={`Sort by cards (${sortBy === "cards" ? (sortAsc ? "low→high" : "high→low") : "high→low"})`}
+                            withArrow
+                        >
                             <ActionIcon
-                                variant={sortBy === "cards" ? "light" : "subtle"}
+                                variant={
+                                    sortBy === "cards" ? "light" : "subtle"
+                                }
                                 color={sortBy === "cards" ? "blue" : "gray"}
                                 size="sm"
                                 onClick={() => handleSort("cards")}
                                 disabled={totalCount === 0}
                             >
-                                {sortBy === "cards" && sortAsc ? <IconSortAscendingNumbers size={14} /> : <IconSortDescendingNumbers size={14} />}
+                                {sortBy === "cards" && sortAsc ? (
+                                    <IconSortAscendingNumbers size={14} />
+                                ) : (
+                                    <IconSortDescendingNumbers size={14} />
+                                )}
                             </ActionIcon>
                         </Tooltip>
                         <ActionIcon
@@ -174,7 +218,8 @@ export function CardScraperCollectionList({
                         ))}
                         {totalCount === 0 && !loading && (
                             <Text size="sm" c="dimmed" ta="center" py="xl">
-                                No collections found. Click &quot;Download&quot; to fetch.
+                                No collections found. Click &quot;Download&quot;
+                                to fetch.
                             </Text>
                         )}
                         {loading && (

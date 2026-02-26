@@ -11,7 +11,9 @@ export async function GET(request: Request) {
 
         let query = supabase
             .from("scraped_collections")
-            .select("id, name, collection_code, image_url, collection_url, scraped_cards(count)")
+            .select(
+                "id, name, collection_code, image_url, collection_url, scraped_cards(count)",
+            )
             .order("name", { ascending: true });
 
         if (franchise) {
@@ -25,7 +27,10 @@ export async function GET(request: Request) {
 
         if (error) {
             console.error("[API] Error fetching collections:", error);
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 },
+            );
         }
 
         const collections = data.map((col: any) => ({
@@ -43,7 +48,10 @@ export async function GET(request: Request) {
         });
     } catch (err: any) {
         console.error("[API] Unexpected error fetching collections:", err);
-        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: err.message },
+            { status: 500 },
+        );
     }
 }
 
@@ -54,15 +62,16 @@ export async function DELETE(request: Request) {
     const id = searchParams.get("id");
 
     if (!id && !franchise) {
-        return NextResponse.json({ success: false, error: "Franchise or ID is required" }, { status: 400 });
+        return NextResponse.json(
+            { success: false, error: "Franchise or ID is required" },
+            { status: 400 },
+        );
     }
 
     try {
         const supabase = await createClient();
 
-        let query = supabase
-            .from("scraped_collections")
-            .delete();
+        let query = supabase.from("scraped_collections").delete();
 
         if (id) {
             query = query.eq("id", id);
@@ -77,7 +86,10 @@ export async function DELETE(request: Request) {
 
         if (error) {
             console.error("[API] Error deleting collections:", error);
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 },
+            );
         }
 
         return NextResponse.json({
@@ -86,6 +98,9 @@ export async function DELETE(request: Request) {
         });
     } catch (err: any) {
         console.error("[API] Unexpected error deleting collections:", err);
-        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: err.message },
+            { status: 500 },
+        );
     }
 }

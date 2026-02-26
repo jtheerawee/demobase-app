@@ -5,8 +5,18 @@ import type { ScraperOptions } from "@/services/scraper/types";
 // ENGLISH (EN) COLLECTION SCRAPER LOGIC
 // ==========================================
 
-export async function scrapePokemonCollectionsEn({ url, context, send, franchise, language }: ScraperOptions) {
-    send({ type: "step", message: "Extracting sets directly from English Search URL (no browser scraping)..." });
+export async function scrapePokemonCollectionsEn({
+    url,
+    context,
+    send,
+    franchise,
+    language,
+}: ScraperOptions) {
+    send({
+        type: "step",
+        message:
+            "Extracting sets directly from English Search URL (no browser scraping)...",
+    });
     const urlObj = new URL(url);
     const params = urlObj.searchParams;
     const sharedCollectionList: any[] = [];
@@ -26,20 +36,42 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
         // Send to UI immediately for feedback
         send({ type: "chunk", items: sharedCollectionList, startIndex: 0 });
 
-        send({ type: "step", message: `Found ${sharedCollectionList.length} set keys in URL parameters. Registering...` });
+        send({
+            type: "step",
+            message: `Found ${sharedCollectionList.length} set keys in URL parameters. Registering...`,
+        });
         try {
-            const result = await saveScrapedCollections(sharedCollectionList, { franchise, language });
+            const result = await saveScrapedCollections(sharedCollectionList, {
+                franchise,
+                language,
+            });
             if (result) {
                 const { saved, added, matched } = result;
                 send({ type: "savedCollections", items: saved });
-                send({ type: "stats", category: "collections", added, matched, missed: 0 });
-                send({ type: "step", message: `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${added} new, 🔁 ${matched} matched.` });
+                send({
+                    type: "stats",
+                    category: "collections",
+                    added,
+                    matched,
+                    missed: 0,
+                });
+                send({
+                    type: "step",
+                    message: `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${added} new, 🔁 ${matched} matched.`,
+                });
             }
         } catch (error) {
             console.error("Failed to save English sets:", error);
-            send({ type: "step", message: "Error: Could not register virtual collections." });
+            send({
+                type: "step",
+                message: "Error: Could not register virtual collections.",
+            });
         }
     } else {
-        send({ type: "step", message: "No 'on' parameters found in URL. Check your English search URL." });
+        send({
+            type: "step",
+            message:
+                "No 'on' parameters found in URL. Check your English search URL.",
+        });
     }
 }

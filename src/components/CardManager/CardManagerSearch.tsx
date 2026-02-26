@@ -27,10 +27,10 @@ interface CardManagerSearchProps {
     resetTrigger?: number;
     selectedFranchise: string | null;
     onFranchiseChange: (val: string | null) => void;
-    franchiseOptions: { value: string, label: string }[];
+    franchiseOptions: { value: string; label: string }[];
     selectedLanguage: string | null;
     onLanguageChange: (val: string | null) => void;
-    languageOptions: { value: string, label: string }[];
+    languageOptions: { value: string; label: string }[];
 }
 
 export function CardManagerSearch({
@@ -57,7 +57,7 @@ export function CardManagerSearch({
     franchiseOptions,
     selectedLanguage,
     onLanguageChange,
-    languageOptions
+    languageOptions,
 }: CardManagerSearchProps) {
     return (
         <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
@@ -90,7 +90,9 @@ export function CardManagerSearch({
                     <Center>
                         <SegmentedControl
                             value={searchMode}
-                            onChange={(val) => onSearchModeChange(val as SearchMode)}
+                            onChange={(val) =>
+                                onSearchModeChange(val as SearchMode)
+                            }
                             data={[
                                 {
                                     value: "text",
@@ -126,7 +128,10 @@ export function CardManagerSearch({
                             onScan={onScanIds}
                             onScanStart={onScanStart}
                             onTextResult={setQuery}
-                            onClear={() => { setQuery(""); onClear?.(); }}
+                            onClear={() => {
+                                setQuery("");
+                                onClear?.();
+                            }}
                             autoAdd={autoAdd}
                             onAutoAddChange={onAutoAddChange}
                             autoCapture={autoCapture}
@@ -135,7 +140,9 @@ export function CardManagerSearch({
                             loopActive={loopActive}
                             onLoopActiveChange={onLoopActiveChange}
                             autoCaptureInterval={autoCaptureInterval}
-                            onAutoCaptureIntervalChange={onAutoCaptureIntervalChange}
+                            onAutoCaptureIntervalChange={
+                                onAutoCaptureIntervalChange
+                            }
                             resetTrigger={resetTrigger}
                         />
                     )}

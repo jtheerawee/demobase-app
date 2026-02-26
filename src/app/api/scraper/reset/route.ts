@@ -8,7 +8,10 @@ export async function DELETE(request: Request) {
     const scrapedIndex = searchParams.get("index");
 
     if (!franchise || !language) {
-        return NextResponse.json({ success: false, error: "Franchise and language are required" }, { status: 400 });
+        return NextResponse.json(
+            { success: false, error: "Franchise and language are required" },
+            { status: 400 },
+        );
     }
 
     try {
@@ -28,11 +31,17 @@ export async function DELETE(request: Request) {
 
         if (error) {
             console.error("Delete error:", error);
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 },
+            );
         }
 
         return NextResponse.json({ success: true, count });
     } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: error.message },
+            { status: 500 },
+        );
     }
 }

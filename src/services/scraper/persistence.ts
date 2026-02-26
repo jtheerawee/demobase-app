@@ -6,12 +6,15 @@ export async function saveScrapedCollections(
     context: {
         franchise: string;
         language: string;
-    }
+    },
 ) {
-    if (collections.length === 0) return { saved: [], added: 0, matched: 0, missed: 0 };
+    if (collections.length === 0)
+        return { saved: [], added: 0, matched: 0, missed: 0 };
 
     const supabase = await createClient();
-    const scrapedUrls = new Set(collections.map((col) => col.collectionUrl).filter(Boolean));
+    const scrapedUrls = new Set(
+        collections.map((col) => col.collectionUrl).filter(Boolean),
+    );
 
     // Fetch ALL existing collections for this franchise from DB
     const { data: allExisting } = await supabase
@@ -20,10 +23,14 @@ export async function saveScrapedCollections(
         .eq("franchise", context.franchise)
         .eq("language", context.language);
 
-    const allExistingUrls = new Set((allExisting || []).map((e: any) => e.collection_url));
+    const allExistingUrls = new Set(
+        (allExisting || []).map((e: any) => e.collection_url),
+    );
 
     // added: scraped but NOT yet in DB
-    const added = collections.filter((c) => !allExistingUrls.has(c.collectionUrl)).length;
+    const added = collections.filter(
+        (c) => !allExistingUrls.has(c.collectionUrl),
+    ).length;
     // matched: scraped AND already in DB
     const matched = collections.length - added;
     // missed is calculated after the full scrape run, not per-page
@@ -56,17 +63,26 @@ export async function saveScrapedCollections(
         collectionCode: d.collection_code,
     }));
 
-    console.log(`[Persistence] Saving ${collections.length} collections for ${context.franchise}...`, { added, matched, missed });
+    console.log(
+        `[Persistence] Saving ${collections.length} collections for ${context.franchise}...`,
+        { added, matched, missed },
+    );
     return { saved, added, matched, missed };
 }
 
-export async function saveScrapedCards(cards: ScrapedCard[], collectionId: number | string) {
+export async function saveScrapedCards(
+    cards: ScrapedCard[],
+    collectionId: number | string,
+) {
     if (cards.length === 0) return { added: 0, matched: 0, missed: 0 };
 
     const supabase = await createClient();
     const scrapedUrls = new Set(cards.map((c) => c.cardUrl).filter(Boolean));
 
-    const colId = typeof collectionId === 'string' ? parseInt(collectionId, 10) : collectionId;
+    const colId =
+        typeof collectionId === "string"
+            ? parseInt(collectionId, 10)
+            : collectionId;
 
     // Fetch ALL existing cards for this collection from DB
     const { data: allExisting } = await supabase
@@ -74,12 +90,16 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
         .select("card_url, name, card_no")
         .eq("collection_id", colId);
 
-    const existingKeys = new Set((allExisting || []).map((e: any) => {
-        // Multi-layered uniqueness: URL OR Name+No
-        const urlKey = e.card_url;
-        const compositeKey = `${e.name}|${e.card_no}`;
-        return [urlKey, compositeKey];
-    }).flat());
+    const existingKeys = new Set(
+        (allExisting || [])
+            .map((e: any) => {
+                // Multi-layered uniqueness: URL OR Name+No
+                const urlKey = e.card_url;
+                const compositeKey = `${e.name}|${e.card_no}`;
+                return [urlKey, compositeKey];
+            })
+            .flat(),
+    );
 
     // addedCards: the subset that needs deep scraping
     // We only want to upsert cards that are:
@@ -116,22 +136,30 @@ export async function saveScrapedCards(cards: ScrapedCard[], collectionId: numbe
             rarity: card.rarity || "",
         }));
 
-        const { error } = await supabase.from("scraped_cards").upsert(dataToInsert, { onConflict: "card_url" });
+        const { error } = await supabase
+            .from("scraped_cards")
+            .upsert(dataToInsert, { onConflict: "card_url" });
 
         if (error) {
-            console.error("[Persistence] Error saving cards:", { error, dataToInsert });
+            console.error("[Persistence] Error saving cards:", {
+                error,
+                dataToInsert,
+            });
             throw error;
         }
     }
 
-    console.log(`[Persistence] Processed ${cards.length} cards for collection ${collectionId}. (Upserted ${cardsToUpsert.length})`, { added, matched, missed });
+    console.log(
+        `[Persistence] Processed ${cards.length} cards for collection ${collectionId}. (Upserted ${cardsToUpsert.length})`,
+        { added, matched, missed },
+    );
     return { added, matched, missed, addedCards: addedCardsList };
 }
 
 /** Call once after all pages scraped to get real missed count for collections */
 export async function computeMissedCollections(
     allScrapedUrls: Set<string>,
-    context: { franchise: string; language: string }
+    context: { franchise: string; language: string },
 ): Promise<number> {
     const supabase = await createClient();
     const { data } = await supabase
@@ -146,10 +174,13 @@ export async function computeMissedCollections(
 /** Call once after all cards scraped to get real missed count for a collection */
 export async function computeMissedCards(
     allScrapedUrls: Set<string>,
-    collectionId: number | string
+    collectionId: number | string,
 ): Promise<number> {
     const supabase = await createClient();
-    const colId = typeof collectionId === 'string' ? parseInt(collectionId, 10) : collectionId;
+    const colId =
+        typeof collectionId === "string"
+            ? parseInt(collectionId, 10)
+            : collectionId;
     const { data } = await supabase
         .from("scraped_cards")
         .select("card_url")

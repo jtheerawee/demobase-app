@@ -1,6 +1,15 @@
 "use client";
 
-import { ScrollArea, SimpleGrid, Text, Box, Loader, Stack, Card, ActionIcon } from "@mantine/core";
+import {
+    ScrollArea,
+    SimpleGrid,
+    Text,
+    Box,
+    Loader,
+    Stack,
+    Card,
+    ActionIcon,
+} from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 import { CardManagerSearchCard } from "./CardManagerSearchCard";
@@ -66,8 +75,21 @@ export function CardManagerResult({
                     }
                 />
                 <Box style={{ flex: 1, minHeight: 0 }}>
-                    <ScrollArea flex={1} offsetScrollbars type="always" h="100%">
-                        <SimpleGrid cols={{ base: 1, sm: 1, md: 2, lg: APP_CONFIG.SEARCH_RESULTS_PER_ROW }} spacing="xs">
+                    <ScrollArea
+                        flex={1}
+                        offsetScrollbars
+                        type="always"
+                        h="100%"
+                    >
+                        <SimpleGrid
+                            cols={{
+                                base: 1,
+                                sm: 1,
+                                md: 2,
+                                lg: APP_CONFIG.SEARCH_RESULTS_PER_ROW,
+                            }}
+                            spacing="xs"
+                        >
                             {results.map((card) => (
                                 <CardManagerSearchCard
                                     key={card.id}
@@ -84,7 +106,9 @@ export function CardManagerResult({
                             <Box py="xl" ta="center">
                                 <Stack align="center" gap="xs">
                                     <Loader size="sm" />
-                                    <Text c="dimmed" size="xs">Scanning and looking for cards...</Text>
+                                    <Text c="dimmed" size="xs">
+                                        Scanning and looking for cards...
+                                    </Text>
                                 </Stack>
                             </Box>
                         )}
@@ -92,9 +116,13 @@ export function CardManagerResult({
                         {results.length === 0 && !loading && (
                             <Box py="xl" ta="center">
                                 {query.length >= APP_CONFIG.SEARCH_MIN_CHARS ? (
-                                    <Text c="dimmed" size="xs">No cards found matching "{query}"</Text>
+                                    <Text c="dimmed" size="xs">
+                                        No cards found matching "{query}"
+                                    </Text>
                                 ) : (
-                                    <Text c="dimmed" size="xs">Waiting for next searching</Text>
+                                    <Text c="dimmed" size="xs">
+                                        Waiting for next searching
+                                    </Text>
                                 )}
                             </Box>
                         )}

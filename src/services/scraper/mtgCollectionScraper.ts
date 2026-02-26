@@ -1,7 +1,17 @@
-import { saveScrapedCollections, computeMissedCollections } from "./persistence";
+import {
+    saveScrapedCollections,
+    computeMissedCollections,
+} from "./persistence";
 import type { ScraperOptions } from "./types";
 
-export async function scrapeMTGCollections({ url, context, send, franchise, language, skipSave }: ScraperOptions) {
+export async function scrapeMTGCollections({
+    url,
+    context,
+    send,
+    franchise,
+    language,
+    skipSave,
+}: ScraperOptions) {
     send({ type: "step", message: "MTG Gatherer detected. Fetching sets..." });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
@@ -19,68 +29,113 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
 
     try {
         while (true) {
-            const pageUrl = p === 1 ? url : (url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`);
-            send({ type: "step", message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})` });
+            const pageUrl =
+                p === 1
+                    ? url
+                    : url.includes("?")
+                      ? `${url}&page=${p}`
+                      : `${url}?page=${p}`;
+            send({
+                type: "step",
+                message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
+            });
 
-            await workerPage.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+            await workerPage.goto(pageUrl, {
+                waitUntil: "domcontentloaded",
+                timeout: 60000,
+            });
 
             try {
-                await workerPage.waitForSelector('a[href*="/sets/"], a[href*="set="]', { timeout: 5000 });
+                await workerPage.waitForSelector(
+                    'a[href*="/sets/"], a[href*="set="]',
+                    { timeout: 5000 },
+                );
             } catch (e: any) {
                 // No sets on this page
             }
 
-            send({ type: "step", message: `Searching for set links on page ${p}...` });
-            const pageResults = await workerPage.evaluate((currentUrl: string) => {
-                const setLinks = document.querySelectorAll('a[href*="/sets/"], a[href*="set="]');
-                const rawItems = Array.from(setLinks).map((el: any) => ({
-                    name: el.textContent?.trim() || "",
-                    href: el.getAttribute("href") || "",
-                }));
-                return { rawItems };
-            }, pageUrl);
+            send({
+                type: "step",
+                message: `Searching for set links on page ${p}...`,
+            });
+            const pageResults = await workerPage.evaluate(
+                (currentUrl: string) => {
+                    const setLinks = document.querySelectorAll(
+                        'a[href*="/sets/"], a[href*="set="]',
+                    );
+                    const rawItems = Array.from(setLinks).map((el: any) => ({
+                        name: el.textContent?.trim() || "",
+                        href: el.getAttribute("href") || "",
+                    }));
+                    return { rawItems };
+                },
+                pageUrl,
+            );
 
             const { rawItems } = pageResults;
 
             if (rawItems.length === 0) {
-                send({ type: "step", message: `No more sets found at page ${p}. Finishing...` });
+                send({
+                    type: "step",
+                    message: `No more sets found at page ${p}. Finishing...`,
+                });
                 break;
             }
 
             const pageSets = rawItems
                 .map((item: any) => {
                     const codeMatch = item.href.match(/\/sets\/([^/&?]+)/);
-                    const collectionCode = codeMatch ? codeMatch[1].toUpperCase() : "";
+                    const collectionCode = codeMatch
+                        ? codeMatch[1].toUpperCase()
+                        : "";
 
                     return {
                         name: item.name,
                         collectionCode,
                         imageUrl: "",
-                        collectionUrl: collectionCode ? `https://gatherer.wizards.com/sets/${collectionCode}` : "",
+                        collectionUrl: collectionCode
+                            ? `https://gatherer.wizards.com/sets/${collectionCode}`
+                            : "",
                     };
                 })
-                .filter((s: any) => s.name && s.name !== "Sets" && s.collectionCode);
+                .filter(
+                    (s: any) => s.name && s.name !== "Sets" && s.collectionCode,
+                );
 
-            const newSets = pageSets.filter((s: any) => !uniqueCollectionCodes.has(s.collectionCode));
+            const newSets = pageSets.filter(
+                (s: any) => !uniqueCollectionCodes.has(s.collectionCode),
+            );
 
             if (newSets.length === 0) {
-                send({ type: "step", message: `Page ${p} returned only duplicate sets. Extraction complete.` });
+                send({
+                    type: "step",
+                    message: `Page ${p} returned only duplicate sets. Extraction complete.`,
+                });
                 break;
             }
 
-            newSets.forEach((s: any) => uniqueCollectionCodes.add(s.collectionCode));
+            newSets.forEach((s: any) =>
+                uniqueCollectionCodes.add(s.collectionCode),
+            );
 
             send({
                 type: "step",
-                message: `Page ${p}: Discovered ${newSets.length} new sets.`
+                message: `Page ${p}: Discovered ${newSets.length} new sets.`,
             });
 
-            send({ type: "chunk", items: newSets, startIndex: allDiscoveredSets.length });
+            send({
+                type: "chunk",
+                items: newSets,
+                startIndex: allDiscoveredSets.length,
+            });
             allDiscoveredSets.push(...newSets);
 
             if (!skipSave && franchise && language && newSets.length > 0) {
                 try {
-                    const result = await saveScrapedCollections(newSets, { franchise, language });
+                    const result = await saveScrapedCollections(newSets, {
+                        franchise,
+                        language,
+                    });
                     if (result) {
                         const { saved, added, matched } = result;
                         totalAdded += added;
@@ -90,11 +145,23 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
                             type: "step",
                             message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} matched.`,
                         });
-                        send({ type: "stats", category: "collections", added, matched, missed: 0 });
+                        send({
+                            type: "stats",
+                            category: "collections",
+                            added,
+                            matched,
+                            missed: 0,
+                        });
                     }
                 } catch (error) {
-                    console.error(`Failed to save collections for page ${p}:`, error);
-                    send({ type: "step", message: `Warning: Failed to persist collections for page ${p}.` });
+                    console.error(
+                        `Failed to save collections for page ${p}:`,
+                        error,
+                    );
+                    send({
+                        type: "step",
+                        message: `Warning: Failed to persist collections for page ${p}.`,
+                    });
                 }
             }
 
@@ -107,13 +174,27 @@ export async function scrapeMTGCollections({ url, context, send, franchise, lang
         });
         if (!skipSave && franchise && language) {
             const allCollectionUrls = new Set(
-                allDiscoveredSets.map((s: any) => s.collectionUrl).filter(Boolean)
+                allDiscoveredSets
+                    .map((s: any) => s.collectionUrl)
+                    .filter(Boolean),
             );
-            const missed = await computeMissedCollections(allCollectionUrls, { franchise, language });
+            const missed = await computeMissedCollections(allCollectionUrls, {
+                franchise,
+                language,
+            });
             if (missed > 0) {
-                send({ type: "step", message: `⚠️ ${missed} collections are in DB but were not found in this scrape.` });
+                send({
+                    type: "step",
+                    message: `⚠️ ${missed} collections are in DB but were not found in this scrape.`,
+                });
             }
-            send({ type: "stats", category: "collections", added: 0, matched: 0, missed });
+            send({
+                type: "stats",
+                category: "collections",
+                added: 0,
+                matched: 0,
+                missed,
+            });
         }
     } finally {
         await workerPage.close();

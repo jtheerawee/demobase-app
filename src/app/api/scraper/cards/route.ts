@@ -6,7 +6,10 @@ export async function GET(request: Request) {
     const collectionId = searchParams.get("collectionId");
 
     if (!collectionId) {
-        return NextResponse.json({ success: false, error: "Missing collectionId" }, { status: 400 });
+        return NextResponse.json(
+            { success: false, error: "Missing collectionId" },
+            { status: 400 },
+        );
     }
 
     try {
@@ -20,7 +23,10 @@ export async function GET(request: Request) {
 
         if (error) {
             console.error("[API] Error fetching cards:", error);
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 },
+            );
         }
 
         const cards = data.map((card) => ({
@@ -38,7 +44,10 @@ export async function GET(request: Request) {
         });
     } catch (err: any) {
         console.error("[API] Unexpected error fetching cards:", err);
-        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: err.message },
+            { status: 500 },
+        );
     }
 }
 
@@ -48,7 +57,10 @@ export async function DELETE(request: Request) {
     const collectionId = searchParams.get("collectionId");
 
     if (!id && !collectionId) {
-        return NextResponse.json({ success: false, error: "Missing id or collectionId" }, { status: 400 });
+        return NextResponse.json(
+            { success: false, error: "Missing id or collectionId" },
+            { status: 400 },
+        );
     }
 
     try {
@@ -64,11 +76,17 @@ export async function DELETE(request: Request) {
         const { error } = await query;
 
         if (error) {
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 },
+            );
         }
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: err.message },
+            { status: 500 },
+        );
     }
 }

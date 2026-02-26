@@ -1,4 +1,7 @@
-export const LANGUAGE_OPTIONS: Record<string, { value: string; label: string }[]> = {
+export const LANGUAGE_OPTIONS: Record<
+    string,
+    { value: string; label: string }[]
+> = {
     mtg: [
         { value: "en", label: "English" },
         { value: "jp", label: "Japanese" },
@@ -12,9 +15,7 @@ export const LANGUAGE_OPTIONS: Record<string, { value: string; label: string }[]
         { value: "en", label: "English" },
         { value: "jp", label: "Japanese" },
     ],
-    lorcana: [
-        { value: "en", label: "English" },
-    ],
+    lorcana: [{ value: "en", label: "English" }],
 };
 
 export const FRANCHISE_OPTIONS = [

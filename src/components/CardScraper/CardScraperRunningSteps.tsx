@@ -1,8 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { Card, Stack, Text, Group, Badge, ScrollArea, Box, ActionIcon, Tooltip, CopyButton } from "@mantine/core";
-import { IconCircleCheck, IconCircleDashed, IconLoader2, IconAlertCircle, IconCopy, IconCheck } from "@tabler/icons-react";
+import {
+    Card,
+    Stack,
+    Text,
+    Group,
+    Badge,
+    ScrollArea,
+    Box,
+    ActionIcon,
+    Tooltip,
+    CopyButton,
+} from "@mantine/core";
+import {
+    IconCircleCheck,
+    IconCircleDashed,
+    IconLoader2,
+    IconAlertCircle,
+    IconCopy,
+    IconCheck,
+} from "@tabler/icons-react";
 
 interface Step {
     id: string | number;
@@ -15,7 +33,9 @@ interface CardScraperRunningStepsProps {
     steps?: Step[];
 }
 
-export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsProps) {
+export function CardScraperRunningSteps({
+    steps = [],
+}: CardScraperRunningStepsProps) {
     const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
     const handleCopy = (step: Step) => {
@@ -28,22 +48,41 @@ export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsP
         <Card withBorder radius="md" padding="md" shadow="sm">
             <Stack gap="sm">
                 <Group justify="space-between">
-                    <Text fw={600} size="sm">Running Steps</Text>
+                    <Text fw={600} size="sm">
+                        Running Steps
+                    </Text>
                     <Group gap="xs">
-                        {steps.some(s => s.status === "running") && (
-                            <Badge variant="dot" color="blue" size="sm">Active</Badge>
+                        {steps.some((s) => s.status === "running") && (
+                            <Badge variant="dot" color="blue" size="sm">
+                                Active
+                            </Badge>
                         )}
                         {steps.length > 0 && (
-                            <CopyButton value={[...steps].reverse().map(s => `[${s.timestamp}] ${s.message}`).join('\n')}>
+                            <CopyButton
+                                value={[...steps]
+                                    .reverse()
+                                    .map((s) => `[${s.timestamp}] ${s.message}`)
+                                    .join("\n")}
+                            >
                                 {({ copied, copy }) => (
-                                    <Tooltip label={copied ? "Copied all!" : "Copy all steps"}>
+                                    <Tooltip
+                                        label={
+                                            copied
+                                                ? "Copied all!"
+                                                : "Copy all steps"
+                                        }
+                                    >
                                         <ActionIcon
                                             variant="subtle"
                                             color={copied ? "green" : "gray"}
                                             size="sm"
                                             onClick={copy}
                                         >
-                                            {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                                            {copied ? (
+                                                <IconCheck size={14} />
+                                            ) : (
+                                                <IconCopy size={14} />
+                                            )}
                                         </ActionIcon>
                                     </Tooltip>
                                 )}
@@ -56,12 +95,42 @@ export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsP
                     <Stack gap="xs">
                         {steps.length > 0 ? (
                             [...steps].reverse().map((step) => (
-                                <Group key={step.id} gap="sm" align="flex-start" wrap="nowrap">
+                                <Group
+                                    key={step.id}
+                                    gap="sm"
+                                    align="flex-start"
+                                    wrap="nowrap"
+                                >
                                     <Box mt={2}>
-                                        {step.status === "completed" && <IconCircleCheck size={16} color="var(--mantine-color-green-6)" />}
-                                        {step.status === "running" && <IconLoader2 size={16} color="var(--mantine-color-blue-6)" className="animate-spin" style={{ animation: 'spin 2s linear infinite' }} />}
-                                        {step.status === "pending" && <IconCircleDashed size={16} color="var(--mantine-color-gray-4)" />}
-                                        {step.status === "error" && <IconAlertCircle size={16} color="var(--mantine-color-red-6)" />}
+                                        {step.status === "completed" && (
+                                            <IconCircleCheck
+                                                size={16}
+                                                color="var(--mantine-color-green-6)"
+                                            />
+                                        )}
+                                        {step.status === "running" && (
+                                            <IconLoader2
+                                                size={16}
+                                                color="var(--mantine-color-blue-6)"
+                                                className="animate-spin"
+                                                style={{
+                                                    animation:
+                                                        "spin 2s linear infinite",
+                                                }}
+                                            />
+                                        )}
+                                        {step.status === "pending" && (
+                                            <IconCircleDashed
+                                                size={16}
+                                                color="var(--mantine-color-gray-4)"
+                                            />
+                                        )}
+                                        {step.status === "error" && (
+                                            <IconAlertCircle
+                                                size={16}
+                                                color="var(--mantine-color-red-6)"
+                                            />
+                                        )}
                                     </Box>
                                     <Stack gap={0} style={{ flex: 1 }}>
                                         <Text size="xs" fw={500}>
@@ -71,17 +140,41 @@ export function CardScraperRunningSteps({ steps = [] }: CardScraperRunningStepsP
                                             {step.timestamp}
                                         </Text>
                                     </Stack>
-                                    <Tooltip label={copiedId === step.id ? "Copied!" : "Copy"} position="left">
+                                    <Tooltip
+                                        label={
+                                            copiedId === step.id
+                                                ? "Copied!"
+                                                : "Copy"
+                                        }
+                                        position="left"
+                                    >
                                         <ActionIcon
                                             variant="subtle"
-                                            color={copiedId === step.id ? "green" : "gray"}
+                                            color={
+                                                copiedId === step.id
+                                                    ? "green"
+                                                    : "gray"
+                                            }
                                             size="xs"
                                             onClick={() => handleCopy(step)}
-                                            style={{ opacity: 0.5, flexShrink: 0 }}
-                                            onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
-                                            onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}
+                                            style={{
+                                                opacity: 0.5,
+                                                flexShrink: 0,
+                                            }}
+                                            onMouseEnter={(e) =>
+                                                (e.currentTarget.style.opacity =
+                                                    "1")
+                                            }
+                                            onMouseLeave={(e) =>
+                                                (e.currentTarget.style.opacity =
+                                                    "0.5")
+                                            }
                                         >
-                                            {copiedId === step.id ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                                            {copiedId === step.id ? (
+                                                <IconCheck size={12} />
+                                            ) : (
+                                                <IconCopy size={12} />
+                                            )}
                                         </ActionIcon>
                                     </Tooltip>
                                 </Group>

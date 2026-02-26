@@ -6,7 +6,13 @@ import type { ScraperOptions } from "@/services/scraper/types";
 // THAI (TH) CARD SCRAPER LOGIC
 // ==========================================
 
-export async function scrapePokemonCardsTh({ url, context, send, deepScrape, collectionId }: ScraperOptions) {
+export async function scrapePokemonCardsTh({
+    url,
+    context,
+    send,
+    deepScrape,
+    collectionId,
+}: ScraperOptions) {
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
@@ -15,13 +21,16 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
         url.includes("pageNo=")
             ? url.replace(/pageNo=\d+/, `pageNo=${p}`)
             : url.includes("?")
-                ? `${url}&pageNo=${p}`
-                : `${url}?pageNo=${p}`;
+              ? `${url}&pageNo=${p}`
+              : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
     const concurrency = APP_CONFIG.CARD_CONCURRENCY_LIMIT;
 
-    send({ type: "step", message: `Initializing ${concurrency} parallel pagination workers for Thai site...` });
+    send({
+        type: "step",
+        message: `Initializing ${concurrency} parallel pagination workers for Thai site...`,
+    });
 
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
@@ -40,25 +49,40 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
 
                 const targetPageUrl = getTargetUrl(p);
                 try {
-                    await workerPage.goto(targetPageUrl, { waitUntil: "networkidle", timeout: 45000 });
+                    await workerPage.goto(targetPageUrl, {
+                        waitUntil: "networkidle",
+                        timeout: 45000,
+                    });
                     if (shouldAbort || p > totalPages) break;
 
-                    await workerPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+                    await workerPage.evaluate(() =>
+                        window.scrollTo(0, document.body.scrollHeight),
+                    );
                     await workerPage.waitForTimeout(1000);
 
                     const pageData = await workerPage.evaluate(() => {
-                        const cardElements = document.querySelectorAll(".cardList li.card");
+                        const cardElements =
+                            document.querySelectorAll(".cardList li.card");
                         const items = Array.from(cardElements).map((el) => {
                             const img = el.querySelector("img");
-                            const anchor = el.querySelector("a") as HTMLAnchorElement;
-                            const imageUrl = img?.getAttribute("data-original") || img?.src || "";
+                            const anchor = el.querySelector(
+                                "a",
+                            ) as HTMLAnchorElement;
+                            const imageUrl =
+                                img?.getAttribute("data-original") ||
+                                img?.src ||
+                                "";
                             const absoluteImageUrl = imageUrl.startsWith("http")
                                 ? imageUrl
-                                : window.location.origin + (imageUrl.startsWith("/") ? "" : "/") + imageUrl;
+                                : window.location.origin +
+                                  (imageUrl.startsWith("/") ? "" : "/") +
+                                  imageUrl;
                             const link = anchor?.getAttribute("href") || "";
                             const absoluteLink = link.startsWith("http")
                                 ? link
-                                : window.location.origin + (link.startsWith("/") ? "" : "/") + link;
+                                : window.location.origin +
+                                  (link.startsWith("/") ? "" : "/") +
+                                  link;
                             return {
                                 imageUrl: absoluteImageUrl,
                                 alt: img?.alt || "Pokemon Card",
@@ -81,7 +105,11 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
                         if (p === 1) {
                             shouldAbort = true;
                             totalPages = 0;
-                            send({ type: "meta", totalPages: 0, totalCards: 0 });
+                            send({
+                                type: "meta",
+                                totalPages: 0,
+                                totalCards: 0,
+                            });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
                             send({ type: "meta", totalPages });
@@ -89,7 +117,10 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
                         break;
                     }
 
-                    if (pageData.discoveredTotal > 0 && totalPages === Infinity) {
+                    if (
+                        pageData.discoveredTotal > 0 &&
+                        totalPages === Infinity
+                    ) {
                         totalPages = pageData.discoveredTotal;
                         send({ type: "meta", totalPages });
                     }
@@ -98,8 +129,14 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
                     sharedCardList.push(...pageData.items);
                     send({ type: "chunk", items: pageData.items, startIndex });
                 } catch (pageErr) {
-                    console.error(`[Scraper] Worker ${workerId} failed at page ${p}:`, pageErr);
-                    send({ type: "step", message: `Worker ${workerId} failed at page ${p}. Retrying...` });
+                    console.error(
+                        `[Scraper] Worker ${workerId} failed at page ${p}:`,
+                        pageErr,
+                    );
+                    send({
+                        type: "step",
+                        message: `Worker ${workerId} failed at page ${p}. Retrying...`,
+                    });
                 }
             }
         } finally {
@@ -108,42 +145,63 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
         }
     };
 
-    const paginationWorkers = Array.from({ length: concurrency }, async (_, i) => {
-        const workerId = i + 1;
-        if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
-        if (shouldAbort) return;
-        return paginationWorker(workerId);
-    });
+    const paginationWorkers = Array.from(
+        { length: concurrency },
+        async (_, i) => {
+            const workerId = i + 1;
+            if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
+            if (shouldAbort) return;
+            return paginationWorker(workerId);
+        },
+    );
     await Promise.all(paginationWorkers);
 
     // Deep Scrape Phase (Thai)
     if (deepScrape && sharedCardList.length > 0) {
         const totalCards = sharedCardList.length;
-        send({ type: "step", message: `Starting deep scrape for ${totalCards} cards...` });
+        send({
+            type: "step",
+            message: `Starting deep scrape for ${totalCards} cards...`,
+        });
 
         const deepWorker = async (workerId: number) => {
             updateWorkers(1);
             const workerPage = await context.newPage();
             try {
                 while (true) {
-                    const cardIndex = sharedCardList.findIndex((c) => c.cardUrl && !c.isDeepScraped && !c.isBeingScraped);
+                    const cardIndex = sharedCardList.findIndex(
+                        (c) =>
+                            c.cardUrl && !c.isDeepScraped && !c.isBeingScraped,
+                    );
                     if (cardIndex === -1) break;
 
                     const card = sharedCardList[cardIndex];
                     card.isBeingScraped = true;
 
                     try {
-                        await workerPage.goto(card.cardUrl, { waitUntil: "networkidle", timeout: 30000 });
+                        await workerPage.goto(card.cardUrl, {
+                            waitUntil: "networkidle",
+                            timeout: 30000,
+                        });
                         const details = await workerPage.evaluate(() => {
-                            const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "";
+                            const getText = (sel: string) =>
+                                document
+                                    .querySelector(sel)
+                                    ?.textContent?.trim() || "";
                             const h1 =
                                 document.querySelector("h1") ||
-                                document.querySelector(".p-cardDetail__header h1") ||
-                                document.querySelector(".pageHeader.cardDetail");
+                                document.querySelector(
+                                    ".p-cardDetail__header h1",
+                                ) ||
+                                document.querySelector(
+                                    ".pageHeader.cardDetail",
+                                );
                             let name = "";
                             if (h1) {
                                 const clone = h1.cloneNode(true) as HTMLElement;
-                                clone.querySelectorAll(".evolveMarker").forEach((el) => el.remove());
+                                clone
+                                    .querySelectorAll(".evolveMarker")
+                                    .forEach((el) => el.remove());
                                 name = clone.textContent?.trim() || "";
                             }
 
@@ -162,7 +220,12 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
                                 collectorNumber = numberAndRarity;
                             }
 
-                            return { name, cardNo: collectorNumber, rarity, isDeepScraped: true };
+                            return {
+                                name,
+                                cardNo: collectorNumber,
+                                rarity,
+                                isDeepScraped: true,
+                            };
                         });
 
                         Object.assign(card, details);
@@ -170,7 +233,10 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
                         send({ type: "cardUpdate", index: cardIndex, details });
                     } catch (e) {
                         card.isBeingScraped = false;
-                        console.error(`Failed to deep scrape Thai card ${cardIndex}:`, e);
+                        console.error(
+                            `Failed to deep scrape Thai card ${cardIndex}:`,
+                            e,
+                        );
                     }
                 }
             } finally {
@@ -179,11 +245,14 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
             }
         };
 
-        const workers = Array.from({ length: Math.min(concurrency, sharedCardList.length) }, async (_, i) => {
-            const workerId = i + 1;
-            if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
-            return deepWorker(workerId);
-        });
+        const workers = Array.from(
+            { length: Math.min(concurrency, sharedCardList.length) },
+            async (_, i) => {
+                const workerId = i + 1;
+                if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
+                return deepWorker(workerId);
+            },
+        );
         await Promise.all(workers);
     }
 
@@ -193,12 +262,24 @@ export async function scrapePokemonCardsTh({ url, context, send, deepScrape, col
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
                 const { added, matched } = result;
-                send({ type: "stats", category: "cards", added, matched, missed: 0 });
-                send({ type: "step", message: `Successfully saved ${sharedCardList.length} Thai cards — ✅ ${added} new, 🔁 ${matched} matched.` });
+                send({
+                    type: "stats",
+                    category: "cards",
+                    added,
+                    matched,
+                    missed: 0,
+                });
+                send({
+                    type: "step",
+                    message: `Successfully saved ${sharedCardList.length} Thai cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                });
             }
         } catch (error) {
             console.error("Failed to save Thai cards:", error);
-            send({ type: "step", message: "Warning: Failed to persist cards to database." });
+            send({
+                type: "step",
+                message: "Warning: Failed to persist cards to database.",
+            });
         }
     }
 }

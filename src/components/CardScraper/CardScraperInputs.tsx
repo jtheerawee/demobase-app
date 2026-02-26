@@ -11,7 +11,12 @@ interface CardScraperInputsProps {
     onLanguageChange?: (value: string | null) => void;
 }
 
-export function CardScraperInputs({ franchise, language, onFranchiseChange, onLanguageChange }: CardScraperInputsProps) {
+export function CardScraperInputs({
+    franchise,
+    language,
+    onFranchiseChange,
+    onLanguageChange,
+}: CardScraperInputsProps) {
     const languageOptions = useMemo(() => {
         return franchise ? (LANGUAGE_OPTIONS[franchise] ?? []) : [];
     }, [franchise]);

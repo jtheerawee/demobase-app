@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { chromium as playwright } from "playwright";
 import { APP_CONFIG } from "@/constants/app";
-import { scrapeMTGCards, scrapeMTGCollections } from "@/services/scraper/mtgScraper";
-import { scrapePokemonCards, scrapePokemonCollections } from "@/services/scraper/pokemonScraper";
-import { scrapeOnepieceCards, scrapeOnepieceCollections } from "@/services/scraper/onepieceScraper";
+import {
+    scrapeMTGCards,
+    scrapeMTGCollections,
+} from "@/services/scraper/mtgScraper";
+import {
+    scrapePokemonCards,
+    scrapePokemonCollections,
+} from "@/services/scraper/pokemonScraper";
+import {
+    scrapeOnepieceCards,
+    scrapeOnepieceCollections,
+} from "@/services/scraper/onepieceScraper";
 
 export async function POST(request: Request) {
     let url: string = "";
@@ -21,10 +30,15 @@ export async function POST(request: Request) {
             type = body.type || "cards";
             franchise = body.franchise;
             language = body.language;
-            collectionId = body.collectionId ? Number(body.collectionId) : undefined;
+            collectionId = body.collectionId
+                ? Number(body.collectionId)
+                : undefined;
         } catch (e) {
             console.error("Failed to parse request body:", e);
-            return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+            return NextResponse.json(
+                { error: "Invalid request body" },
+                { status: 400 },
+            );
         }
 
         if (!url && type === "collections") {
@@ -46,7 +60,10 @@ export async function POST(request: Request) {
         }
 
         if (!url) {
-            return NextResponse.json({ error: "URL is required" }, { status: 400 });
+            return NextResponse.json(
+                { error: "URL is required" },
+                { status: 400 },
+            );
         }
 
         const deepScrape = body.deepScrape !== false;
@@ -58,12 +75,17 @@ export async function POST(request: Request) {
                 async start(controller) {
                     const send = (data: unknown) => {
                         try {
-                            controller.enqueue(encoder.encode(`${JSON.stringify(data)}\n`));
-                        } catch (_err) { }
+                            controller.enqueue(
+                                encoder.encode(`${JSON.stringify(data)}\n`),
+                            );
+                        } catch (_err) {}
                     };
 
                     try {
-                        send({ type: "step", message: "Launching browser engine..." });
+                        send({
+                            type: "step",
+                            message: "Launching browser engine...",
+                        });
                         try {
                             browser = await playwright.launch({
                                 args: [
@@ -74,7 +96,10 @@ export async function POST(request: Request) {
                                 headless: true,
                             });
                         } catch (launchError: any) {
-                            console.error("[Scraper Launch Error]:", launchError);
+                            console.error(
+                                "[Scraper Launch Error]:",
+                                launchError,
+                            );
                             send({
                                 success: false,
                                 error: `Failed to launch browser: ${launchError.message}`,
@@ -84,7 +109,10 @@ export async function POST(request: Request) {
                             return;
                         }
 
-                        send({ type: "step", message: "Creating browser context..." });
+                        send({
+                            type: "step",
+                            message: "Creating browser context...",
+                        });
                         const context = await browser.newContext({
                             userAgent:
                                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -102,7 +130,10 @@ export async function POST(request: Request) {
                             skipSave,
                         };
 
-                        if (url.includes("gatherer.wizards.com") || franchise === "mtg") {
+                        if (
+                            url.includes("gatherer.wizards.com") ||
+                            franchise === "mtg"
+                        ) {
                             if (type === "cards") {
                                 await scrapeMTGCards(scraperOptions);
                             } else {
@@ -121,10 +152,16 @@ export async function POST(request: Request) {
                                 await scrapeOnepieceCollections(scraperOptions);
                             }
                         } else {
-                            send({ type: "step", message: `Unsupported franchise: ${franchise}.` });
+                            send({
+                                type: "step",
+                                message: `Unsupported franchise: ${franchise}.`,
+                            });
                         }
 
-                        send({ type: "step", message: "Scraping session finished successfully." });
+                        send({
+                            type: "step",
+                            message: "Scraping session finished successfully.",
+                        });
                         send({ type: "complete", success: true });
                     } catch (error: any) {
                         console.error("[Scrapper Stream Error]:", error);
@@ -138,7 +175,7 @@ export async function POST(request: Request) {
                         }
                         try {
                             controller.close();
-                        } catch (_e) { }
+                        } catch (_e) {}
                     }
                 },
             }),
@@ -148,7 +185,7 @@ export async function POST(request: Request) {
                     "Cache-Control": "no-cache",
                     Connection: "keep-alive",
                 },
-            }
+            },
         );
     } catch (error: any) {
         console.error("[Scraper Generic Error]:", error);
@@ -157,7 +194,7 @@ export async function POST(request: Request) {
                 success: false,
                 error: error.message || "Unknown scraping error",
             },
-            { status: 500 }
+            { status: 500 },
         );
     }
 }

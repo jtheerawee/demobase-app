@@ -24,10 +24,15 @@ export async function GET(request: Request) {
         const { data, error } = await query;
 
         if (error) {
-            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 },
+            );
         }
 
-        const indices = Array.from(new Set(data.map((item) => item.scraped_index))).sort((a, b) => b - a);
+        const indices = Array.from(
+            new Set(data.map((item) => item.scraped_index)),
+        ).sort((a, b) => b - a);
         const maxIndex = indices.length > 0 ? indices[0] : 0;
 
         return NextResponse.json({
@@ -36,6 +41,9 @@ export async function GET(request: Request) {
             indices,
         });
     } catch (err: any) {
-        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+        return NextResponse.json(
+            { success: false, error: err.message },
+            { status: 500 },
+        );
     }
 }

@@ -33,8 +33,12 @@ export function CardScraperCollectionItem({
             radius="sm"
             style={{
                 cursor: "pointer",
-                borderColor: selected ? "var(--mantine-color-blue-filled)" : undefined,
-                backgroundColor: selected ? "var(--mantine-color-blue-light)" : undefined,
+                borderColor: selected
+                    ? "var(--mantine-color-blue-filled)"
+                    : undefined,
+                backgroundColor: selected
+                    ? "var(--mantine-color-blue-light)"
+                    : undefined,
             }}
             onClick={onSelect}
         >
@@ -45,13 +49,19 @@ export function CardScraperCollectionItem({
                             {item.name}
                         </Text>
                         {item.collectionCode && (
-                            <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
+                            <Badge
+                                size="xs"
+                                variant="outline"
+                                color="gray"
+                                style={{ flexShrink: 0 }}
+                            >
                                 {item.collectionCode}
                             </Badge>
                         )}
                     </Group>
                     <Text size="xs" c="dimmed">
-                        {item.cardCount ?? 0} cards{item.updatedAt ? ` • ${item.updatedAt}` : ""}
+                        {item.cardCount ?? 0} cards
+                        {item.updatedAt ? ` • ${item.updatedAt}` : ""}
                     </Text>
                 </Stack>
 

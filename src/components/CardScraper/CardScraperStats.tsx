@@ -18,14 +18,24 @@ function StatWidget({ label, color, collections, cards }: StatWidgetProps) {
     return (
         <Card withBorder radius="sm" padding="sm">
             <Stack gap={4}>
-                <Badge variant="light" color={color} size="xs" radius="sm">{label}</Badge>
+                <Badge variant="light" color={color} size="xs" radius="sm">
+                    {label}
+                </Badge>
                 <Group justify="space-between" align="baseline">
-                    <Text size="xs" c="dimmed">Collections</Text>
-                    <Text size="sm" fw={700}>{collections}</Text>
+                    <Text size="xs" c="dimmed">
+                        Collections
+                    </Text>
+                    <Text size="sm" fw={700}>
+                        {collections}
+                    </Text>
                 </Group>
                 <Group justify="space-between" align="baseline">
-                    <Text size="xs" c="dimmed">Cards</Text>
-                    <Text size="sm" fw={700}>{cards}</Text>
+                    <Text size="xs" c="dimmed">
+                        Cards
+                    </Text>
+                    <Text size="sm" fw={700}>
+                        {cards}
+                    </Text>
                 </Group>
             </Stack>
         </Card>

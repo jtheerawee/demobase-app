@@ -16,15 +16,25 @@ export function CardManagerHeader({
     count,
     loading,
     badgeColor = "blue",
-    actions
+    actions,
 }: CardManagerHeaderProps) {
     return (
         <Group justify="space-between" align="center">
-            <Text fw={700} size="lg">{title}</Text>
+            <Text fw={700} size="lg">
+                {title}
+            </Text>
             <Group gap="xs">
-                {loading ? <Loader size="xs" /> : (
-                    count !== undefined && count > 0 && (
-                        <Badge color={badgeColor} variant="filled" h={18} styles={{ label: { fontSize: '10px' } }}>
+                {loading ? (
+                    <Loader size="xs" />
+                ) : (
+                    count !== undefined &&
+                    count > 0 && (
+                        <Badge
+                            color={badgeColor}
+                            variant="filled"
+                            h={18}
+                            styles={{ label: { fontSize: "10px" } }}
+                        >
                             {count}
                         </Badge>
                     )

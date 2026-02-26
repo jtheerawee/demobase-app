@@ -1,6 +1,15 @@
 "use client";
 
-import { Card, Group, Image, Stack, Text, ActionIcon, Box, Tooltip } from "@mantine/core";
+import {
+    Card,
+    Group,
+    Image,
+    Stack,
+    Text,
+    ActionIcon,
+    Box,
+    Tooltip,
+} from "@mantine/core";
 import { IconExternalLink, IconPlus } from "@tabler/icons-react";
 import { SearchedCard } from "./CardManagerResult";
 
@@ -28,12 +37,15 @@ export function CardManagerSearchCard({
             radius="sm"
             h={115}
             style={{
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                cursor: 'default'
+                transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                cursor: "default",
             }}
         >
             <Group gap="sm" wrap="nowrap" h="100%" align="center">
-                <Box w={65} style={{ display: 'flex', justifyContent: 'center' }}>
+                <Box
+                    w={65}
+                    style={{ display: "flex", justifyContent: "center" }}
+                >
                     <Image
                         src={card.imageUrl}
                         fallbackSrc="https://placehold.co/100x140?text=No+Image"
@@ -41,17 +53,30 @@ export function CardManagerSearchCard({
                         h={85}
                         radius="xs"
                         style={{
-                            objectFit: 'contain',
-                            cursor: 'pointer',
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                            objectFit: "contain",
+                            cursor: "pointer",
+                            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
                         }}
                         onClick={() => onImageClick(card.imageUrl)}
                     />
                 </Box>
 
-                <Stack gap={2} style={{ flex: 1, minWidth: 0, height: '100%', justifyContent: 'center' }}>
+                <Stack
+                    gap={2}
+                    style={{
+                        flex: 1,
+                        minWidth: 0,
+                        height: "100%",
+                        justifyContent: "center",
+                    }}
+                >
                     <Group justify="space-between" wrap="nowrap" gap={4}>
-                        <Text size="xs" fw={700} lineClamp={1} style={{ lineHeight: 1.2 }}>
+                        <Text
+                            size="xs"
+                            fw={700}
+                            lineClamp={1}
+                            style={{ lineHeight: 1.2 }}
+                        >
                             {card.name}
                         </Text>
                         <Group gap={2}>
@@ -66,7 +91,11 @@ export function CardManagerSearchCard({
                                 <IconExternalLink size={12} />
                             </ActionIcon>
                             <Tooltip
-                                label={isCollected ? "Already in your collection" : "Add to collection"}
+                                label={
+                                    isCollected
+                                        ? "Already in your collection"
+                                        : "Add to collection"
+                                }
                                 position="top"
                                 withArrow
                             >
@@ -89,10 +118,23 @@ export function CardManagerSearchCard({
                     </Text>
 
                     <Group gap={6} mt={2} align="center">
-                        <Text size="10px" fw={600} c="blue.7" bg="blue.0" px={4} style={{ borderRadius: '2px' }}>
+                        <Text
+                            size="10px"
+                            fw={600}
+                            c="blue.7"
+                            bg="blue.0"
+                            px={4}
+                            style={{ borderRadius: "2px" }}
+                        >
                             #{card.cardNo || "---"}
                         </Text>
-                        <Text size="10px" fw={500} bg="gray.1" px={4} style={{ borderRadius: '2px' }}>
+                        <Text
+                            size="10px"
+                            fw={500}
+                            bg="gray.1"
+                            px={4}
+                            style={{ borderRadius: "2px" }}
+                        >
                             {card.rarity || "---"}
                         </Text>
                     </Group>

@@ -130,7 +130,7 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                 <Badge
                                     color={
                                         timeLeft.includes("left") &&
-                                            !timeLeft.includes("d")
+                                        !timeLeft.includes("d")
                                             ? "red"
                                             : "blue"
                                     }

@@ -1,6 +1,15 @@
 import { createClient } from "@/utils/supabase/server";
 import { Link } from "@/i18n/navigation";
-import { Box, Button, Container, Group, Text, Avatar, Badge, Tooltip } from "@mantine/core";
+import {
+    Box,
+    Button,
+    Container,
+    Group,
+    Text,
+    Avatar,
+    Badge,
+    Tooltip,
+} from "@mantine/core";
 import { IconNetwork, IconWorld } from "@tabler/icons-react";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
@@ -31,8 +40,10 @@ function getLocalIp() {
 
 export async function Navbar() {
     const headerList = await headers();
-    const forwarded = headerList.get('x-forwarded-for');
-    const clientIp = forwarded ? forwarded.split(',')[0].trim() : (headerList.get('x-real-ip') || '127.0.0.1');
+    const forwarded = headerList.get("x-forwarded-for");
+    const clientIp = forwarded
+        ? forwarded.split(",")[0].trim()
+        : headerList.get("x-real-ip") || "127.0.0.1";
 
     const localIp = getLocalIp();
     const supabase = await createClient();
