@@ -6,7 +6,9 @@ import {
     Stack,
     Card,
     ActionIcon,
+    Grid,
 } from "@mantine/core";
+import { APP_CONFIG } from "@/constants/app";
 import { IconTrash } from "@tabler/icons-react";
 import { CardManagerHeader } from "../CardManagerHeader";
 import { SearchResultInfo } from "./SearchResultInfo";
@@ -47,53 +49,61 @@ export function SearchResult({
     waitingForSelection,
 }: SearchResultProps) {
     return (
-        <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
-            <Stack gap="md" h="100%">
-                <CardManagerHeader
-                    title="Search Results"
-                    count={results.length}
-                    loading={loading}
-                    actions={
-                        <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            size="sm"
-                            title="Clear results and snapshot"
-                            onClick={onReset}
-                            disabled={
-                                loading ||
-                                (results.length === 0 &&
-                                    query === "" &&
-                                    !waitingForSelection)
-                            }
+        <Grid.Col
+            span={{
+                base: 12,
+                md: APP_CONFIG.CARD_MANAGER_LAYOUT.RESULTS_SPAN,
+            }}
+            h="100%"
+        >
+            <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
+                <Stack gap="md" h="100%">
+                    <CardManagerHeader
+                        title="Search Results"
+                        count={results.length}
+                        loading={loading}
+                        actions={
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                size="sm"
+                                title="Clear results and snapshot"
+                                onClick={onReset}
+                                disabled={
+                                    loading ||
+                                    (results.length === 0 &&
+                                        query === "" &&
+                                        !waitingForSelection)
+                                }
+                            >
+                                <IconTrash size={16} />
+                            </ActionIcon>
+                        }
+                    />
+                    <Box style={{ flex: 1, minHeight: 0 }}>
+                        <ScrollArea
+                            flex={1}
+                            offsetScrollbars
+                            type="always"
+                            h="100%"
                         >
-                            <IconTrash size={16} />
-                        </ActionIcon>
-                    }
-                />
-                <Box style={{ flex: 1, minHeight: 0 }}>
-                    <ScrollArea
-                        flex={1}
-                        offsetScrollbars
-                        type="always"
-                        h="100%"
-                    >
-                        <SearchCardList
-                            results={results}
-                            addingId={addingId}
-                            collectedCardIds={collectedCardIds}
-                            onAddToCollection={onAddToCollection}
-                            onImageClick={onImageClick}
-                        />
+                            <SearchCardList
+                                results={results}
+                                addingId={addingId}
+                                collectedCardIds={collectedCardIds}
+                                onAddToCollection={onAddToCollection}
+                                onImageClick={onImageClick}
+                            />
 
-                        <SearchResultInfo
-                            loading={loading}
-                            resultsCount={results.length}
-                            query={query}
-                        />
-                    </ScrollArea>
-                </Box>
-            </Stack>
-        </Card>
+                            <SearchResultInfo
+                                loading={loading}
+                                resultsCount={results.length}
+                                query={query}
+                            />
+                        </ScrollArea>
+                    </Box>
+                </Stack>
+            </Card>
+        </Grid.Col>
     );
 }

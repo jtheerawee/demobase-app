@@ -1,4 +1,5 @@
-import { SegmentedControl, Stack, Center, Card, Select } from "@mantine/core";
+import { SegmentedControl, Stack, Center, Card, Select, Grid } from "@mantine/core";
+import { APP_CONFIG } from "@/constants/app";
 import { IconAlphabetLatin, IconCamera } from "@tabler/icons-react";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
@@ -60,94 +61,102 @@ export function CardManagerSearch({
     languageOptions,
 }: CardManagerSearchProps) {
     return (
-        <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
-            <Stack gap="md" h="100%">
-                <CardManagerHeader
-                    title="Search"
-                    actions={
-                        <>
-                            <Select
-                                size="xs"
-                                placeholder="Franchise"
-                                value={selectedFranchise}
-                                onChange={onFranchiseChange}
-                                data={franchiseOptions}
-                                style={{ width: 140 }}
-                            />
-                            <Select
-                                size="xs"
-                                placeholder="Language"
-                                value={selectedLanguage}
-                                onChange={onLanguageChange}
-                                data={languageOptions}
-                                style={{ width: 140 }}
-                            />
-                        </>
-                    }
-                />
+        <Grid.Col
+            span={{
+                base: 12,
+                md: APP_CONFIG.CARD_MANAGER_LAYOUT.CONTROLS_SPAN,
+            }}
+            h="100%"
+        >
+            <Card withBorder padding="md" radius="md" shadow="sm" h="100%">
+                <Stack gap="md" h="100%">
+                    <CardManagerHeader
+                        title="Search"
+                        actions={
+                            <>
+                                <Select
+                                    size="xs"
+                                    placeholder="Franchise"
+                                    value={selectedFranchise}
+                                    onChange={onFranchiseChange}
+                                    data={franchiseOptions}
+                                    style={{ width: 140 }}
+                                />
+                                <Select
+                                    size="xs"
+                                    placeholder="Language"
+                                    value={selectedLanguage}
+                                    onChange={onLanguageChange}
+                                    data={languageOptions}
+                                    style={{ width: 140 }}
+                                />
+                            </>
+                        }
+                    />
 
-                <Stack gap="sm" w="100%" flex={1}>
-                    <Center>
-                        <SegmentedControl
-                            value={searchMode}
-                            onChange={(val) =>
-                                onSearchModeChange(val as SearchMode)
-                            }
-                            data={[
-                                {
-                                    value: "text",
-                                    label: (
-                                        <Center style={{ gap: 10 }}>
-                                            <IconAlphabetLatin size={16} />
-                                            <span>Text Search</span>
-                                        </Center>
-                                    ),
-                                },
-                                {
-                                    value: "camera",
-                                    label: (
-                                        <Center style={{ gap: 10 }}>
-                                            <IconCamera size={16} />
-                                            <span>Camera</span>
-                                        </Center>
-                                    ),
-                                },
-                            ]}
-                        />
-                    </Center>
+                    <Stack gap="sm" w="100%" flex={1}>
+                        <Center>
+                            <SegmentedControl
+                                value={searchMode}
+                                onChange={(val) =>
+                                    onSearchModeChange(val as SearchMode)
+                                }
+                                data={[
+                                    {
+                                        value: "text",
+                                        label: (
+                                            <Center style={{ gap: 10 }}>
+                                                <IconAlphabetLatin size={16} />
+                                                <span>Text Search</span>
+                                            </Center>
+                                        ),
+                                    },
+                                    {
+                                        value: "camera",
+                                        label: (
+                                            <Center style={{ gap: 10 }}>
+                                                <IconCamera size={16} />
+                                                <span>Camera</span>
+                                            </Center>
+                                        ),
+                                    },
+                                ]}
+                            />
+                        </Center>
 
-                    {searchMode === "text" ? (
-                        <CardManagerTextSearch
-                            query={query}
-                            setQuery={setQuery}
-                            loading={loading}
-                        />
-                    ) : (
-                        <CardManagerOCR
-                            mode="camera"
-                            onScan={onScanIds}
-                            onScanStart={onScanStart}
-                            onTextResult={setQuery}
-                            onClear={() => {
-                                setQuery("");
-                                onClear?.();
-                            }}
-                            autoAdd={autoAdd}
-                            onAutoAddChange={onAutoAddChange}
-                            autoCapture={autoCapture}
-                            onAutoCaptureChange={onAutoCaptureChange}
-                            paused={paused}
-                            loopActive={loopActive}
-                            onLoopActiveChange={onLoopActiveChange}
-                            autoCaptureInterval={autoCaptureInterval}
-                            onAutoCaptureIntervalChange={
-                                onAutoCaptureIntervalChange
-                            }
-                            resetTrigger={resetTrigger}
-                        />
-                    )}
+                        {searchMode === "text" ? (
+                            <CardManagerTextSearch
+                                query={query}
+                                setQuery={setQuery}
+                                loading={loading}
+                            />
+                        ) : (
+                            <CardManagerOCR
+                                mode="camera"
+                                onScan={onScanIds}
+                                onScanStart={onScanStart}
+                                onTextResult={setQuery}
+                                onClear={() => {
+                                    setQuery("");
+                                    onClear?.();
+                                }}
+                                autoAdd={autoAdd}
+                                onAutoAddChange={onAutoAddChange}
+                                autoCapture={autoCapture}
+                                onAutoCaptureChange={onAutoCaptureChange}
+                                paused={paused}
+                                loopActive={loopActive}
+                                onLoopActiveChange={onLoopActiveChange}
+                                autoCaptureInterval={autoCaptureInterval}
+                                onAutoCaptureIntervalChange={
+                                    onAutoCaptureIntervalChange
+                                }
+                                resetTrigger={resetTrigger}
+                            />
+                        )}
+                    </Stack>
                 </Stack>
-            </Stack>
-        </Card>
+            </Card>
+        </Grid.Col>
     );
 }

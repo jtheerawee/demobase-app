@@ -300,89 +300,63 @@ export default function CardManagerPage() {
                     align="flex-start"
                     style={{ height: "calc(100vh - 180px)" }}
                 >
-                    <Grid.Col
-                        span={{
-                            base: 12,
-                            md: APP_CONFIG.CARD_MANAGER_LAYOUT.COLLECTION_SPAN,
-                        }}
-                        h="100%"
-                    >
-                        <CollectedCardList
-                            ref={listRef}
-                            onImageClick={setPreviewImage}
-                            onCollectionChange={setCollectedCardIds}
-                        />
-                    </Grid.Col>
+                    <CollectedCardList
+                        ref={listRef}
+                        onImageClick={setPreviewImage}
+                        onCollectionChange={setCollectedCardIds}
+                    />
 
-                    {/* Middle: Search Results (1/4) */}
-                    <Grid.Col
-                        span={{
-                            base: 12,
-                            md: APP_CONFIG.CARD_MANAGER_LAYOUT.RESULTS_SPAN,
-                        }}
-                        h="100%"
-                    >
-                        <SearchResult
-                            results={results}
-                            loading={loading}
-                            query={searchQuery}
-                            addingId={addingId}
-                            collectedCardIds={collectedCardIds}
-                            onAddToCollection={handleAddToCollection}
-                            onImageClick={setPreviewImage}
-                            onReset={handleReset}
-                            waitingForSelection={waitingForSelection}
-                        />
-                    </Grid.Col>
+                    <SearchResult
+                        results={results}
+                        loading={loading}
+                        query={searchQuery}
+                        addingId={addingId}
+                        collectedCardIds={collectedCardIds}
+                        onAddToCollection={handleAddToCollection}
+                        onImageClick={setPreviewImage}
+                        onReset={handleReset}
+                        waitingForSelection={waitingForSelection}
+                    />
 
-                    {/* Right: Camera / Search Input (2/4) */}
-                    <Grid.Col
-                        span={{
-                            base: 12,
-                            md: APP_CONFIG.CARD_MANAGER_LAYOUT.CONTROLS_SPAN,
+                    <CardManagerSearch
+                        query={searchQuery}
+                        setQuery={setSearchQuery}
+                        loading={loading}
+                        searchMode={searchMode}
+                        onSearchModeChange={setSearchMode}
+                        onScanIds={handleScanIds}
+                        onScanStart={() => {
+                            setResults([]);
+                            setLoading(true);
                         }}
-                        h="100%"
-                    >
-                        <CardManagerSearch
-                            query={searchQuery}
-                            setQuery={setSearchQuery}
-                            loading={loading}
-                            searchMode={searchMode}
-                            onSearchModeChange={setSearchMode}
-                            onScanIds={handleScanIds}
-                            onScanStart={() => {
-                                setResults([]);
-                                setLoading(true);
-                            }}
-                            autoAdd={autoAdd}
-                            onAutoAddChange={setAutoAdd}
-                            autoCapture={autoCapture}
-                            onAutoCaptureChange={(val) => {
-                                setAutoCapture(val);
-                                if (val) setAutoAdd(true);
-                                else setAutoCaptureActive(false);
-                            }}
-                            loopActive={autoCaptureActive}
-                            onLoopActiveChange={setAutoCaptureActive}
-                            autoCaptureInterval={autoCaptureInterval}
-                            onAutoCaptureIntervalChange={setAutoCaptureInterval}
-                            paused={waitingForSelection}
-                            onClear={() => setWaitingForSelection(false)}
-                            resetTrigger={resetTrigger}
-                            selectedFranchise={selectedFranchise}
-                            onFranchiseChange={(val) => {
-                                setSelectedFranchise(val);
-                                setSelectedLanguage("all");
-                            }}
-                            franchiseOptions={[
-                                { value: "all", label: "All Franchises" },
-                                ...FRANCHISE_OPTIONS,
-                            ]}
-                            selectedLanguage={selectedLanguage}
-                            onLanguageChange={setSelectedLanguage}
-                            languageOptions={languageOptions}
-                        />
-                    </Grid.Col>
+                        autoAdd={autoAdd}
+                        onAutoAddChange={setAutoAdd}
+                        autoCapture={autoCapture}
+                        onAutoCaptureChange={(val) => {
+                            setAutoCapture(val);
+                            if (val) setAutoAdd(true);
+                            else setAutoCaptureActive(false);
+                        }}
+                        loopActive={autoCaptureActive}
+                        onLoopActiveChange={setAutoCaptureActive}
+                        autoCaptureInterval={autoCaptureInterval}
+                        onAutoCaptureIntervalChange={setAutoCaptureInterval}
+                        paused={waitingForSelection}
+                        onClear={() => setWaitingForSelection(false)}
+                        resetTrigger={resetTrigger}
+                        selectedFranchise={selectedFranchise}
+                        onFranchiseChange={(val) => {
+                            setSelectedFranchise(val);
+                            setSelectedLanguage("all");
+                        }}
+                        franchiseOptions={[
+                            { value: "all", label: "All Franchises" },
+                            ...FRANCHISE_OPTIONS,
+                        ]}
+                        selectedLanguage={selectedLanguage}
+                        onLanguageChange={setSelectedLanguage}
+                        languageOptions={languageOptions}
+                    />
                 </Grid>
             </Stack>
 
