@@ -3,7 +3,7 @@
 import { Group, Text, Badge, Loader } from "@mantine/core";
 import { ReactNode } from "react";
 
-interface CardManagerHeaderProps {
+interface WidgetHeaderProps {
     title: string;
     count?: number;
     loading?: boolean;
@@ -11,13 +11,13 @@ interface CardManagerHeaderProps {
     actions?: ReactNode;
 }
 
-export function CardManagerHeader({
+export function WidgetHeader({
     title,
     count,
     loading,
     badgeColor = "blue",
     actions,
-}: CardManagerHeaderProps) {
+}: WidgetHeaderProps) {
     return (
         <Group justify="space-between" align="center">
             <Text fw={700} size="lg">

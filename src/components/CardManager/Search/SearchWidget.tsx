@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Stack, Select } from "@mantine/core";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
-import { CardManagerHeader } from "../CardManagerHeader";
+import { WidgetHeader } from "@/components/WidgetHeader";
 import { SearchModeSwitcher, type SearchMode } from "./SearchModeSwitcher";
 import { SearchInstructionModal } from "./SearchInstructionModal";
 
@@ -64,7 +64,7 @@ export function SearchWidget({
 
     return (
         <>
-            <CardManagerHeader
+            <WidgetHeader
                 title="Search"
                 actions={
                     <>

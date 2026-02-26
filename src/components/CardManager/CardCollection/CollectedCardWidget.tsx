@@ -9,7 +9,7 @@ import { notifications } from "@mantine/notifications";
 import { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
 import { AddNewCardModal } from "./AddNewCardModal";
-import { CardManagerHeader } from "../CardManagerHeader";
+import { WidgetHeader } from "@/components/WidgetHeader";
 import { APP_CONFIG } from "@/constants/app";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 
@@ -241,7 +241,7 @@ export const CollectedCardWidget = forwardRef(
 
         return (
             <>
-                <CardManagerHeader
+                <WidgetHeader
                     title="My Collection"
                     count={collectedCards.length}
                     loading={loading}

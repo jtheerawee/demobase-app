@@ -7,7 +7,7 @@ import {
     ActionIcon,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { CardManagerHeader } from "../CardManagerHeader";
+import { WidgetHeader } from "@/components/WidgetHeader";
 import { SearchResultInfo } from "./SearchResultInfo";
 import { SearchCardList } from "./SearchCardList";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
@@ -50,7 +50,7 @@ export function SearchResultWidget({
 
     return (
         <>
-            <CardManagerHeader
+            <WidgetHeader
                 title="Search Results"
                 count={results.length}
                 loading={loading}
