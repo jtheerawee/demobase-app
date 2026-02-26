@@ -13,15 +13,8 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { IconTrash, IconPlus, IconMinus } from "@tabler/icons-react";
+import { CONDITIONS, VARIANTS } from "./constants";
 
-export const CONDITIONS = [
-    { value: "NM", label: "Near Mint" },
-    { value: "LP", label: "Lightly Played" },
-    { value: "MP", label: "Moderately Played" },
-    { value: "HP", label: "Heavily Played" },
-    { value: "DMG", label: "Damaged" },
-];
-export const VARIANTS = ["NF", "F"];
 
 export interface CollectedCard {
     id: number;
@@ -178,20 +171,20 @@ export function CollectedCard({
                                     color="orange"
                                     style={{ cursor: "pointer" }}
                                 >
-                                    {card.variant || "NF"}
+                                    {(card.variant || "nf").toUpperCase()}
                                 </Badge>
                             </Menu.Target>
                             <Menu.Dropdown>
                                 <Menu.Label>Variant</Menu.Label>
                                 {VARIANTS.map((v) => (
                                     <Menu.Item
-                                        key={v}
+                                        key={v.value}
                                         onClick={() =>
-                                            onUpdateVariant(card.id, v)
+                                            onUpdateVariant(card.id, v.value)
                                         }
                                         style={{ fontSize: "10px" }}
                                     >
-                                        {v === "NF" ? "Non-Foil" : "Foil"}
+                                        {v.label}
                                     </Menu.Item>
                                 ))}
                             </Menu.Dropdown>
@@ -207,7 +200,7 @@ export function CollectedCard({
                                     color="gray"
                                     style={{ cursor: "pointer" }}
                                 >
-                                    {card.condition || "NM"}
+                                    {(card.condition || "nm").toUpperCase()}
                                 </Badge>
                             </Menu.Target>
                             <Menu.Dropdown>

@@ -16,8 +16,9 @@ import {
 import { IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
-import { CollectedCard, CONDITIONS } from "./CollectedCard";
+import { CollectedCard } from "./CollectedCard";
 import { CardManagerHeader } from "./CardManagerHeader";
+import { CONDITIONS, VARIANTS } from "./constants";
 
 export const CollectedCardList = forwardRef(
     (
@@ -37,8 +38,8 @@ export const CollectedCardList = forwardRef(
         const [addEntryCard, setAddEntryCard] = useState<CollectedCard | null>(
             null,
         );
-        const [addVariant, setAddVariant] = useState<string>("NF");
-        const [addCondition, setAddCondition] = useState<string>("NM");
+        const [addVariant, setAddVariant] = useState<string>("nf");
+        const [addCondition, setAddCondition] = useState<string>("nm");
         const [addingEntry, setAddingEntry] = useState(false);
 
         const fetchCollection = async () => {
@@ -166,8 +167,8 @@ export const CollectedCardList = forwardRef(
                 c.cardNo,
                 c.rarity,
                 c.quantity,
-                c.variant || "NF",
-                c.condition || "NM",
+                c.variant || "nf",
+                c.condition || "nm",
             ]);
 
             const csvContent = [headers, ...rows]
@@ -290,8 +291,8 @@ export const CollectedCardList = forwardRef(
                                         onDelete={handleDelete}
                                         onAddEntry={(c) => {
                                             setAddEntryCard(c);
-                                            setAddVariant("NF");
-                                            setAddCondition("NM");
+                                            setAddVariant("nf");
+                                            setAddCondition("nm");
                                         }}
                                     />
                                 ))}
@@ -357,21 +358,15 @@ export const CollectedCardList = forwardRef(
                             <Select
                                 label="Variant"
                                 value={addVariant}
-                                onChange={(v) => setAddVariant(v || "NF")}
-                                data={[
-                                    { value: "NF", label: "Non-Foil" },
-                                    { value: "F", label: "Foil" },
-                                ]}
+                                onChange={(v) => setAddVariant(v || "nf")}
+                                data={VARIANTS}
                                 size="sm"
                             />
                             <Select
                                 label="Condition"
                                 value={addCondition}
-                                onChange={(v) => setAddCondition(v || "NM")}
-                                data={CONDITIONS.map((c) => ({
-                                    value: c.value,
-                                    label: c.label,
-                                }))}
+                                onChange={(v) => setAddCondition(v || "nm")}
+                                data={CONDITIONS}
                                 size="sm"
                             />
                             <Group justify="flex-end" gap="xs">

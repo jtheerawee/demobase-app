@@ -184,7 +184,7 @@ export default function CardManagerPage() {
                 if (
                     autoCapture &&
                     consecutiveNoCard.current >=
-                        APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                    APP_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
                     setAutoCaptureActive(false);
                     notifications.show({
@@ -225,8 +225,8 @@ export default function CardManagerPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     cardId: card.id,
-                    variant: "NF",
-                    condition: "NM",
+                    variant: "nf",
+                    condition: "nm",
                     checkVariantCondition: false,
                 }),
             });
