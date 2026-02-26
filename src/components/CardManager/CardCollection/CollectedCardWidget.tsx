@@ -10,6 +10,7 @@ import { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
 import { CollectedCardModal } from "./CollectedCardModal";
 import { CardManagerHeader } from "../Search";
+import { APP_CONFIG } from "@/constants/app";
 
 export const CollectedCardWidget = forwardRef(
     (
@@ -201,14 +202,14 @@ export const CollectedCardWidget = forwardRef(
                             title: "Already Exists",
                             message: `${addEntryCard.name} (${addVariant} / ${addCondition}) is already in your collection.`,
                             color: "orange",
-                            autoClose: 3000,
+                            autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                         });
                     } else {
                         notifications.show({
                             title: "Entry Added",
                             message: `${addEntryCard.name} — ${addVariant} / ${addCondition} added.`,
                             color: "green",
-                            autoClose: 2000,
+                            autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                         });
                         setAddEntryCard(null);
                         fetchCollection();
@@ -218,7 +219,7 @@ export const CollectedCardWidget = forwardRef(
                         title: "Failed",
                         message: data.error || "Could not add entry.",
                         color: "red",
-                        autoClose: 3000,
+                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
             } catch (err) {

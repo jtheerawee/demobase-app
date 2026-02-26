@@ -15,6 +15,7 @@ import { Dropzone, IMAGE_MIME_TYPE, FileWithPath } from "@mantine/dropzone";
 import { IconPhoto, IconX, IconScan, IconRefresh } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { OCR_CONFIG } from "@/constants/ocr";
+import { APP_CONFIG } from "@/constants/app";
 import { CardManagerCamera } from "./CardManagerCamera";
 
 interface CardManagerOCRProps {
@@ -111,7 +112,7 @@ export function CardManagerOCR({
                         </Box>
                     ),
                     color: "blue",
-                    autoClose: 8000,
+                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
 
                 const matches = data.results || [];
@@ -186,6 +187,7 @@ export function CardManagerOCR({
                     message: err.message || "Failed to process image",
                     color: "red",
                     icon: <IconX size={18} />,
+                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
             }
             onScan?.([]);

@@ -1,6 +1,8 @@
 export const APP_CONFIG = {
     // App
     APP_NAME: "DemoBase.app",
+    APP_VERSION: "0.0.1",
+    NOTIFICATION_AUTO_CLOSE: 5000,
 
     // Scaper
     COLLECTION_CONCURRENCY_LIMIT: 4,

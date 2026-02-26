@@ -166,6 +166,7 @@ export default function CardManagerPage() {
                         title: "Auto-capture Stopped",
                         message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange",
+                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
             }
@@ -203,6 +204,7 @@ export default function CardManagerPage() {
                         title: "Auto-capture Stopped",
                         message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange",
+                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
 
@@ -255,14 +257,14 @@ export default function CardManagerPage() {
                         ? `${card.name} (${card.collectionCode}) is already in your collection.`
                         : `${card.name} (${card.collectionCode}) added.`,
                     color: "green",
-                    autoClose: 2000,
+                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
             } else {
                 notifications.show({
                     title: "Failed to Add",
                     message: data.error || "Could not add card to collection.",
                     color: "red",
-                    autoClose: 3000,
+                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
             }
         } catch (err) {
@@ -271,7 +273,7 @@ export default function CardManagerPage() {
                 title: "Error",
                 message: "Network error while adding card.",
                 color: "red",
-                autoClose: 3000,
+                autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
             });
         } finally {
             setAddingId(null);
@@ -287,7 +289,7 @@ export default function CardManagerPage() {
             title: "Scanner Reset",
             message: "Clear results and snapshot",
             color: "gray",
-            autoClose: 2000,
+            autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
         });
     };
 

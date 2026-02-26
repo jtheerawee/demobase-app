@@ -28,7 +28,10 @@ import {
     IconMaximize,
 } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
+import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
+import { PreviewThumbnail } from "./PreviewThumbnail";
+import { EnlargeImageModal } from "@/components/EnlargeImageModal";
 
 interface CardManagerCameraProps {
     onCapture: (file: FileWithPath) => void;
@@ -129,6 +132,7 @@ export function CardManagerCamera({
                 title: "Camera Error",
                 message: "Could not access camera. Please check permissions.",
                 color: "red",
+                autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
             });
         }
     };
@@ -349,74 +353,18 @@ export function CardManagerCamera({
                 </Center>
 
                 {/* Snapshot Thumbnail (Right-aligned) */}
-                {preview && (
-                    <Box
-                        pos="absolute"
-                        right={0}
-                        top="50%"
-                        style={{ transform: "translateY(-50%)" }}
-                    >
-                        <Tooltip
-                            label="Click to enlarge last snapshot"
-                            position="top"
-                        >
-                            <Box
-                                pos="relative"
-                                onClick={() => setIsEnlarged(true)}
-                                style={{
-                                    cursor: "pointer",
-                                    borderRadius: "4px",
-                                    overflow: "hidden",
-                                    border: "2px solid var(--mantine-color-blue-4)",
-                                    boxShadow: "var(--mantine-shadow-xs)",
-                                    transition: "transform 0.1s ease",
-                                    "&:hover": { transform: "scale(1.05)" },
-                                }}
-                            >
-                                <Image
-                                    src={preview}
-                                    w={48}
-                                    h={48}
-                                    fallbackSrc="https://placehold.co/48x48?text=Scan"
-                                    style={{ objectFit: "cover" }}
-                                />
-                                <Box
-                                    pos="absolute"
-                                    bottom={2}
-                                    right={2}
-                                    bg="rgba(0,0,0,0.5)"
-                                    style={{
-                                        borderRadius: "2px",
-                                        display: "flex",
-                                        padding: 1,
-                                    }}
-                                >
-                                    <IconMaximize size={8} color="white" />
-                                </Box>
-                            </Box>
-                        </Tooltip>
-                    </Box>
-                )}
+                <PreviewThumbnail
+                    preview={preview || null}
+                    onEnlarge={() => setIsEnlarged(true)}
+                />
             </Box>
 
-            <Modal
+            <EnlargeImageModal
                 opened={isEnlarged}
                 onClose={() => setIsEnlarged(false)}
+                preview={preview || null}
                 title="Last Captured Snapshot"
-                size="lg"
-                centered
-                overlayProps={{ blur: 3 }}
-            >
-                <Image
-                    src={preview || ""}
-                    radius="md"
-                    style={{
-                        width: "100%",
-                        maxHeight: "70vh",
-                        objectFit: "contain",
-                    }}
-                />
-            </Modal>
+            />
 
             {onAutoAddChange && (
                 <Group justify="center" mt="xs" gap="md" wrap="nowrap">
