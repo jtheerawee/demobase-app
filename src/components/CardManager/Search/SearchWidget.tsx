@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Stack, Select } from "@mantine/core";
+import { Stack, Select, ScrollArea } from "@mantine/core";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { WidgetHeader } from "@/components/WidgetHeader";
@@ -94,44 +94,46 @@ export function SearchWidget({
                 }
             />
 
-            <Stack gap="sm" w="100%" flex={1} px="sm" py="sm">
-                <SearchModeSwitcher
-                    value={searchMode}
-                    onChange={onSearchModeChange}
-                    onInfoClick={() => setInstructionOpened(true)}
-                />
+            <ScrollArea flex={1} scrollbars="y" type="auto">
+                <Stack gap="sm" w="100%" px="sm" py="sm">
+                    <SearchModeSwitcher
+                        value={searchMode}
+                        onChange={onSearchModeChange}
+                        onInfoClick={() => setInstructionOpened(true)}
+                    />
 
-                {searchMode === "text" ? (
-                    <CardManagerTextSearch
-                        query={query}
-                        setQuery={setQuery}
-                        loading={loading}
-                    />
-                ) : (
-                    <CardManagerOCR
-                        mode="camera"
-                        onScan={onScanIds}
-                        onScanStart={onScanStart}
-                        onResultInfo={onResultInfo}
-                        onClear={() => {
-                            setQuery("");
-                            onClear?.();
-                        }}
-                        autoAdd={autoAdd}
-                        onAutoAddChange={onAutoAddChange}
-                        autoCapture={autoCapture}
-                        onAutoCaptureChange={onAutoCaptureChange}
-                        paused={paused}
-                        loopActive={loopActive}
-                        onLoopActiveChange={onLoopActiveChange}
-                        manualCaptureDelay={manualCaptureDelay}
-                        onManualCaptureDelayChange={onManualCaptureDelayChange}
-                        autoCaptureDelay={autoCaptureDelay}
-                        onAutoCaptureDelayChange={onAutoCaptureDelayChange}
-                        resetTrigger={resetTrigger}
-                    />
-                )}
-            </Stack>
+                    {searchMode === "text" ? (
+                        <CardManagerTextSearch
+                            query={query}
+                            setQuery={setQuery}
+                            loading={loading}
+                        />
+                    ) : (
+                        <CardManagerOCR
+                            mode="camera"
+                            onScan={onScanIds}
+                            onScanStart={onScanStart}
+                            onResultInfo={onResultInfo}
+                            onClear={() => {
+                                setQuery("");
+                                onClear?.();
+                            }}
+                            autoAdd={autoAdd}
+                            onAutoAddChange={onAutoAddChange}
+                            autoCapture={autoCapture}
+                            onAutoCaptureChange={onAutoCaptureChange}
+                            paused={paused}
+                            loopActive={loopActive}
+                            onLoopActiveChange={onLoopActiveChange}
+                            manualCaptureDelay={manualCaptureDelay}
+                            onManualCaptureDelayChange={onManualCaptureDelayChange}
+                            autoCaptureDelay={autoCaptureDelay}
+                            onAutoCaptureDelayChange={onAutoCaptureDelayChange}
+                            resetTrigger={resetTrigger}
+                        />
+                    )}
+                </Stack>
+            </ScrollArea>
 
             <SearchInstructionModal
                 opened={instructionOpened}

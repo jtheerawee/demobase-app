@@ -103,7 +103,7 @@ export function CameraView({
     setPreview,
 }: CameraViewProps) {
     const [cameraActive, setCameraActive] = useState(false);
-    const { devices, selectedDeviceId, setSelectedDeviceId, loadDevices } = useCameraDevices();
+    const { devices, selectedDeviceId, setSelectedDeviceId, loadDevices, getSavedDeviceId } = useCameraDevices();
     const [isEnlarged, setIsEnlarged] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -229,7 +229,7 @@ export function CameraView({
     }, [loopActive]);
 
     useEffect(() => {
-        startCamera();
+        startCamera(getSavedDeviceId() ?? undefined);
         return () => stopCamera();
     }, []);
 
