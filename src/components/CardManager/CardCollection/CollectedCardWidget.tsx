@@ -1,23 +1,15 @@
 "use client";
 
 import {
-    Group,
-    Stack,
-    Text,
-    Image,
     ActionIcon,
-    Modal,
-    Select,
-    Button,
 } from "@mantine/core";
 import { IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
 import { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
+import { CollectedCardModal } from "./CollectedCardModal";
 import { CardManagerHeader } from "../Search";
-import { CONDITIONS } from "@/constants/conditions";
-import { VARIANTS } from "@/constants/variants";
 
 export const CollectedCardWidget = forwardRef(
     (
@@ -279,96 +271,17 @@ export const CollectedCardWidget = forwardRef(
                     }}
                 />
 
-                <Modal
-                    opened={!!addEntryCard}
+                <CollectedCardModal
+                    card={addEntryCard}
                     onClose={() => setAddEntryCard(null)}
-                    title="Add Variant / Condition"
-                    centered
-                    size="sm"
-                    overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
-                >
-                    {addEntryCard && (
-                        <Stack gap="md">
-                            <Group gap="md" wrap="nowrap">
-                                <Image
-                                    src={addEntryCard.imageUrl}
-                                    w={50}
-                                    h={70}
-                                    radius="xs"
-                                    style={{
-                                        objectFit: "contain",
-                                        flexShrink: 0,
-                                    }}
-                                    onClick={() =>
-                                        onImageClick?.(
-                                            addEntryCard.imageUrl,
-                                        )
-                                    }
-                                />
-                                <Stack gap={4}>
-                                    <Text fw={700} size="sm">
-                                        {addEntryCard.name}
-                                    </Text>
-                                    <Text size="xs" c="dimmed">
-                                        {addEntryCard.collectionName}
-                                    </Text>
-                                    <Group gap={6}>
-                                        <Text
-                                            size="xs"
-                                            fw={600}
-                                            c="blue.7"
-                                            bg="blue.0"
-                                            px={4}
-                                            style={{ borderRadius: "2px" }}
-                                        >
-                                            #{addEntryCard.cardNo}
-                                        </Text>
-                                        <Text
-                                            size="xs"
-                                            fw={500}
-                                            bg="gray.1"
-                                            px={4}
-                                            style={{ borderRadius: "2px" }}
-                                        >
-                                            {addEntryCard.rarity}
-                                        </Text>
-                                    </Group>
-                                </Stack>
-                            </Group>
-                            <Select
-                                label="Variant"
-                                value={addVariant}
-                                onChange={(v) => setAddVariant(v || "nf")}
-                                data={VARIANTS}
-                                size="sm"
-                            />
-                            <Select
-                                label="Condition"
-                                value={addCondition}
-                                onChange={(v) => setAddCondition(v || "nm")}
-                                data={CONDITIONS}
-                                size="sm"
-                            />
-                            <Group justify="flex-end" gap="xs">
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => setAddEntryCard(null)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    color="green"
-                                    loading={addingEntry}
-                                    onClick={handleAddEntry}
-                                >
-                                    Add Entry
-                                </Button>
-                            </Group>
-                        </Stack>
-                    )}
-                </Modal>
+                    variant={addVariant}
+                    onVariantChange={setAddVariant}
+                    condition={addCondition}
+                    onConditionChange={setAddCondition}
+                    onAdd={handleAddEntry}
+                    adding={addingEntry}
+                    onImageClick={onImageClick}
+                />
             </>
         );
     },
