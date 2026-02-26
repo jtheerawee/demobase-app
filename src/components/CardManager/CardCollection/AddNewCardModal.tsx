@@ -5,7 +5,7 @@ import { CollectedCard } from "./CollectedCard";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
 
-interface CollectedCardModalProps {
+interface AddNewCardModalProps {
     card: CollectedCard | null;
     onClose: () => void;
     variant: string;
@@ -17,7 +17,7 @@ interface CollectedCardModalProps {
     onImageClick?: (url: string) => void;
 }
 
-export function CollectedCardModal({
+export function AddNewCardModal({
     card,
     onClose,
     variant,
@@ -27,7 +27,7 @@ export function CollectedCardModal({
     onAdd,
     adding,
     onImageClick,
-}: CollectedCardModalProps) {
+}: AddNewCardModalProps) {
     return (
         <Modal
             opened={!!card}

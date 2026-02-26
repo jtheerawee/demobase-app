@@ -8,7 +8,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
 import { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
-import { CollectedCardModal } from "./CollectedCardModal";
+import { AddNewCardModal } from "./AddNewCardModal";
 import { CardManagerHeader } from "../Search";
 import { APP_CONFIG } from "@/constants/app";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
@@ -279,7 +279,7 @@ export const CollectedCardWidget = forwardRef(
                     }}
                 />
 
-                <CollectedCardModal
+                <AddNewCardModal
                     card={addEntryCard}
                     onClose={() => setAddEntryCard(null)}
                     variant={addVariant}
