@@ -12,9 +12,7 @@ import {
     Modal,
     Select,
     Button,
-    Grid,
 } from "@mantine/core";
-import { APP_CONFIG } from "@/constants/app";
 import { IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
@@ -249,164 +247,154 @@ export const CollectedCardList = forwardRef(
         }, []);
 
         return (
-            <Grid.Col
-                span={{
-                    base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT.COLLECTION_SPAN,
-                }}
-                h="100%"
-            >
-                <Card withBorder radius="md" padding="md" shadow="sm" h="100%">
-                    <Stack gap="md" h="100%">
-                        <CardManagerHeader
-                            title="My Collection"
-                            count={collectedCards.length}
-                            loading={loading}
-                            badgeColor="grape"
-                            actions={
-                                <ActionIcon
-                                    variant="subtle"
-                                    color="gray"
-                                    title="Export to CSV"
-                                    onClick={handleExport}
-                                    disabled={collectedCards.length === 0}
-                                >
-                                    <IconDownload size={18} />
-                                </ActionIcon>
-                            }
-                        />
+            <>
+                <CardManagerHeader
+                    title="My Collection"
+                    count={collectedCards.length}
+                    loading={loading}
+                    badgeColor="grape"
+                    actions={
+                        <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            title="Export to CSV"
+                            onClick={handleExport}
+                            disabled={collectedCards.length === 0}
+                        >
+                            <IconDownload size={18} />
+                        </ActionIcon>
+                    }
+                />
 
-                        <ScrollArea flex={1} offsetScrollbars>
-                            {collectedCards.length === 0 && !loading ? (
-                                <Box py="xl" style={{ textAlign: "center" }}>
-                                    <Text c="dimmed" size="sm">
-                                        Your collection is empty.
+                <ScrollArea flex={1} offsetScrollbars>
+                    {collectedCards.length === 0 && !loading ? (
+                        <Box py="xl" style={{ textAlign: "center" }}>
+                            <Text c="dimmed" size="sm">
+                                Your collection is empty.
+                            </Text>
+                            <Text c="dimmed" size="xs">
+                                Search cards and click "+" to add them.
+                            </Text>
+                        </Box>
+                    ) : (
+                        <Stack gap="sm">
+                            {collectedCards.map((card) => (
+                                <CollectedCard
+                                    key={card.id}
+                                    card={card}
+                                    onImageClick={onImageClick}
+                                    onUpdateQuantity={
+                                        handleUpdateQuantity
+                                    }
+                                    onUpdateCondition={
+                                        handleUpdateCondition
+                                    }
+                                    onUpdateVariant={
+                                        handleUpdateVariant
+                                    }
+                                    onDelete={handleDelete}
+                                    onAddEntry={(c) => {
+                                        setAddEntryCard(c);
+                                        setAddVariant("nf");
+                                        setAddCondition("nm");
+                                    }}
+                                />
+                            ))}
+                        </Stack>
+                    )}
+                </ScrollArea>
+
+                <Modal
+                    opened={!!addEntryCard}
+                    onClose={() => setAddEntryCard(null)}
+                    title="Add Variant / Condition"
+                    centered
+                    size="sm"
+                    overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
+                >
+                    {addEntryCard && (
+                        <Stack gap="md">
+                            <Group gap="md" wrap="nowrap">
+                                <Image
+                                    src={addEntryCard.imageUrl}
+                                    w={50}
+                                    h={70}
+                                    radius="xs"
+                                    style={{
+                                        objectFit: "contain",
+                                        flexShrink: 0,
+                                    }}
+                                    onClick={() =>
+                                        onImageClick?.(
+                                            addEntryCard.imageUrl,
+                                        )
+                                    }
+                                />
+                                <Stack gap={4}>
+                                    <Text fw={700} size="sm">
+                                        {addEntryCard.name}
                                     </Text>
-                                    <Text c="dimmed" size="xs">
-                                        Search cards and click "+" to add them.
+                                    <Text size="xs" c="dimmed">
+                                        {addEntryCard.collectionName}
                                     </Text>
-                                </Box>
-                            ) : (
-                                <Stack gap="sm">
-                                    {collectedCards.map((card) => (
-                                        <CollectedCard
-                                            key={card.id}
-                                            card={card}
-                                            onImageClick={onImageClick}
-                                            onUpdateQuantity={
-                                                handleUpdateQuantity
-                                            }
-                                            onUpdateCondition={
-                                                handleUpdateCondition
-                                            }
-                                            onUpdateVariant={
-                                                handleUpdateVariant
-                                            }
-                                            onDelete={handleDelete}
-                                            onAddEntry={(c) => {
-                                                setAddEntryCard(c);
-                                                setAddVariant("nf");
-                                                setAddCondition("nm");
-                                            }}
-                                        />
-                                    ))}
+                                    <Group gap={6}>
+                                        <Text
+                                            size="xs"
+                                            fw={600}
+                                            c="blue.7"
+                                            bg="blue.0"
+                                            px={4}
+                                            style={{ borderRadius: "2px" }}
+                                        >
+                                            #{addEntryCard.cardNo}
+                                        </Text>
+                                        <Text
+                                            size="xs"
+                                            fw={500}
+                                            bg="gray.1"
+                                            px={4}
+                                            style={{ borderRadius: "2px" }}
+                                        >
+                                            {addEntryCard.rarity}
+                                        </Text>
+                                    </Group>
                                 </Stack>
-                            )}
-                        </ScrollArea>
-                    </Stack>
-
-                    <Modal
-                        opened={!!addEntryCard}
-                        onClose={() => setAddEntryCard(null)}
-                        title="Add Variant / Condition"
-                        centered
-                        size="sm"
-                        overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
-                    >
-                        {addEntryCard && (
-                            <Stack gap="md">
-                                <Group gap="md" wrap="nowrap">
-                                    <Image
-                                        src={addEntryCard.imageUrl}
-                                        w={50}
-                                        h={70}
-                                        radius="xs"
-                                        style={{
-                                            objectFit: "contain",
-                                            flexShrink: 0,
-                                        }}
-                                        onClick={() =>
-                                            onImageClick?.(
-                                                addEntryCard.imageUrl,
-                                            )
-                                        }
-                                    />
-                                    <Stack gap={4}>
-                                        <Text fw={700} size="sm">
-                                            {addEntryCard.name}
-                                        </Text>
-                                        <Text size="xs" c="dimmed">
-                                            {addEntryCard.collectionName}
-                                        </Text>
-                                        <Group gap={6}>
-                                            <Text
-                                                size="xs"
-                                                fw={600}
-                                                c="blue.7"
-                                                bg="blue.0"
-                                                px={4}
-                                                style={{ borderRadius: "2px" }}
-                                            >
-                                                #{addEntryCard.cardNo}
-                                            </Text>
-                                            <Text
-                                                size="xs"
-                                                fw={500}
-                                                bg="gray.1"
-                                                px={4}
-                                                style={{ borderRadius: "2px" }}
-                                            >
-                                                {addEntryCard.rarity}
-                                            </Text>
-                                        </Group>
-                                    </Stack>
-                                </Group>
-                                <Select
-                                    label="Variant"
-                                    value={addVariant}
-                                    onChange={(v) => setAddVariant(v || "nf")}
-                                    data={VARIANTS}
+                            </Group>
+                            <Select
+                                label="Variant"
+                                value={addVariant}
+                                onChange={(v) => setAddVariant(v || "nf")}
+                                data={VARIANTS}
+                                size="sm"
+                            />
+                            <Select
+                                label="Condition"
+                                value={addCondition}
+                                onChange={(v) => setAddCondition(v || "nm")}
+                                data={CONDITIONS}
+                                size="sm"
+                            />
+                            <Group justify="flex-end" gap="xs">
+                                <Button
+                                    variant="default"
                                     size="sm"
-                                />
-                                <Select
-                                    label="Condition"
-                                    value={addCondition}
-                                    onChange={(v) => setAddCondition(v || "nm")}
-                                    data={CONDITIONS}
+                                    onClick={() => setAddEntryCard(null)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
                                     size="sm"
-                                />
-                                <Group justify="flex-end" gap="xs">
-                                    <Button
-                                        variant="default"
-                                        size="sm"
-                                        onClick={() => setAddEntryCard(null)}
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        color="green"
-                                        loading={addingEntry}
-                                        onClick={handleAddEntry}
-                                    >
-                                        Add Entry
-                                    </Button>
-                                </Group>
-                            </Stack>
-                        )}
-                    </Modal>
-                </Card>
-            </Grid.Col>
+                                    color="green"
+                                    loading={addingEntry}
+                                    onClick={handleAddEntry}
+                                >
+                                    Add Entry
+                                </Button>
+                            </Group>
+                        </Stack>
+                    )}
+                </Modal>
+            </>
         );
     },
 );

@@ -1,10 +1,11 @@
 "use client";
 
-import { Container, Stack, Image, Grid, Modal, Badge } from "@mantine/core";
+import { Container, Stack, Image, Modal, Badge } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
+import { MainLayout } from "@/components/CardManager/MainLayout";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
@@ -295,69 +296,71 @@ export default function CardManagerPage() {
                     }
                 />
 
-                <Grid
-                    gutter="md"
-                    align="flex-start"
-                    style={{ height: "calc(100vh - 180px)" }}
-                >
-                    <CollectedCardList
-                        ref={listRef}
-                        onImageClick={setPreviewImage}
-                        onCollectionChange={setCollectedCardIds}
-                    />
-
-                    <SearchResult
-                        results={results}
-                        loading={loading}
-                        query={searchQuery}
-                        addingId={addingId}
-                        collectedCardIds={collectedCardIds}
-                        onAddToCollection={handleAddToCollection}
-                        onImageClick={setPreviewImage}
-                        onReset={handleReset}
-                        waitingForSelection={waitingForSelection}
-                    />
-
-                    <CardManagerSearch
-                        query={searchQuery}
-                        setQuery={setSearchQuery}
-                        loading={loading}
-                        searchMode={searchMode}
-                        onSearchModeChange={setSearchMode}
-                        onScanIds={handleScanIds}
-                        onScanStart={() => {
-                            setResults([]);
-                            setLoading(true);
-                        }}
-                        autoAdd={autoAdd}
-                        onAutoAddChange={setAutoAdd}
-                        autoCapture={autoCapture}
-                        onAutoCaptureChange={(val) => {
-                            setAutoCapture(val);
-                            if (val) setAutoAdd(true);
-                            else setAutoCaptureActive(false);
-                        }}
-                        loopActive={autoCaptureActive}
-                        onLoopActiveChange={setAutoCaptureActive}
-                        autoCaptureInterval={autoCaptureInterval}
-                        onAutoCaptureIntervalChange={setAutoCaptureInterval}
-                        paused={waitingForSelection}
-                        onClear={() => setWaitingForSelection(false)}
-                        resetTrigger={resetTrigger}
-                        selectedFranchise={selectedFranchise}
-                        onFranchiseChange={(val) => {
-                            setSelectedFranchise(val);
-                            setSelectedLanguage("all");
-                        }}
-                        franchiseOptions={[
-                            { value: "all", label: "All Franchises" },
-                            ...FRANCHISE_OPTIONS,
-                        ]}
-                        selectedLanguage={selectedLanguage}
-                        onLanguageChange={setSelectedLanguage}
-                        languageOptions={languageOptions}
-                    />
-                </Grid>
+                <MainLayout
+                    collection={
+                        <CollectedCardList
+                            ref={listRef}
+                            onImageClick={setPreviewImage}
+                            onCollectionChange={setCollectedCardIds}
+                        />
+                    }
+                    results={
+                        <SearchResult
+                            results={results}
+                            loading={loading}
+                            query={searchQuery}
+                            addingId={addingId}
+                            collectedCardIds={collectedCardIds}
+                            onAddToCollection={handleAddToCollection}
+                            onImageClick={setPreviewImage}
+                            onReset={handleReset}
+                            waitingForSelection={waitingForSelection}
+                        />
+                    }
+                    controls={
+                        <CardManagerSearch
+                            query={searchQuery}
+                            setQuery={setSearchQuery}
+                            loading={loading}
+                            searchMode={searchMode}
+                            onSearchModeChange={setSearchMode}
+                            onScanIds={handleScanIds}
+                            onScanStart={() => {
+                                setResults([]);
+                                setLoading(true);
+                            }}
+                            autoAdd={autoAdd}
+                            onAutoAddChange={setAutoAdd}
+                            autoCapture={autoCapture}
+                            onAutoCaptureChange={(val) => {
+                                setAutoCapture(val);
+                                if (val) setAutoAdd(true);
+                                else setAutoCaptureActive(false);
+                            }}
+                            loopActive={autoCaptureActive}
+                            onLoopActiveChange={setAutoCaptureActive}
+                            autoCaptureInterval={autoCaptureInterval}
+                            onAutoCaptureIntervalChange={
+                                setAutoCaptureInterval
+                            }
+                            paused={waitingForSelection}
+                            onClear={() => setWaitingForSelection(false)}
+                            resetTrigger={resetTrigger}
+                            selectedFranchise={selectedFranchise}
+                            onFranchiseChange={(val) => {
+                                setSelectedFranchise(val);
+                                setSelectedLanguage("all");
+                            }}
+                            franchiseOptions={[
+                                { value: "all", label: "All Franchises" },
+                                ...FRANCHISE_OPTIONS,
+                            ]}
+                            selectedLanguage={selectedLanguage}
+                            onLanguageChange={setSelectedLanguage}
+                            languageOptions={languageOptions}
+                        />
+                    }
+                />
             </Stack>
 
             <Modal
