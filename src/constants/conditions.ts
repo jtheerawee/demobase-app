@@ -4,9 +4,4 @@ export const CONDITIONS = [
     { value: "mp", label: "Moderately Played" },
     { value: "hp", label: "Heavily Played" },
     { value: "dmg", label: "Damaged" },
-];
-
-export const VARIANTS = [
-    { value: "nf", label: "Non-Foil" },
-    { value: "f", label: "Foil" },
-];
+] as const;

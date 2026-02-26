@@ -13,7 +13,8 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { IconTrash, IconPlus, IconMinus } from "@tabler/icons-react";
-import { CONDITIONS, VARIANTS } from "./constants";
+import { CONDITIONS } from "@/constants/conditions";
+import { VARIANTS } from "@/constants/variants";
 
 
 export interface CollectedCard {

@@ -2,18 +2,15 @@
 
 import {
     ScrollArea,
-    SimpleGrid,
-    Text,
     Box,
     Stack,
     Card,
     ActionIcon,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { APP_CONFIG } from "@/constants/app";
-import { SearchCard } from "./SearchCard";
-import { CardManagerHeader } from "./CardManagerHeader";
-import { SearchResultLoader } from "./SearchResultLoader";
+import { CardManagerHeader } from "../CardManagerHeader";
+import { SearchResultInfo } from "./SearchResultInfo";
+import { SearchCardList } from "./SearchCardList";
 
 export interface SearchedCard {
     id: number;
@@ -81,44 +78,19 @@ export function SearchResult({
                         type="always"
                         h="100%"
                     >
-                        <SimpleGrid
-                            cols={{
-                                base: 1,
-                                sm: 1,
-                                md: 2,
-                                lg: APP_CONFIG.SEARCH_RESULTS_PER_ROW,
-                            }}
-                            spacing="xs"
-                        >
-                            {results.map((card) => (
-                                <SearchCard
-                                    key={card.id}
-                                    card={card}
-                                    addingId={addingId}
-                                    collectedCardIds={collectedCardIds}
-                                    onAddToCollection={onAddToCollection}
-                                    onImageClick={onImageClick}
-                                />
-                            ))}
-                        </SimpleGrid>
+                        <SearchCardList
+                            results={results}
+                            addingId={addingId}
+                            collectedCardIds={collectedCardIds}
+                            onAddToCollection={onAddToCollection}
+                            onImageClick={onImageClick}
+                        />
 
-                        {loading && results.length === 0 && (
-                            <SearchResultLoader />
-                        )}
-
-                        {results.length === 0 && !loading && (
-                            <Box py="xl" ta="center">
-                                {query.length >= APP_CONFIG.SEARCH_MIN_CHARS ? (
-                                    <Text c="dimmed" size="xs">
-                                        No cards found matching "{query}"
-                                    </Text>
-                                ) : (
-                                    <Text c="dimmed" size="xs">
-                                        Waiting for next searching
-                                    </Text>
-                                )}
-                            </Box>
-                        )}
+                        <SearchResultInfo
+                            loading={loading}
+                            resultsCount={results.length}
+                            query={query}
+                        />
                     </ScrollArea>
                 </Box>
             </Stack>
