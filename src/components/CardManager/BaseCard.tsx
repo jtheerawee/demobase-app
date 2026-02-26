@@ -68,11 +68,12 @@ export function BaseCard({
 
                 <Stack
                     gap={2}
+                    pt={5}
                     style={{
                         flex: 1,
                         minWidth: 0,
                         height: "100%",
-                        justifyContent: "center",
+                        justifyContent: "flex-start",
                     }}
                 >
                     <Group justify="space-between" wrap="nowrap" gap={4}>
@@ -136,7 +137,7 @@ export function BaseCard({
                 </Stack>
 
                 {rightActions && (
-                    <Stack gap={4}>
+                    <Stack gap={4} pt={5} style={{ height: "100%", justifyContent: "flex-start" }}>
                         {rightActions}
                     </Stack>
                 )}
