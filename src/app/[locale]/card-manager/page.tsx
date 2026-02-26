@@ -56,6 +56,8 @@ export default function CardManagerPage() {
         new Set(),
     );
     const consecutiveNoCard = useRef(0);
+    const consecutiveSameCard = useRef(0);
+    const lastDetectedCardId = useRef<number | null>(null);
 
     const refreshCollection = () => listRef.current?.refresh();
 
@@ -189,6 +191,20 @@ export default function CardManagerPage() {
                     consecutiveNoCard.current += 1;
                 }
 
+                // Track consecutive same card
+                if (autoCapture && data.cards.length === 1) {
+                    const cardId = data.cards[0].id;
+                    if (cardId === lastDetectedCardId.current) {
+                        consecutiveSameCard.current += 1;
+                    } else {
+                        consecutiveSameCard.current = 1;
+                        lastDetectedCardId.current = cardId;
+                    }
+                } else {
+                    consecutiveSameCard.current = 0;
+                    lastDetectedCardId.current = null;
+                }
+
                 // Stop auto-capture loop if X times in a row no card detected
                 if (
                     autoCapture &&
@@ -200,6 +216,23 @@ export default function CardManagerPage() {
                     notifications.show({
                         title: "Auto-capture Stopped",
                         message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
+                        color: "orange",
+                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                    });
+                }
+
+                // Stop auto-capture if the same card detected too many times in a row
+                if (
+                    autoCapture &&
+                    consecutiveSameCard.current >=
+                    OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD
+                ) {
+                    consecutiveSameCard.current = 0;
+                    lastDetectedCardId.current = null;
+                    setAutoCaptureActive(false);
+                    notifications.show({
+                        title: "Auto-capture Stopped",
+                        message: `Same card detected ${OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD} times in a row. Process paused.`,
                         color: "orange",
                         autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
@@ -348,7 +381,14 @@ export default function CardManagerPage() {
                                 else setAutoCaptureActive(false);
                             }}
                             loopActive={autoCaptureActive}
-                            onLoopActiveChange={setAutoCaptureActive}
+                            onLoopActiveChange={(val) => {
+                                if (!val) {
+                                    consecutiveNoCard.current = 0;
+                                    consecutiveSameCard.current = 0;
+                                    lastDetectedCardId.current = null;
+                                }
+                                setAutoCaptureActive(val);
+                            }}
                             autoCaptureInterval={autoCaptureInterval}
                             onAutoCaptureIntervalChange={
                                 setAutoCaptureInterval

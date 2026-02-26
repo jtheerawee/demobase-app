@@ -10,6 +10,7 @@ export const OCR_CONFIG = {
 
     AUTO_CAPTURE_INTERVAL: 7,
     AUTO_CAPTURE_MAX_NO_CARD: 2,
+    AUTO_CAPTURE_MAX_SAME_CARD: 2,
 
     OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
 };
