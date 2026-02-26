@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
     Text,
     Stack,
@@ -61,6 +61,7 @@ export function CameraView({
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const loopActiveRef = useRef(loopActive);
 
     const stopCamera = () => {
         if (streamRef.current) {
@@ -97,9 +98,9 @@ export function CameraView({
         }
     };
 
-    const capturePhoto = () => {
+    const capturePhoto = useCallback(() => {
         if (!videoRef.current) return;
-        if (autoCapture && !loopActive) {
+        if (autoCapture && !loopActiveRef.current) {
             onLoopActiveChange?.(true);
         }
 
@@ -131,7 +132,7 @@ export function CameraView({
                 0.9,
             );
         }
-    };
+    }, [autoCapture, onLoopActiveChange, preview, setPreview, onScanStart, onCapture]);
 
     const handleDeviceChange = (deviceId: string | null) => {
         if (deviceId) {
@@ -139,6 +140,10 @@ export function CameraView({
             startCamera(deviceId);
         }
     };
+
+    useEffect(() => {
+        loopActiveRef.current = loopActive;
+    }, [loopActive]);
 
     useEffect(() => {
         startCamera();

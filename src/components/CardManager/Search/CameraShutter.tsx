@@ -102,9 +102,11 @@ export function useAutoCapture({
         if (autoCapture && loopActive && cameraActive && !paused) {
             setCountdown(autoCaptureInterval);
             countdownInterval = setInterval(() => {
-                setCountdown((prev) =>
-                    prev !== null && prev > 1 ? prev - 1 : prev,
-                );
+                setCountdown((prev) => {
+                    if (prev === null) return null;
+                    if (prev <= 1) return autoCaptureInterval;
+                    return prev - 1;
+                });
             }, 1000);
             interval = setInterval(() => {
                 onCapture();
