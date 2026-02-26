@@ -8,7 +8,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
-import { CollectedCardList } from "@/components/CardManager/CollectedCardList";
+import { CollectedCardList } from "@/components/CardManager/CardCollection/CollectedCardList";
 import {
     CardManagerSearch,
     type SearchMode,

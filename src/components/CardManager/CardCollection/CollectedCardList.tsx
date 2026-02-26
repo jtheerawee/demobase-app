@@ -17,7 +17,7 @@ import { IconDownload } from "@tabler/icons-react";
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
 import { notifications } from "@mantine/notifications";
 import { CollectedCard } from "./CollectedCard";
-import { CardManagerHeader } from "./CardManagerHeader";
+import { CardManagerHeader } from "../CardManagerHeader";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
 
