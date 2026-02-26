@@ -21,7 +21,7 @@ import { IconLayoutDashboard, IconTrash } from "@tabler/icons-react";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
-import { CollectedCardsList } from "@/components/CardManager/CollectedCardsList";
+import { CollectedCardList } from "@/components/CardManager/CollectedCardList";
 import {
   CardManagerSearch,
   type SearchMode,
@@ -306,7 +306,7 @@ export default function CardManagerPage() {
               }}
               h="100%"
             >
-              <CollectedCardsList
+              <CollectedCardList
                 ref={listRef}
                 onImageClick={setPreviewImage}
                 onCollectionChange={setCollectedCardIds}
