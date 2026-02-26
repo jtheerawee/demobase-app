@@ -156,6 +156,7 @@ export default function CardManagerPage() {
                     consecutiveNoCard.current >=
                     OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
+                    consecutiveNoCard.current = 0;
                     setAutoCaptureActive(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
@@ -194,6 +195,7 @@ export default function CardManagerPage() {
                     consecutiveNoCard.current >=
                     OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
+                    consecutiveNoCard.current = 0;
                     setAutoCaptureActive(false);
                     notifications.show({
                         title: "Auto-capture Stopped",
@@ -219,6 +221,7 @@ export default function CardManagerPage() {
                 autoCapture &&
                 consecutiveNoCard.current >= OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
             ) {
+                consecutiveNoCard.current = 0;
                 setAutoCaptureActive(false);
             }
         } finally {
