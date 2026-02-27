@@ -44,8 +44,7 @@ CREATE TABLE public.scraped_cards (
     name              TEXT NOT NULL,
     image_url         TEXT NOT NULL,
     card_url          TEXT NOT NULL UNIQUE,
-    ckd_url           TEXT NOT NULL UNIQUE, -- for mtg
-    tcg_url           TEXT NOT NULL UNIQUE, -- for mtg, pokemon, onepiece, lorcana
+    tcg_url           TEXT UNIQUE,
     card_no           TEXT NOT NULL,
     rarity            TEXT NOT NULL,
     created_at        TIMESTAMPTZ DEFAULT NOW()

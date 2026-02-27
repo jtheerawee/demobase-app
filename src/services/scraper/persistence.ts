@@ -174,6 +174,7 @@ export async function saveScrapedCards(
             name: card.name,
             image_url: card.imageUrl,
             card_url: card.cardUrl,
+            tcg_url: card.tcgUrl,
             card_no: card.cardNo,
             rarity: card.rarity || "",
         }));

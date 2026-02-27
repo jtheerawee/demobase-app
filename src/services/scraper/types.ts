@@ -23,6 +23,7 @@ export interface ScrapedCard {
     imageUrl: string;
     alt?: string;
     cardUrl: string;
+    tcgUrl?: string;
     cardNo?: string;
     rarity?: string;
 }

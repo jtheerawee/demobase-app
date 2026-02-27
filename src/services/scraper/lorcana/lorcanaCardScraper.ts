@@ -114,7 +114,12 @@ export async function scrapeLorcanaCards({
                             // Basic validation: must have name and URL
                             if (!name || !cardUrl) return;
 
-                            const imageUrl = (imageEl as HTMLImageElement)?.src || "";
+                            let imageUrl = (imageEl as HTMLImageElement)?.src || "";
+                            if (imageUrl) {
+                                // TCGPlayer returns various thumbnail sizes, update to 1000x1000 for high quality
+                                imageUrl = imageUrl.replace(/\d+x\d+/, "1000x1000");
+                            }
+
                             const setName = setEl?.textContent?.trim() || "";
 
                             // If we filtered by a specific set, verify the card's set name (case-insensitive check)
@@ -140,7 +145,7 @@ export async function scrapeLorcanaCards({
                                 rarity = foundKey ? map[foundKey] : rarityRaw;
                             }
 
-                            items.push({ name, cardUrl, imageUrl, cardNo, rarity, setName });
+                            items.push({ name, cardUrl, tcgUrl: cardUrl, imageUrl, cardNo, rarity, setName });
                         });
                         return items;
                     }, { map: rarityMap, reqSet: expectedSetSlug });
