@@ -14,9 +14,9 @@ import {
     scrapePokemonCollections,
 } from "@/services/scraper/pokemon/pokemonScraper";
 import {
-    scrapeLorcanaCardsEntry as scrapeLorcanaCards,
-    scrapeLorcanaCollectionsEntry as scrapeLorcanaCollections,
-} from "@/services/scraper/lorcana/lorcanaScraper";
+    scrapeTCGPlayerCards as scrapeLorcanaCards,
+    scrapeTCGPlayerCollections as scrapeLorcanaCollections,
+} from "@/services/scraper/tcgplayer/tcgPlayerScraper";
 
 export async function POST(request: Request) {
     let url: string = "";

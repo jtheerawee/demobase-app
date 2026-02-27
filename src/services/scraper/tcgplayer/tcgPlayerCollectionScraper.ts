@@ -6,7 +6,7 @@ import type { ScraperOptions } from "@/services/scraper/types";
 // LORCANA COLLECTION SCRAPER LOGIC
 // ==========================================
 
-export async function scrapeLorcanaCollections({
+export async function scrapeTCGPlayerCollections({
     url,
     context,
     send,

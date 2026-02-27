@@ -6,7 +6,7 @@ import type { ScraperOptions } from "@/services/scraper/types";
 // LORCANA CARD SCRAPER LOGIC (TCGPlayer)
 // ==========================================
 
-export async function scrapeLorcanaCards({
+export async function scrapeTCGPlayerCards({
     url,
     context,
     send,
