@@ -1,6 +1,7 @@
 "use client";
 
 import {
+    ActionIcon,
     Badge,
     Card,
     Group,
@@ -9,6 +10,8 @@ import {
     Text,
     Tooltip,
 } from "@mantine/core";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { useState } from "react";
 
 export interface ScraperStats {
     collections: {
@@ -34,6 +37,7 @@ interface StatWidgetProps {
     cards: number;
     tooltipContent?: React.ReactNode;
     badgeTooltip?: string;
+    onCopy?: () => void;
 }
 
 function StatWidget({
@@ -43,23 +47,49 @@ function StatWidget({
     cards,
     tooltipContent,
     badgeTooltip,
+    onCopy,
 }: StatWidgetProps) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        onCopy?.();
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     const card = (
-        <Card withBorder radius="sm" padding="sm">
+        <Card withBorder radius="sm" padding="sm" style={{ position: "relative" }}>
             <Stack gap={4}>
-                {badgeTooltip ? (
-                    <Tooltip label={badgeTooltip} withArrow position="top" multiline w={220}>
-                        <div style={{ width: "max-content" }}>
-                            <Badge variant="light" color={color} size="xs" radius="sm">
-                                {label}
-                            </Badge>
-                        </div>
-                    </Tooltip>
-                ) : (
-                    <Badge variant="light" color={color} size="xs" radius="sm">
-                        {label}
-                    </Badge>
-                )}
+                <Group justify="space-between" align="center">
+                    {badgeTooltip ? (
+                        <Tooltip label={badgeTooltip} withArrow position="top" multiline w={220}>
+                            <div style={{ width: "max-content" }}>
+                                <Badge variant="light" color={color} size="xs" radius="sm">
+                                    {label}
+                                </Badge>
+                            </div>
+                        </Tooltip>
+                    ) : (
+                        <Badge variant="light" color={color} size="xs" radius="sm">
+                            {label}
+                        </Badge>
+                    )}
+                    {onCopy && (
+                        <Tooltip label="Copy items for investigation" withArrow>
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                size="xs"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopy();
+                                }}
+                            >
+                                {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                            </ActionIcon>
+                        </Tooltip>
+                    )}
+                </Group>
                 <Group justify="space-between" align="baseline">
                     <Text size="xs" c="dimmed">
                         Collections
@@ -102,6 +132,14 @@ interface CardScraperStatsProps {
 }
 
 export function CardScraperStats({ stats }: CardScraperStatsProps) {
+    const handleCopyDiscarded = () => {
+        const data = {
+            collections: stats.collections.discardedItems ?? [],
+            cards: stats.cards.discardedItems ?? [],
+        };
+        navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    };
+
     const discardedCards = stats.cards.discardedItems ?? [];
     const discardedTooltip =
         discardedCards.length > 0 ? (
@@ -152,6 +190,7 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
                 cards={stats.cards.discarded}
                 badgeTooltip="Items explicitly skipped based on rules or limits"
                 tooltipContent={discardedTooltip}
+                onCopy={handleCopyDiscarded}
             />
         </SimpleGrid>
     );

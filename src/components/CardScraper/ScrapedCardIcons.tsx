@@ -1,6 +1,6 @@
 "use client";
 
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Group, Tooltip } from "@mantine/core";
 import {
     IconDownload,
     IconFilter,
@@ -40,71 +40,82 @@ export function ScrapedCardIcons({
 }: ScrapedCardIconsProps) {
     return (
         <Group gap="xs">
-            <ActionIcon
-                variant="light"
-                color="green"
-                size="sm"
-                onClick={onDownloadCards}
-                title="Scrape cards for this collection"
-                loading={loading}
-                disabled={!canDownload}
-            >
-                <IconDownload size={14} />
-            </ActionIcon>
-            <ActionIcon
-                variant="filled"
-                color="green"
-                size="sm"
-                onClick={onDownloadAllImages}
-                title={
+            <Tooltip label="Scrape cards for this collection" withArrow>
+                <ActionIcon
+                    variant="light"
+                    color="green"
+                    size="sm"
+                    onClick={() => onDownloadCards?.()}
+                    loading={loading}
+                    disabled={!canDownload}
+                >
+                    <IconDownload size={14} />
+                </ActionIcon>
+            </Tooltip>
+            <Tooltip
+                label={
                     bulkDownloading
                         ? `Downloading ${downloadProgress.current}/${downloadProgress.total}...`
                         : "Download all images as zip"
                 }
-                loading={bulkDownloading}
-                disabled={cardsCount === 0}
+                withArrow
             >
-                <IconDownload size={14} />
-            </ActionIcon>
-            <ActionIcon
-                variant="light"
-                color="blue"
-                size="sm"
-                onClick={onRefresh}
-                title="Refresh from database"
-                loading={loading}
-                disabled={!canDownload}
-            >
-                <IconRefresh size={14} />
-            </ActionIcon>
-            <ActionIcon
-                variant={filterInvalid ? "filled" : "light"}
-                color={filterInvalid ? "orange" : "gray"}
-                size="sm"
-                onClick={onFilterInvalidToggle}
-                title={
+                <ActionIcon
+                    variant="filled"
+                    color="green"
+                    size="sm"
+                    onClick={() => onDownloadAllImages?.()}
+                    loading={bulkDownloading}
+                    disabled={cardsCount === 0}
+                >
+                    <IconDownload size={14} />
+                </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Refresh from database" withArrow>
+                <ActionIcon
+                    variant="light"
+                    color="blue"
+                    size="sm"
+                    onClick={() => onRefresh?.()}
+                    loading={loading}
+                    disabled={!canDownload}
+                >
+                    <IconRefresh size={14} />
+                </ActionIcon>
+            </Tooltip>
+            <Tooltip
+                label={
                     filterInvalid
                         ? "Show all cards"
                         : "Filter invalid cards (no rarity)"
                 }
-                disabled={invalidCount === 0 && !filterInvalid}
+                withArrow
             >
-                {filterInvalid ? (
-                    <IconFilterOff size={14} />
-                ) : (
-                    <IconFilter size={14} />
-                )}
-            </ActionIcon>
-            <ActionIcon
-                variant="light"
-                color="red"
-                size="sm"
-                onClick={onDeleteAllCards}
-                title="Delete all cards in this collection"
-                disabled={cardsCount === 0}
-            >
-                <IconTrash size={14} />
-            </ActionIcon>
+                <ActionIcon
+                    variant={filterInvalid ? "filled" : "light"}
+                    color={filterInvalid ? "orange" : "gray"}
+                    size="sm"
+                    onClick={onFilterInvalidToggle}
+                    disabled={invalidCount === 0 && !filterInvalid}
+                >
+                    {filterInvalid ? (
+                        <IconFilterOff size={14} />
+                    ) : (
+                        <IconFilter size={14} />
+                    )}
+                </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Delete all cards in this collection" withArrow>
+                <ActionIcon
+                    variant="light"
+                    color="red"
+                    size="sm"
+                    onClick={() => onDeleteAllCards?.()}
+                    disabled={cardsCount === 0}
+                >
+                    <IconTrash size={14} />
+                </ActionIcon>
+            </Tooltip>
         </Group>
     );
 }

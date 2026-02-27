@@ -47,7 +47,7 @@ export function CollectionIcons({
                     variant="light"
                     color="blue"
                     size="sm"
-                    onClick={onRefresh}
+                    onClick={() => onRefresh?.()}
                     loading={loading}
                 >
                     <IconRefresh size={16} />
@@ -58,7 +58,7 @@ export function CollectionIcons({
                     variant="light"
                     color="violet"
                     size="sm"
-                    onClick={onDownloadAllCollections}
+                    onClick={() => onDownloadAllCollections?.()}
                     loading={loading}
                 >
                     <IconDatabaseImport size={16} />
@@ -72,7 +72,7 @@ export function CollectionIcons({
                     variant="light"
                     color="red"
                     size="sm"
-                    onClick={onDeleteAllCollections}
+                    onClick={() => onDeleteAllCollections?.()}
                     loading={loading}
                     disabled={totalCount === 0}
                 >
@@ -137,7 +137,7 @@ export function CollectionIcons({
                     variant="light"
                     color="green"
                     size="sm"
-                    onClick={onDownloadAllCards}
+                    onClick={() => onDownloadAllCards?.()}
                     loading={loading}
                     disabled={totalCount === 0}
                 >

@@ -19,6 +19,7 @@ import JSZip from "jszip";
 import { useMemo, useState } from "react";
 import { CardScraperCount } from "./CardScraperCount";
 import { ScrapedCardIcons } from "./ScrapedCardIcons";
+import { ScrapedCardSummary } from "./ScrapedCardSummary";
 
 interface CardItem {
     id: string | number;
@@ -162,6 +163,8 @@ export function CardScraperCardList({
                     cardsCount={cards.length}
                     invalidCount={invalidCount}
                 />
+
+                <ScrapedCardSummary cards={cards} />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} pt="xs">
                     <SimpleGrid cols={1} spacing="xs">
