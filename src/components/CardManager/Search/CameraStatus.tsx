@@ -15,11 +15,7 @@ export function CameraStatus({
     paused,
     loopActive,
 }: CameraStatusProps) {
-    if (
-        !autoCapture ||
-        (countdown === null && !paused) ||
-        !loopActive
-    ) {
+    if (!autoCapture || (countdown === null && !paused) || !loopActive) {
         return null;
     }
 

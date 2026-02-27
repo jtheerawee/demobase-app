@@ -8,10 +8,7 @@ import {
     Text,
     Tooltip,
 } from "@mantine/core";
-import {
-    IconNetwork,
-    IconWorld,
-} from "@tabler/icons-react";
+import { IconNetwork, IconWorld } from "@tabler/icons-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -32,10 +29,7 @@ function getLocalIp() {
     const interfaces = os.networkInterfaces();
     for (const name of Object.keys(interfaces)) {
         for (const iface of interfaces[name] || []) {
-            if (
-                iface.family === "IPv4" &&
-                !iface.internal
-            ) {
+            if (iface.family === "IPv4" && !iface.internal) {
                 return iface.address;
             }
         }
@@ -60,10 +54,7 @@ export async function Navbar() {
     const t = await getTranslations("Navbar");
 
     let accessToken: string | undefined;
-    if (
-        process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" &&
-        user
-    ) {
+    if (process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && user) {
         const {
             data: { session },
         } = await supabase.auth.getSession();
@@ -74,8 +65,7 @@ export async function Navbar() {
         <Box
             component="nav"
             style={{
-                borderBottom:
-                    "1px solid var(--mantine-color-gray-3)",
+                borderBottom: "1px solid var(--mantine-color-gray-3)",
             }}
         >
             <Container size="xl">
@@ -95,9 +85,7 @@ export async function Navbar() {
                                     fontFamily: `'${process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit"}', sans-serif`,
                                 }}
                             >
-                                {process.env
-                                    .NEXT_PUBLIC_APP_NAME ??
-                                    "DemoBase"}
+                                {process.env.NEXT_PUBLIC_APP_NAME ?? "DemoBase"}
                             </Text>
                         </Link>
 
@@ -139,13 +127,9 @@ export async function Navbar() {
 
                         {user && (
                             <Avatar
-                                src={
-                                    user.user_metadata
-                                        ?.avatar_url
-                                }
+                                src={user.user_metadata?.avatar_url}
                                 alt={
-                                    user.user_metadata
-                                        ?.full_name ??
+                                    user.user_metadata?.full_name ??
                                     user.email ??
                                     ""
                                 }
@@ -166,9 +150,7 @@ export async function Navbar() {
                                 </Button>
                             </form>
                         ) : (
-                            <SignInButton
-                                label={t("signIn")}
-                            />
+                            <SignInButton label={t("signIn")} />
                         )}
                     </Group>
                 </Group>

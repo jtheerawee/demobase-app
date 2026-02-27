@@ -8,16 +8,9 @@ interface WidgetCardProps {
     icon?: ReactNode;
 }
 
-export function WidgetCard({
-    title,
-    href,
-    icon,
-}: WidgetCardProps) {
+export function WidgetCard({ title, href, icon }: WidgetCardProps) {
     return (
-        <Link
-            href={href}
-            style={{ textDecoration: "none" }}
-        >
+        <Link href={href} style={{ textDecoration: "none" }}>
             <Card
                 shadow="sm"
                 padding="xl"
@@ -32,8 +25,7 @@ export function WidgetCard({
                         transition:
                             "box-shadow 150ms ease, transform 150ms ease",
                         "&:hover": {
-                            boxShadow:
-                                "var(--mantine-shadow-md)",
+                            boxShadow: "var(--mantine-shadow-md)",
                             transform: "translateY(-2px)",
                         },
                     },

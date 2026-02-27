@@ -45,18 +45,10 @@ function StatWidget({
     const card = (
         <Card withBorder radius="sm" padding="sm">
             <Stack gap={4}>
-                <Badge
-                    variant="light"
-                    color={color}
-                    size="xs"
-                    radius="sm"
-                >
+                <Badge variant="light" color={color} size="xs" radius="sm">
                     {label}
                 </Badge>
-                <Group
-                    justify="space-between"
-                    align="baseline"
-                >
+                <Group justify="space-between" align="baseline">
                     <Text size="xs" c="dimmed">
                         Collections
                     </Text>
@@ -64,10 +56,7 @@ function StatWidget({
                         {collections}
                     </Text>
                 </Group>
-                <Group
-                    justify="space-between"
-                    align="baseline"
-                >
+                <Group justify="space-between" align="baseline">
                     <Text size="xs" c="dimmed">
                         Cards
                     </Text>
@@ -100,17 +89,13 @@ interface CardScraperStatsProps {
     stats: ScraperStats;
 }
 
-export function CardScraperStats({
-    stats,
-}: CardScraperStatsProps) {
+export function CardScraperStats({ stats }: CardScraperStatsProps) {
     const discardedCards = stats.cards.discardedItems ?? [];
     const discardedTooltip =
         discardedCards.length > 0 ? (
             <Stack gap={4}>
                 <Text size="xs" fw={700}>
-                    Last{" "}
-                    {Math.min(10, discardedCards.length)}{" "}
-                    Discarded Cards:
+                    Last {Math.min(10, discardedCards.length)} Discarded Cards:
                 </Text>
                 {discardedCards.slice(-10).map((c, i) => (
                     <Text key={i} size="xs">
@@ -119,8 +104,7 @@ export function CardScraperStats({
                 ))}
                 {discardedCards.length > 10 && (
                     <Text size="xs" c="dimmed">
-                        ... and {discardedCards.length - 10}{" "}
-                        more
+                        ... and {discardedCards.length - 10} more
                     </Text>
                 )}
             </Stack>

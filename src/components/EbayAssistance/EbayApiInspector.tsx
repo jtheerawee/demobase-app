@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    Code,
-    Paper,
-    ScrollArea,
-    Stack,
-    Tabs,
-    Text,
-} from "@mantine/core";
+import { Code, Paper, ScrollArea, Stack, Tabs, Text } from "@mantine/core";
 import { IconBug } from "@tabler/icons-react";
 
 interface EbayApiInspectorProps {
@@ -40,8 +33,7 @@ export function EbayApiInspector({
                         gap: 4,
                     }}
                 >
-                    <IconBug size={14} /> API INSPECTOR (RAW
-                    RESPONSE)
+                    <IconBug size={14} /> API INSPECTOR (RAW RESPONSE)
                 </Text>
 
                 <Tabs
@@ -60,54 +52,30 @@ export function EbayApiInspector({
                             Active (
                             {Array.isArray(activeRaw)
                                 ? activeRaw.length
-                                : activeRaw?.items
-                                      ?.length || 0}
+                                : activeRaw?.items?.length || 0}
                             )
                         </Tabs.Tab>
                         <Tabs.Tab value="sold">
                             Sold (
                             {Array.isArray(soldRaw)
                                 ? soldRaw.length
-                                : soldRaw?.items?.length ||
-                                  0}
+                                : soldRaw?.items?.length || 0}
                             )
                         </Tabs.Tab>
                     </Tabs.List>
 
                     <Tabs.Panel value="active" pt="xs">
-                        <ScrollArea
-                            h={300}
-                            type="always"
-                            offsetScrollbars
-                        >
-                            <Code
-                                block
-                                style={{ fontSize: 10 }}
-                            >
-                                {JSON.stringify(
-                                    activeRaw,
-                                    null,
-                                    2,
-                                )}
+                        <ScrollArea h={300} type="always" offsetScrollbars>
+                            <Code block style={{ fontSize: 10 }}>
+                                {JSON.stringify(activeRaw, null, 2)}
                             </Code>
                         </ScrollArea>
                     </Tabs.Panel>
 
                     <Tabs.Panel value="sold" pt="xs">
-                        <ScrollArea
-                            h={300}
-                            type="always"
-                            offsetScrollbars
-                        >
-                            <Code
-                                block
-                                style={{ fontSize: 10 }}
-                            >
-                                {JSON.stringify(
-                                    soldRaw,
-                                    null,
-                                    2,
-                                )}
+                        <ScrollArea h={300} type="always" offsetScrollbars>
+                            <Code block style={{ fontSize: 10 }}>
+                                {JSON.stringify(soldRaw, null, 2)}
                             </Code>
                         </ScrollArea>
                     </Tabs.Panel>

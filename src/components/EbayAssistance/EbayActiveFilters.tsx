@@ -17,11 +17,7 @@ import {
     TextInput,
     Tooltip,
 } from "@mantine/core";
-import {
-    IconCode,
-    IconPlus,
-    IconSearch,
-} from "@tabler/icons-react";
+import { IconCode, IconPlus, IconSearch } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 
 interface EbayActiveFiltersProps {
@@ -75,9 +71,7 @@ export function EbayActiveFilters({
         endpoint: `/api/ebay/active`,
         q: query,
         offset: 0,
-        ...(service && service !== "---"
-            ? { service }
-            : {}),
+        ...(service && service !== "---" ? { service } : {}),
         ...(psa && service !== "---" ? { grade: psa } : {}),
         ...(minPrice ? { minPrice } : {}),
         ...(maxPrice ? { maxPrice } : {}),
@@ -89,9 +83,7 @@ export function EbayActiveFilters({
     const buildSoldParams = () => ({
         endpoint: `/api/ebay/sold`,
         q: query,
-        ...(service && service !== "---"
-            ? { service }
-            : {}),
+        ...(service && service !== "---" ? { service } : {}),
         ...(psa && service !== "---" ? { grade: psa } : {}),
         ...(minPrice ? { minPrice } : {}),
         ...(maxPrice ? { maxPrice } : {}),
@@ -108,17 +100,9 @@ export function EbayActiveFilters({
         color: string;
         params: object;
     }) => (
-        <Popover
-            width={360}
-            position="bottom-end"
-            withArrow
-            shadow="md"
-        >
+        <Popover width={360} position="bottom-end" withArrow shadow="md">
             <Popover.Target>
-                <Tooltip
-                    label={`${label} API params`}
-                    withArrow
-                >
+                <Tooltip label={`${label} API params`} withArrow>
                     <ActionIcon
                         variant="light"
                         color={color}
@@ -173,18 +157,10 @@ export function EbayActiveFilters({
                 <SimpleGrid cols={1} spacing="md">
                     <TextInput
                         label={t("keywords")}
-                        placeholder={t(
-                            "keywordsPlaceholder",
-                        )}
+                        placeholder={t("keywordsPlaceholder")}
                         value={query}
-                        onChange={(e) =>
-                            onQueryChange(
-                                e.currentTarget.value,
-                            )
-                        }
-                        leftSection={
-                            <IconSearch size={16} />
-                        }
+                        onChange={(e) => onQueryChange(e.currentTarget.value)}
+                        leftSection={<IconSearch size={16} />}
                         styles={{
                             input: { borderRadius: "8px" },
                         }}
@@ -212,9 +188,7 @@ export function EbayActiveFilters({
                             ]}
                             value={service}
                             onChange={(value) =>
-                                onServiceChange(
-                                    value || "psa",
-                                )
+                                onServiceChange(value || "psa")
                             }
                             styles={{
                                 input: {
@@ -238,9 +212,7 @@ export function EbayActiveFilters({
                                 "1",
                             ]}
                             value={psa}
-                            onChange={(value) =>
-                                onPsaChange(value || "")
-                            }
+                            onChange={(value) => onPsaChange(value || "")}
                             styles={{
                                 input: {
                                     borderRadius: "8px",
@@ -277,9 +249,7 @@ export function EbayActiveFilters({
                             label={t("excludeJp")}
                             checked={excludeJp}
                             onChange={(e) =>
-                                onExcludeJpChange(
-                                    e.currentTarget.checked,
-                                )
+                                onExcludeJpChange(e.currentTarget.checked)
                             }
                             color="orange"
                         />
@@ -287,9 +257,7 @@ export function EbayActiveFilters({
                             label={t("onlyUs")}
                             checked={onlyUs}
                             onChange={(e) =>
-                                onOnlyUsChange(
-                                    e.currentTarget.checked,
-                                )
+                                onOnlyUsChange(e.currentTarget.checked)
                             }
                             color="orange"
                         />
@@ -324,9 +292,7 @@ export function EbayActiveFilters({
                         <Button
                             variant="light"
                             color="orange"
-                            leftSection={
-                                <IconPlus size={18} />
-                            }
+                            leftSection={<IconPlus size={18} />}
                             onClick={onSaveSearch}
                             loading={saving}
                             radius="md"
@@ -340,9 +306,7 @@ export function EbayActiveFilters({
                             loading={loading}
                             size="md"
                             style={{ borderRadius: "8px" }}
-                            leftSection={
-                                <IconSearch size={18} />
-                            }
+                            leftSection={<IconSearch size={18} />}
                         >
                             {t("searchNow")}
                         </Button>

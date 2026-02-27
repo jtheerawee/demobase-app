@@ -27,14 +27,10 @@ interface ApiDebugPanelProps {
 
 // Auto-extract a URL from common fields in the response data
 function extractUrl(data: unknown): string | undefined {
-    if (typeof data !== "object" || data === null)
-        return undefined;
+    if (typeof data !== "object" || data === null) return undefined;
     const d = data as Record<string, unknown>;
-    const url =
-        d.itemWebUrl ?? d.itemUrl ?? d.url ?? d.ebayUrl;
-    return typeof url === "string" && url.startsWith("http")
-        ? url
-        : undefined;
+    const url = d.itemWebUrl ?? d.itemUrl ?? d.url ?? d.ebayUrl;
+    return typeof url === "string" && url.startsWith("http") ? url : undefined;
 }
 
 export function ApiDebugPanel({
@@ -58,8 +54,7 @@ export function ApiDebugPanel({
                 px="sm"
                 py={6}
                 style={{
-                    background:
-                        "var(--mantine-color-orange-0)",
+                    background: "var(--mantine-color-orange-0)",
                     cursor: "pointer",
                     userSelect: "none",
                 }}
@@ -78,44 +73,29 @@ export function ApiDebugPanel({
                     <CopyButton value={json}>
                         {({ copied, copy }) => (
                             <Tooltip
-                                label={
-                                    copied
-                                        ? "Copied!"
-                                        : "Copy JSON"
-                                }
+                                label={copied ? "Copied!" : "Copy JSON"}
                                 withArrow
                             >
                                 <ActionIcon
                                     size="xs"
                                     variant="subtle"
-                                    color={
-                                        copied
-                                            ? "teal"
-                                            : "orange"
-                                    }
+                                    color={copied ? "teal" : "orange"}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         copy();
                                     }}
                                 >
                                     {copied ? (
-                                        <IconCheck
-                                            size={12}
-                                        />
+                                        <IconCheck size={12} />
                                     ) : (
-                                        <IconCopy
-                                            size={12}
-                                        />
+                                        <IconCopy size={12} />
                                     )}
                                 </ActionIcon>
                             </Tooltip>
                         )}
                     </CopyButton>
                     {linkUrl && (
-                        <Tooltip
-                            label="Open in eBay"
-                            withArrow
-                        >
+                        <Tooltip label="Open in eBay" withArrow>
                             <ActionIcon
                                 size="xs"
                                 variant="subtle"
@@ -129,17 +109,11 @@ export function ApiDebugPanel({
                                     );
                                 }}
                             >
-                                <IconExternalLink
-                                    size={12}
-                                />
+                                <IconExternalLink size={12} />
                             </ActionIcon>
                         </Tooltip>
                     )}
-                    <ActionIcon
-                        size="xs"
-                        variant="subtle"
-                        color="orange"
-                    >
+                    <ActionIcon size="xs" variant="subtle" color="orange">
                         {opened ? (
                             <IconChevronUp size={14} />
                         ) : (

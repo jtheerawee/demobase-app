@@ -25,8 +25,7 @@ export async function scrapePokemonCollectionsTh({
               : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
-    const concurrency =
-        APP_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
+    const concurrency = APP_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
     send({
         type: "step",
         message: `Initializing ${concurrency} parallel workers for Thai collections...`,
@@ -53,94 +52,62 @@ export async function scrapePokemonCollectionsTh({
                         waitUntil: "networkidle",
                         timeout: 45000,
                     });
-                    if (shouldAbort || p > totalPages)
-                        break;
+                    if (shouldAbort || p > totalPages) break;
 
                     await workerPage.evaluate(() =>
-                        window.scrollTo(
-                            0,
-                            document.body.scrollHeight,
-                        ),
+                        window.scrollTo(0, document.body.scrollHeight),
                     );
                     await workerPage.waitForTimeout(1500);
 
-                    const pageData =
-                        await workerPage.evaluate(() => {
-                            const collectionElements =
-                                document.querySelectorAll(
-                                    "a.expansionLink",
-                                );
-                            const items = Array.from(
-                                collectionElements,
-                            ).map((el) => {
-                                const anchor =
-                                    el as HTMLAnchorElement;
-                                const img =
-                                    el.querySelector("img");
+                    const pageData = await workerPage.evaluate(() => {
+                        const collectionElements =
+                            document.querySelectorAll("a.expansionLink");
+                        const items = Array.from(collectionElements).map(
+                            (el) => {
+                                const anchor = el as HTMLAnchorElement;
+                                const img = el.querySelector("img");
                                 const name =
                                     el
                                         .querySelector("h3")
-                                        ?.textContent?.trim() ||
-                                    "";
-                                const imageUrl =
-                                    img?.src || "";
+                                        ?.textContent?.trim() || "";
+                                const imageUrl = img?.src || "";
                                 const relativeLink =
-                                    anchor.getAttribute(
-                                        "href",
-                                    ) || "";
-                                const absoluteLink =
-                                    relativeLink.startsWith(
-                                        "http",
-                                    )
-                                        ? relativeLink
-                                        : window.location
-                                              .origin +
-                                          (relativeLink.startsWith(
-                                              "/",
-                                          )
-                                              ? ""
-                                              : "/") +
-                                          relativeLink;
+                                    anchor.getAttribute("href") || "";
+                                const absoluteLink = relativeLink.startsWith(
+                                    "http",
+                                )
+                                    ? relativeLink
+                                    : window.location.origin +
+                                      (relativeLink.startsWith("/")
+                                          ? ""
+                                          : "/") +
+                                      relativeLink;
 
                                 // Extract code from URL (e.g., /series/4578/ -> 4578)
                                 const codeMatch =
-                                    absoluteLink.match(
-                                        /\/series\/(\d+)/,
-                                    );
-                                const collectionCode =
-                                    codeMatch
-                                        ? codeMatch[1]
-                                        : `TH-${name.replace(/\s+/g, "-")}`;
+                                    absoluteLink.match(/\/series\/(\d+)/);
+                                const collectionCode = codeMatch
+                                    ? codeMatch[1]
+                                    : `TH-${name.replace(/\s+/g, "-")}`;
 
                                 return {
                                     name,
                                     imageUrl,
-                                    collectionUrl:
-                                        absoluteLink,
+                                    collectionUrl: absoluteLink,
                                     collectionCode,
                                 };
-                            });
+                            },
+                        );
 
-                            let totalPages = 0;
-                            const pageText =
-                                document.body.innerText;
-                            const match =
-                                pageText.match(
-                                    /ทั้งหมด\s*(\d+)\s*หน้า/,
-                                ) ||
-                                pageText.match(
-                                    /(\d+)\s*หน้า/,
-                                ) ||
-                                pageText.match(
-                                    /\/ ทั้งหมด\s*(\d+)/,
-                                );
-                            if (match)
-                                totalPages = parseInt(
-                                    match[1],
-                                    10,
-                                );
-                            return { items, totalPages };
-                        });
+                        let totalPages = 0;
+                        const pageText = document.body.innerText;
+                        const match =
+                            pageText.match(/ทั้งหมด\s*(\d+)\s*หน้า/) ||
+                            pageText.match(/(\d+)\s*หน้า/) ||
+                            pageText.match(/\/ ทั้งหมด\s*(\d+)/);
+                        if (match) totalPages = parseInt(match[1], 10);
+                        return { items, totalPages };
+                    });
 
                     if (pageData.items.length === 0) {
                         if (p === 1) {
@@ -152,16 +119,11 @@ export async function scrapePokemonCollectionsTh({
                         break;
                     }
 
-                    if (
-                        pageData.totalPages > 0 &&
-                        totalPages === Infinity
-                    ) {
+                    if (pageData.totalPages > 0 && totalPages === Infinity) {
                         totalPages = pageData.totalPages;
                     }
 
-                    sharedCollectionList.push(
-                        ...pageData.items,
-                    );
+                    sharedCollectionList.push(...pageData.items);
                     send({
                         type: "step",
                         message: `Worker ${workerId} found ${pageData.items.length} sets on page ${p}.`,
@@ -187,21 +149,14 @@ export async function scrapePokemonCollectionsTh({
         { length: concurrency },
         async (_, i) => {
             const workerId = i + 1;
-            if (i > 0)
-                await new Promise((r) =>
-                    setTimeout(r, i * 150),
-                );
+            if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
             if (shouldAbort) return;
             return paginationWorker(workerId);
         },
     );
     await Promise.all(paginationWorkers);
 
-    if (
-        franchise &&
-        language &&
-        sharedCollectionList.length > 0
-    ) {
+    if (franchise && language && sharedCollectionList.length > 0) {
         // Now that we have all items, trigger the UI update (consistency with MTG)
         send({
             type: "meta",
@@ -215,17 +170,13 @@ export async function scrapePokemonCollectionsTh({
 
         send({
             type: "step",
-            message:
-                "Saving discovered Thai collections to database...",
+            message: "Saving discovered Thai collections to database...",
         });
         try {
-            const result = await saveScrapedCollections(
-                sharedCollectionList,
-                {
-                    franchise,
-                    language,
-                },
-            );
+            const result = await saveScrapedCollections(sharedCollectionList, {
+                franchise,
+                language,
+            });
             if (result) {
                 const { saved, added, matched } = result;
                 send({
@@ -245,14 +196,10 @@ export async function scrapePokemonCollectionsTh({
                 });
             }
         } catch (error) {
-            console.error(
-                "Failed to save Thai collections:",
-                error,
-            );
+            console.error("Failed to save Thai collections:", error);
             send({
                 type: "step",
-                message:
-                    "Warning: Failed to persist collections to database.",
+                message: "Warning: Failed to persist collections to database.",
             });
         }
     }

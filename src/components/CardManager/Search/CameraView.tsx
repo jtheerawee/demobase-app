@@ -10,20 +10,12 @@ import {
 } from "@mantine/core";
 import type { FileWithPath } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
 import { AutoOptions } from "./AutoOptions";
-import {
-    CameraDevices,
-    useCameraDevices,
-} from "./CameraDevices";
+import { CameraDevices, useCameraDevices } from "./CameraDevices";
 import { CameraShutter } from "./CameraShutter";
 import { ImageThumbnail } from "./ImageThumbnail";
 
@@ -47,13 +39,8 @@ interface CameraViewProps {
     setPreview: (url: string | null) => void;
 }
 
-function useDelayCapture(
-    delaySeconds: number,
-    onCapture: () => void,
-) {
-    const [delayCount, setDelayCount] = useState<
-        number | null
-    >(null);
+function useDelayCapture(delaySeconds: number, onCapture: () => void) {
+    const [delayCount, setDelayCount] = useState<number | null>(null);
     const [fading, setFading] = useState(false);
     const cancelRef = useRef(false);
 
@@ -149,9 +136,7 @@ export function CameraView({
             };
 
             const stream =
-                await navigator.mediaDevices.getUserMedia(
-                    constraints,
-                );
+                await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = stream;
             setCameraActive(true);
             loadDevices();
@@ -159,11 +144,9 @@ export function CameraView({
             console.error("Camera error:", err);
             notifications.show({
                 title: "Camera Error",
-                message:
-                    "Could not access camera. Please check permissions.",
+                message: "Could not access camera. Please check permissions.",
                 color: "red",
-                autoClose:
-                    APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
             });
         }
     };
@@ -177,15 +160,9 @@ export function CameraView({
         const oscGain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.setValueAtTime(1200, t);
-        osc.frequency.exponentialRampToValueAtTime(
-            400,
-            t + 0.04,
-        );
+        osc.frequency.exponentialRampToValueAtTime(400, t + 0.04);
         oscGain.gain.setValueAtTime(0.4, t);
-        oscGain.gain.exponentialRampToValueAtTime(
-            0.001,
-            t + 0.05,
-        );
+        oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
         osc.connect(oscGain);
         oscGain.connect(ctx.destination);
         osc.start(t);
@@ -193,22 +170,14 @@ export function CameraView({
 
         // Tail: white noise burst
         const bufferSize = ctx.sampleRate * 0.08;
-        const buffer = ctx.createBuffer(
-            1,
-            bufferSize,
-            ctx.sampleRate,
-        );
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++)
-            data[i] = Math.random() * 2 - 1;
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
         const noiseGain = ctx.createGain();
         noiseGain.gain.setValueAtTime(0.15, t + 0.01);
-        noiseGain.gain.exponentialRampToValueAtTime(
-            0.001,
-            t + 0.09,
-        );
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
         noise.connect(noiseGain);
         noiseGain.connect(ctx.destination);
         noise.start(t + 0.01);
@@ -243,10 +212,7 @@ export function CameraView({
                             `capture-${Date.now()}.jpg`,
                             { type: "image/jpeg" },
                         ) as FileWithPath;
-                        const url =
-                            URL.createObjectURL(
-                                capturedFile,
-                            );
+                        const url = URL.createObjectURL(capturedFile);
                         setPreview(url);
                         onCapture(capturedFile);
                     }
@@ -265,9 +231,7 @@ export function CameraView({
         playShutterSound,
     ]);
 
-    const handleDeviceChange = (
-        deviceId: string | null,
-    ) => {
+    const handleDeviceChange = (deviceId: string | null) => {
         if (deviceId) {
             setSelectedDeviceId(deviceId);
             startCamera(deviceId);
@@ -284,11 +248,7 @@ export function CameraView({
     }, []);
 
     useEffect(() => {
-        if (
-            cameraActive &&
-            videoRef.current &&
-            streamRef.current
-        ) {
+        if (cameraActive && videoRef.current && streamRef.current) {
             videoRef.current.srcObject = streamRef.current;
         }
     }, [cameraActive, selectedDeviceId]);
@@ -306,9 +266,7 @@ export function CameraView({
         cancel: cancelAuto,
     } = useDelayCapture(autoCaptureDelay, capturePhoto);
 
-    const delayCount = autoCapture
-        ? autoDelayCount
-        : manualDelayCount;
+    const delayCount = autoCapture ? autoDelayCount : manualDelayCount;
     const fading = autoCapture ? autoFading : manualFading;
 
     // Cancel delays when loop stops
@@ -324,29 +282,16 @@ export function CameraView({
     useEffect(() => {
         const wasLoading = prevLoadingRef.current;
         prevLoadingRef.current = loading;
-        if (
-            wasLoading &&
-            !loading &&
-            loopActive &&
-            !paused &&
-            cameraActive
-        ) {
+        if (wasLoading && !loading && loopActive && !paused && cameraActive) {
             triggerAuto();
         }
-    }, [
-        loading,
-        loopActive,
-        paused,
-        cameraActive,
-        triggerAuto,
-    ]);
+    }, [loading, loopActive, paused, cameraActive, triggerAuto]);
 
     return (
         <Stack gap="md" w="100%">
             <Box
                 style={{
-                    borderRadius:
-                        "var(--mantine-radius-md)",
+                    borderRadius: "var(--mantine-radius-md)",
                     overflow: "hidden",
                     position: "relative",
                     height: OCR_CONFIG.CAMERA_VIEW_HEIGHT,
@@ -360,15 +305,10 @@ export function CameraView({
                 />
 
                 {!cameraActive ? (
-                    <Center
-                        h="100%"
-                        bg="var(--mantine-color-gray-0)"
-                    >
+                    <Center h="100%" bg="var(--mantine-color-gray-0)">
                         <Stack align="center" gap="sm">
                             <Loader size="md" />
-                            <Text fw={700}>
-                                Starting Camera...
-                            </Text>
+                            <Text fw={700}>Starting Camera...</Text>
                         </Stack>
                     </Center>
                 ) : (
@@ -387,12 +327,8 @@ export function CameraView({
                         />
                         <CameraDevices
                             devices={devices}
-                            selectedDeviceId={
-                                selectedDeviceId
-                            }
-                            onDeviceChange={
-                                handleDeviceChange
-                            }
+                            selectedDeviceId={selectedDeviceId}
+                            onDeviceChange={handleDeviceChange}
                         />
                     </>
                 )}
@@ -412,15 +348,12 @@ export function CameraView({
                                 fontWeight: 900,
                                 color: "#fff",
                                 lineHeight: 1,
-                                textShadow:
-                                    "0 0 40px rgba(0,0,0,0.8)",
+                                textShadow: "0 0 40px rgba(0,0,0,0.8)",
                                 transition: fading
                                     ? "opacity 0.65s ease-out, transform 0.65s ease-out"
                                     : "none",
                                 opacity: fading ? 0 : 1,
-                                transform: fading
-                                    ? "scale(1.5)"
-                                    : "scale(1)",
+                                transform: fading ? "scale(1.5)" : "scale(1)",
                             }}
                         >
                             {delayCount}
@@ -435,11 +368,7 @@ export function CameraView({
                     cameraActive={cameraActive}
                     autoCapture={autoCapture}
                     loopActive={loopActive}
-                    onCapture={
-                        autoCapture
-                            ? triggerAuto
-                            : triggerManual
-                    }
+                    onCapture={autoCapture ? triggerAuto : triggerManual}
                     onLoopActiveChange={onLoopActiveChange}
                     onClear={onClear}
                 />
@@ -463,13 +392,9 @@ export function CameraView({
                 autoCapture={autoCapture}
                 onAutoCaptureChange={onAutoCaptureChange}
                 manualCaptureDelay={manualCaptureDelay}
-                onManualCaptureDelayChange={
-                    onManualCaptureDelayChange
-                }
+                onManualCaptureDelayChange={onManualCaptureDelayChange}
                 autoCaptureDelay={autoCaptureDelay}
-                onAutoCaptureDelayChange={
-                    onAutoCaptureDelayChange
-                }
+                onAutoCaptureDelayChange={onAutoCaptureDelayChange}
             />
         </Stack>
     );

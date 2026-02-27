@@ -38,10 +38,7 @@ export async function POST(request: Request) {
                 ? Number(body.collectionId)
                 : undefined;
         } catch (e) {
-            console.error(
-                "Failed to parse request body:",
-                e,
-            );
+            console.error("Failed to parse request body:", e);
             return NextResponse.json(
                 { error: "Invalid request body" },
                 { status: 400 },
@@ -87,29 +84,25 @@ export async function POST(request: Request) {
                     const send = (data: unknown) => {
                         try {
                             controller.enqueue(
-                                encoder.encode(
-                                    `${JSON.stringify(data)}\n`,
-                                ),
+                                encoder.encode(`${JSON.stringify(data)}\n`),
                             );
-                        } catch (_err) { }
+                        } catch (_err) {}
                     };
 
                     try {
                         send({
                             type: "step",
-                            message:
-                                "Launching browser engine...",
+                            message: "Launching browser engine...",
                         });
                         try {
-                            browser =
-                                await playwright.launch({
-                                    args: [
-                                        "--no-sandbox",
-                                        "--disable-setuid-sandbox",
-                                        "--disable-blink-features=AutomationControlled",
-                                    ],
-                                    headless: true,
-                                });
+                            browser = await playwright.launch({
+                                args: [
+                                    "--no-sandbox",
+                                    "--disable-setuid-sandbox",
+                                    "--disable-blink-features=AutomationControlled",
+                                ],
+                                headless: true,
+                            });
                         } catch (launchError: any) {
                             console.error(
                                 "[Scraper Launch Error]:",
@@ -126,14 +119,12 @@ export async function POST(request: Request) {
 
                         send({
                             type: "step",
-                            message:
-                                "Creating browser context...",
+                            message: "Creating browser context...",
                         });
-                        const context =
-                            await browser.newContext({
-                                userAgent:
-                                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                            });
+                        const context = await browser.newContext({
+                            userAgent:
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                        });
 
                         const cardLimit = body.cardLimit
                             ? Number(body.cardLimit)
@@ -156,55 +147,31 @@ export async function POST(request: Request) {
                         };
 
                         if (
-                            url.includes(
-                                "gatherer.wizards.com",
-                            ) ||
+                            url.includes("gatherer.wizards.com") ||
                             franchise === "mtg"
                         ) {
                             if (type === "cards") {
-                                await scrapeMTGCards(
-                                    scraperOptions,
-                                );
+                                await scrapeMTGCards(scraperOptions);
                             } else {
-                                await scrapeMTGCollections(
-                                    scraperOptions,
-                                );
+                                await scrapeMTGCollections(scraperOptions);
                             }
-                        } else if (
-                            franchise === "pokemon"
-                        ) {
+                        } else if (franchise === "pokemon") {
                             if (type === "cards") {
-                                await scrapePokemonCards(
-                                    scraperOptions,
-                                );
+                                await scrapePokemonCards(scraperOptions);
                             } else {
-                                await scrapePokemonCollections(
-                                    scraperOptions,
-                                );
+                                await scrapePokemonCollections(scraperOptions);
                             }
-                        } else if (
-                            franchise === "one-piece"
-                        ) {
+                        } else if (franchise === "one-piece") {
                             if (type === "cards") {
-                                await scrapeOnepieceCards(
-                                    scraperOptions,
-                                );
+                                await scrapeOnepieceCards(scraperOptions);
                             } else {
-                                await scrapeOnepieceCollections(
-                                    scraperOptions,
-                                );
+                                await scrapeOnepieceCollections(scraperOptions);
                             }
-                        } else if (
-                            franchise === "lorcana"
-                        ) {
+                        } else if (franchise === "lorcana") {
                             if (type === "cards") {
-                                await scrapeLorcanaCards(
-                                    scraperOptions,
-                                );
+                                await scrapeLorcanaCards(scraperOptions);
                             } else {
-                                await scrapeLorcanaCollections(
-                                    scraperOptions,
-                                );
+                                await scrapeLorcanaCollections(scraperOptions);
                             }
                         } else {
                             send({
@@ -215,23 +182,17 @@ export async function POST(request: Request) {
 
                         send({
                             type: "step",
-                            message:
-                                "Scraping session finished successfully.",
+                            message: "Scraping session finished successfully.",
                         });
                         send({
                             type: "complete",
                             success: true,
                         });
                     } catch (error: any) {
-                        console.error(
-                            "[Scrapper Stream Error]:",
-                            error,
-                        );
+                        console.error("[Scrapper Stream Error]:", error);
                         send({
                             success: false,
-                            error:
-                                error.message ||
-                                "Unknown scraping error",
+                            error: error.message || "Unknown scraping error",
                         });
                     } finally {
                         if (browser) {
@@ -239,7 +200,7 @@ export async function POST(request: Request) {
                         }
                         try {
                             controller.close();
-                        } catch (_e) { }
+                        } catch (_e) {}
                     }
                 },
             }),
@@ -256,9 +217,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
             {
                 success: false,
-                error:
-                    error.message ||
-                    "Unknown scraping error",
+                error: error.message || "Unknown scraping error",
             },
             { status: 500 },
         );

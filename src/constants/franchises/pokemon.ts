@@ -1,6 +1,7 @@
 export const POKEMON_CONFIG = {
     URL_EN: "https://www.pokemon.com/us/pokemon-tcg/pokemon-cards",
-    URL_TCG_EN: "https://www.tcgplayer.com/search/pokemon/product?productLineName=pokemon&view=grid",
+    URL_TCG_EN:
+        "https://www.tcgplayer.com/search/pokemon/product?productLineName=pokemon&view=grid",
 
     URL_JP: "https://www.tcgplayer.com/search/pokemon-japan/product?productLineName=pokemon-japan&view=grid&ProductTypeName=Cards",
     URL_TH: "https://asia.pokemon-card.com/th/card-search/",

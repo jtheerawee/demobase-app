@@ -16,12 +16,7 @@ import {
     IMAGE_MIME_TYPE,
 } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import {
-    IconPhoto,
-    IconRefresh,
-    IconScan,
-    IconX,
-} from "@tabler/icons-react";
+import { IconPhoto, IconRefresh, IconScan, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { APP_CONFIG } from "@/constants/app";
 import { APP_MESSAGES } from "@/constants/messages";
@@ -67,12 +62,8 @@ export function CardManagerOCR({
     onAutoCaptureDelayChange,
     resetTrigger,
 }: CardManagerOCRProps) {
-    const [file, setFile] = useState<FileWithPath | null>(
-        null,
-    );
-    const [preview, setPreview] = useState<string | null>(
-        null,
-    );
+    const [file, setFile] = useState<FileWithPath | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
     const handleClear = () => {
@@ -82,55 +73,35 @@ export function CardManagerOCR({
         onClear?.();
     };
 
-    const handleScan = async (
-        manualFile?: FileWithPath,
-    ) => {
+    const handleScan = async (manualFile?: FileWithPath) => {
         const fileToUse = manualFile || file;
         if (!fileToUse) return;
 
         setLoading(true);
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-            () => controller.abort(),
-            60000,
-        );
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         try {
             const formData = new FormData();
 
             if (mode === "vision") {
                 formData.append("fileA", fileToUse);
-                formData.append(
-                    "model",
-                    OCR_CONFIG.OCR_MODEL,
-                );
+                formData.append("model", OCR_CONFIG.OCR_MODEL);
                 formData.append(
                     "score",
                     OCR_CONFIG.OCR_SCORE_THRESHOLD.toString(),
                 );
-                formData.append(
-                    "limit",
-                    OCR_CONFIG.OCR_LIMIT.toString(),
-                );
-                formData.append(
-                    "workers",
-                    OCR_CONFIG.OCR_WORKERS.toString(),
-                );
+                formData.append("limit", OCR_CONFIG.OCR_LIMIT.toString());
+                formData.append("workers", OCR_CONFIG.OCR_WORKERS.toString());
 
-                const res = await fetch(
-                    OCR_CONFIG.OCR_API_URL,
-                    {
-                        method: "POST",
-                        body: formData,
-                        signal: controller.signal,
-                    },
-                );
+                const res = await fetch(OCR_CONFIG.OCR_API_URL, {
+                    method: "POST",
+                    body: formData,
+                    signal: controller.signal,
+                });
                 clearTimeout(timeoutId);
 
-                if (!res.ok)
-                    throw new Error(
-                        "Vision Service failed",
-                    );
+                if (!res.ok) throw new Error("Vision Service failed");
                 const data = await res.json();
 
                 notifications.show({
@@ -150,24 +121,16 @@ export function CardManagerOCR({
                         </Box>
                     ),
                     color: "blue",
-                    autoClose:
-                        APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
 
                 const matches = data.results || [];
                 const scanIds = matches
                     .map((m: any) => {
                         const filename =
-                            m.path
-                                .split("/")
-                                .pop()
-                                ?.split(".")
-                                .shift() || "";
-                        const match = filename.match(
-                            /\[(.*?)\]-([^-]+)/,
-                        );
-                        if (match)
-                            return `${match[1]}:${match[2]}`;
+                            m.path.split("/").pop()?.split(".").shift() || "";
+                        const match = filename.match(/\[(.*?)\]-([^-]+)/);
+                        if (match) return `${match[1]}:${match[2]}`;
                         return null;
                     })
                     .filter(Boolean);
@@ -175,26 +138,18 @@ export function CardManagerOCR({
                 if (scanIds.length > 0) {
                     onScan?.(scanIds);
                 } else {
-                    throw new Error(
-                        APP_MESSAGES.NO_MATCH_FOUND,
-                    );
+                    throw new Error(APP_MESSAGES.NO_MATCH_FOUND);
                 }
             } else {
                 formData.append("file", fileToUse);
-                const res = await fetch(
-                    OCR_CONFIG.OCR_TEXT_API_URL,
-                    {
-                        method: "POST",
-                        body: formData,
-                        signal: controller.signal,
-                    },
-                );
+                const res = await fetch(OCR_CONFIG.OCR_TEXT_API_URL, {
+                    method: "POST",
+                    body: formData,
+                    signal: controller.signal,
+                });
                 clearTimeout(timeoutId);
 
-                if (!res.ok)
-                    throw new Error(
-                        "OCR Text Service failed",
-                    );
+                if (!res.ok) throw new Error("OCR Text Service failed");
                 const data = await res.json();
 
                 if (data.text) {
@@ -202,24 +157,19 @@ export function CardManagerOCR({
                     const result = parseOcrText(text);
 
                     if (result.setCode && result.cardNo) {
-                        onScan?.([
-                            `${result.setCode}:${result.cardNo}`,
-                        ]);
+                        onScan?.([`${result.setCode}:${result.cardNo}`]);
                     } else {
                         onResultInfo?.(text);
                         onScan?.([]);
                     }
                 } else {
-                    throw new Error(
-                        APP_MESSAGES.NO_TEXT_FOUND,
-                    );
+                    throw new Error(APP_MESSAGES.NO_TEXT_FOUND);
                 }
             }
         } catch (err: any) {
             console.error("OCR Precise Error:", err);
             const isNoMatch =
-                err.message ===
-                    APP_MESSAGES.NO_MATCH_FOUND ||
+                err.message === APP_MESSAGES.NO_MATCH_FOUND ||
                 err.message === APP_MESSAGES.NO_TEXT_FOUND;
             if (!isNoMatch) {
                 notifications.show({
@@ -227,22 +177,14 @@ export function CardManagerOCR({
                         err.name === "AbortError"
                             ? "Request Timed Out"
                             : "Scan Failed",
-                    message:
-                        err.message ||
-                        "Failed to process image",
+                    message: err.message || "Failed to process image",
                     color: "red",
                     icon: <IconX size={18} />,
-                    autoClose:
-                        APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
             } else {
-                if (
-                    err.message ===
-                    APP_MESSAGES.NO_TEXT_FOUND
-                ) {
-                    onResultInfo?.(
-                        APP_MESSAGES.NO_TEXT_FOUND,
-                    );
+                if (err.message === APP_MESSAGES.NO_TEXT_FOUND) {
+                    onResultInfo?.(APP_MESSAGES.NO_TEXT_FOUND);
                 }
             }
             onScan?.([]);
@@ -267,11 +209,7 @@ export function CardManagerOCR({
 
     if (mode === "camera") {
         return (
-            <Box
-                maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH}
-                mx="auto"
-                w="100%"
-            >
+            <Box maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH} mx="auto" w="100%">
                 <CameraView
                     onCapture={(capturedFile) => {
                         setFile(capturedFile);
@@ -283,19 +221,13 @@ export function CardManagerOCR({
                     autoAdd={autoAdd}
                     onAutoAddChange={onAutoAddChange}
                     autoCapture={autoCapture}
-                    onAutoCaptureChange={
-                        onAutoCaptureChange
-                    }
+                    onAutoCaptureChange={onAutoCaptureChange}
                     loopActive={loopActive}
                     onLoopActiveChange={onLoopActiveChange}
                     manualCaptureDelay={manualCaptureDelay}
-                    onManualCaptureDelayChange={
-                        onManualCaptureDelayChange
-                    }
+                    onManualCaptureDelayChange={onManualCaptureDelayChange}
                     autoCaptureDelay={autoCaptureDelay}
-                    onAutoCaptureDelayChange={
-                        onAutoCaptureDelayChange
-                    }
+                    onAutoCaptureDelayChange={onAutoCaptureDelayChange}
                     onClear={handleClear}
                     preview={preview}
                     setPreview={setPreview}
@@ -305,22 +237,14 @@ export function CardManagerOCR({
     }
 
     return (
-        <Stack
-            gap="md"
-            maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH}
-            w="100%"
-            mx="auto"
-        >
+        <Stack gap="md" maw={OCR_CONFIG.OCR_SCAN_MAX_WIDTH} w="100%" mx="auto">
             <Box
                 style={{
-                    borderRadius:
-                        "var(--mantine-radius-md)",
+                    borderRadius: "var(--mantine-radius-md)",
                     overflow: "hidden",
                     position: "relative",
                     height: OCR_CONFIG.CAMERA_VIEW_HEIGHT,
-                    backgroundColor: preview
-                        ? "#000"
-                        : "transparent",
+                    backgroundColor: preview ? "#000" : "transparent",
                     border: preview
                         ? "none"
                         : "2px dashed var(--mantine-color-gray-3)",
@@ -344,8 +268,7 @@ export function CardManagerOCR({
                             root: {
                                 border: "none",
                                 borderRadius: 0,
-                                backgroundColor:
-                                    "var(--mantine-color-gray-0)",
+                                backgroundColor: "var(--mantine-color-gray-0)",
                                 transition: "all 0.2s ease",
                                 cursor: "pointer",
                                 "&:hover": {
@@ -376,21 +299,12 @@ export function CardManagerOCR({
                                         stroke={1.5}
                                     />
                                 )}
-                                <Text
-                                    size="lg"
-                                    inline
-                                    fw={700}
-                                >
+                                <Text size="lg" inline fw={700}>
                                     {mode === "vision"
                                         ? "Drop for Vision Scan"
                                         : "Drop for Text OCR"}
                                 </Text>
-                                <Text
-                                    size="xs"
-                                    c="dimmed"
-                                    inline
-                                    mt={7}
-                                >
+                                <Text size="xs" c="dimmed" inline mt={7}>
                                     Click or drag image here
                                 </Text>
                             </Stack>
@@ -415,9 +329,7 @@ export function CardManagerOCR({
                         color="blue"
                         radius="xl"
                         size="md"
-                        leftSection={
-                            <IconRefresh size={20} />
-                        }
+                        leftSection={<IconRefresh size={20} />}
                         onClick={handleClear}
                         disabled={loading}
                     >
@@ -439,14 +351,10 @@ function parseOcrText(text: string) {
         .filter(Boolean);
 
     // 1. Try MTG Pattern (ABC-EN)
-    const mtgSetMatch = text.match(
-        /\b([A-Z0-9]{3,5})-(?:[A-Z]{2,})\b/i,
-    );
+    const mtgSetMatch = text.match(/\b([A-Z0-9]{3,5})-(?:[A-Z]{2,})\b/i);
     const mtgNoMatch =
         text.match(/\b[A-Z]?0*([1-9][0-9]{2,3})\b/) ||
-        text.match(
-            /(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/,
-        );
+        text.match(/(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/);
 
     if (mtgSetMatch && mtgNoMatch) {
         return {
@@ -459,20 +367,17 @@ function parseOcrText(text: string) {
     // 2. Try Pokemon Pattern (MEWEN 067/165 or SVP 001 or 123/456)
     // Matches MEWEN, SV1EN, etc. and extracts the code part
     const pokemonSetMatch =
-        text.match(
-            /\b([A-Z0-9]{2,4})(?:EN|JP|CN|KR|TW|FR|DE|IT|ES|PT)\b/i,
-        ) || text.match(/\b([A-Z0-9]{2,4})\b/i);
+        text.match(/\b([A-Z0-9]{2,4})(?:EN|JP|CN|KR|TW|FR|DE|IT|ES|PT)\b/i) ||
+        text.match(/\b([A-Z0-9]{2,4})\b/i);
 
     const pokemonCardNoMatch =
-        text.match(/\b(\d{1,3})\/\d{2,3}\b/) ||
-        text.match(/\b(\d{1,3})\b/);
+        text.match(/\b(\d{1,3})\/\d{2,3}\b/) || text.match(/\b(\d{1,3})\b/);
 
     if (pokemonSetMatch && pokemonCardNoMatch) {
         let sc = pokemonSetMatch[1].toUpperCase();
 
         // Apply manual mapping if exists (case-insensitive check)
-        const mappedCode =
-            APP_CONFIG.POKEMON_SET_MAP[pokemonSetMatch[1]];
+        const mappedCode = APP_CONFIG.POKEMON_SET_MAP[pokemonSetMatch[1]];
         if (mappedCode) {
             sc = mappedCode.toUpperCase();
         }

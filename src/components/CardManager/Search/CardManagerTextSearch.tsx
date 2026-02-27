@@ -1,10 +1,6 @@
 "use client";
 
-import {
-    CloseButton,
-    Loader,
-    TextInput,
-} from "@mantine/core";
+import { CloseButton, Loader, TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 
@@ -29,15 +25,11 @@ export function CardManagerTextSearch({
                 loading ? (
                     <Loader size="xs" />
                 ) : query !== "" ? (
-                    <CloseButton
-                        onClick={() => setQuery("")}
-                    />
+                    <CloseButton onClick={() => setQuery("")} />
                 ) : null
             }
             value={query}
-            onChange={(e) =>
-                setQuery(e.currentTarget.value)
-            }
+            onChange={(e) => setQuery(e.currentTarget.value)}
         />
     );
 }

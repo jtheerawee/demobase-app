@@ -30,22 +30,18 @@ export function SearchInstructionModal({
                 <Stack gap="sm">
                     <Text fw={700}>Text Search Guide</Text>
                     <Text size="sm">
-                        Enter the card name, set, or number
-                        to find cards in our database. You
-                        can use the franchise and language
-                        filters to narrow down your results.
+                        Enter the card name, set, or number to find cards in our
+                        database. You can use the franchise and language filters
+                        to narrow down your results.
                     </Text>
                 </Stack>
             ) : (
                 <Stack gap="sm">
                     <Text fw={700}>Camera Scan Guide</Text>
                     <Text size="sm">
-                        Use your camera to identify cards
-                        instantly. Dual modes allow for
-                        either precise OCR text detection or
-                        visual matching. Enable
-                        "Auto-capture" for a faster
-                        workflow.
+                        Use your camera to identify cards instantly. Dual modes
+                        allow for either precise OCR text detection or visual
+                        matching. Enable "Auto-capture" for a faster workflow.
                     </Text>
                 </Stack>
             )}

@@ -52,9 +52,7 @@ export function BugReportModal({
         setIsSubmitting(true);
 
         // Simulate API call
-        await new Promise((resolve) =>
-            setTimeout(resolve, 1500),
-        );
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         console.log("Bug Report Submitted:", {
             description,
@@ -67,8 +65,7 @@ export function BugReportModal({
 
         notifications.show({
             title: "Report Submitted",
-            message:
-                "Thank you for your feedback! We will look into it.",
+            message: "Thank you for your feedback! We will look into it.",
             color: "green",
             icon: <IconCheck size={18} />,
         });
@@ -85,10 +82,7 @@ export function BugReportModal({
             onClose={onClose}
             title={
                 <Group gap="xs">
-                    <IconBug
-                        size={20}
-                        color="var(--mantine-color-red-6)"
-                    />
+                    <IconBug size={20} color="var(--mantine-color-red-6)" />
                     <Text fw={700}>Report a Bug</Text>
                 </Group>
             }
@@ -102,18 +96,15 @@ export function BugReportModal({
 
                 <Stack gap="md">
                     <Text size="sm" c="dimmed">
-                        Tell us what went wrong. A
-                        screenshot of the current page has
-                        been captured to help us debug.
+                        Tell us what went wrong. A screenshot of the current
+                        page has been captured to help us debug.
                     </Text>
 
                     <TextInput
                         label="Email (Optional)"
                         placeholder="your@email.com"
                         value={email}
-                        onChange={(e) =>
-                            setEmail(e.currentTarget.value)
-                        }
+                        onChange={(e) => setEmail(e.currentTarget.value)}
                     />
 
                     <Textarea
@@ -122,11 +113,7 @@ export function BugReportModal({
                         required
                         minRows={4}
                         value={description}
-                        onChange={(e) =>
-                            setDescription(
-                                e.currentTarget.value,
-                            )
-                        }
+                        onChange={(e) => setDescription(e.currentTarget.value)}
                     />
 
                     {screenshot && (
@@ -137,31 +124,21 @@ export function BugReportModal({
                             <Box
                                 style={{
                                     border: "1px solid var(--mantine-color-gray-3)",
-                                    borderRadius:
-                                        "var(--mantine-radius-sm)",
+                                    borderRadius: "var(--mantine-radius-sm)",
                                     overflow: "hidden",
                                 }}
                             >
-                                <Image
-                                    src={screenshot}
-                                    alt="Bug screenshot"
-                                />
+                                <Image src={screenshot} alt="Bug screenshot" />
                             </Box>
                         </Box>
                     )}
 
                     <Group justify="flex-end">
-                        <Button
-                            variant="subtle"
-                            color="gray"
-                            onClick={onClose}
-                        >
+                        <Button variant="subtle" color="gray" onClick={onClose}>
                             Cancel
                         </Button>
                         <Button
-                            leftSection={
-                                <IconBug size={18} />
-                            }
+                            leftSection={<IconBug size={18} />}
                             color="red"
                             onClick={handleSubmit}
                             disabled={!description}

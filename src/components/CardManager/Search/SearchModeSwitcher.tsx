@@ -1,9 +1,4 @@
-import {
-    ActionIcon,
-    Box,
-    Center,
-    SegmentedControl,
-} from "@mantine/core";
+import { ActionIcon, Box, Center, SegmentedControl } from "@mantine/core";
 import {
     IconAlphabetLatin,
     IconCamera,
@@ -28,17 +23,13 @@ export function SearchModeSwitcher({
             <Center>
                 <SegmentedControl
                     value={value}
-                    onChange={(val) =>
-                        onChange(val as SearchMode)
-                    }
+                    onChange={(val) => onChange(val as SearchMode)}
                     data={[
                         {
                             value: "text",
                             label: (
                                 <Center style={{ gap: 10 }}>
-                                    <IconAlphabetLatin
-                                        size={16}
-                                    />
+                                    <IconAlphabetLatin size={16} />
                                     <span>Text Search</span>
                                 </Center>
                             ),

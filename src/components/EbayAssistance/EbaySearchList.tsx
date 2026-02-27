@@ -10,10 +10,7 @@ import {
     Text,
     Tooltip,
 } from "@mantine/core";
-import {
-    IconRefresh,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconRefresh, IconTrash } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
@@ -62,13 +59,9 @@ export function EbaySearchList({
 }: EbaySearchListProps) {
     const t = useTranslations("EbayAssistance.searchList");
     const supabase = createClient();
-    const [searches, setSearches] = useState<EbaySearch[]>(
-        [],
-    );
+    const [searches, setSearches] = useState<EbaySearch[]>([]);
     const [loading, setLoading] = useState(true);
-    const [deletingId, setDeletingId] = useState<
-        number | null
-    >(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const fetchSearches = async () => {
         setLoading(true);
@@ -77,8 +70,7 @@ export function EbaySearchList({
             .select("*")
             .order("created_at", { ascending: false });
 
-        if (!error && data)
-            setSearches(data as EbaySearch[]);
+        if (!error && data) setSearches(data as EbaySearch[]);
         setLoading(false);
     };
 
@@ -88,13 +80,8 @@ export function EbaySearchList({
 
     const handleDelete = async (id: number) => {
         setDeletingId(id);
-        await supabase
-            .from("ebay_searches")
-            .delete()
-            .eq("id", id);
-        setSearches((prev) =>
-            prev.filter((s) => s.id !== id),
-        );
+        await supabase.from("ebay_searches").delete().eq("id", id);
+        setSearches((prev) => prev.filter((s) => s.id !== id));
         setDeletingId(null);
     };
 
@@ -138,12 +125,7 @@ export function EbaySearchList({
 
     if (searches.length === 0) {
         return (
-            <Paper
-                withBorder
-                p="md"
-                radius="md"
-                bg="rgba(255,255,255,0.8)"
-            >
+            <Paper withBorder p="md" radius="md" bg="rgba(255,255,255,0.8)">
                 <Text size="xs" c="dimmed" ta="center">
                     {t("noSaved")}
                 </Text>
@@ -182,8 +164,7 @@ export function EbaySearchList({
                                 "var(--mantine-color-gray-0)")
                         }
                         onMouseLeave={(e) =>
-                            (e.currentTarget.style.background =
-                                "transparent")
+                            (e.currentTarget.style.background = "transparent")
                         }
                     >
                         {/* Main info */}
@@ -192,28 +173,21 @@ export function EbaySearchList({
                             style={{ flex: 1, minWidth: 0 }}
                             onClick={() => handleSelect(s)}
                         >
-                            <Text
-                                size="sm"
-                                fw={600}
-                                truncate
-                            >
+                            <Text size="sm" fw={600} truncate>
                                 {s.keyword}
                             </Text>
                             <Group gap={4} wrap="nowrap">
-                                {s.service &&
-                                    s.service !== "---" && (
-                                        <Badge
-                                            size="xs"
-                                            variant="light"
-                                            color="orange"
-                                            radius="sm"
-                                        >
-                                            {s.service.toUpperCase()}{" "}
-                                            {s.grade != null
-                                                ? s.grade
-                                                : ""}
-                                        </Badge>
-                                    )}
+                                {s.service && s.service !== "---" && (
+                                    <Badge
+                                        size="xs"
+                                        variant="light"
+                                        color="orange"
+                                        radius="sm"
+                                    >
+                                        {s.service.toUpperCase()}{" "}
+                                        {s.grade != null ? s.grade : ""}
+                                    </Badge>
+                                )}
                                 {s.listing_type && (
                                     <Badge
                                         size="xs"
@@ -221,8 +195,7 @@ export function EbaySearchList({
                                         color="gray"
                                         radius="sm"
                                     >
-                                        {s.listing_type ===
-                                        "auction"
+                                        {s.listing_type === "auction"
                                             ? "Auction"
                                             : "Fixed"}
                                     </Badge>
@@ -271,10 +244,7 @@ export function EbaySearchList({
                         </Stack>
 
                         <Group gap={4} wrap="nowrap">
-                            <Tooltip
-                                label={t("fetchNow")}
-                                withArrow
-                            >
+                            <Tooltip label={t("fetchNow")} withArrow>
                                 <ActionIcon
                                     size="sm"
                                     variant="subtle"
@@ -284,22 +254,15 @@ export function EbaySearchList({
                                         handleExecute(s);
                                     }}
                                 >
-                                    <IconRefresh
-                                        size={13}
-                                    />
+                                    <IconRefresh size={13} />
                                 </ActionIcon>
                             </Tooltip>
-                            <Tooltip
-                                label={t("delete")}
-                                withArrow
-                            >
+                            <Tooltip label={t("delete")} withArrow>
                                 <ActionIcon
                                     size="sm"
                                     variant="subtle"
                                     color="red"
-                                    loading={
-                                        deletingId === s.id
-                                    }
+                                    loading={deletingId === s.id}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleDelete(s.id);

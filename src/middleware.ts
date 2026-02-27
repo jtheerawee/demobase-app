@@ -1,8 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
-import {
-    type NextRequest,
-    NextResponse,
-} from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
@@ -22,25 +19,14 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll();
                 },
                 setAll(cookiesToSet) {
-                    for (const {
-                        name,
-                        value,
-                    } of cookiesToSet) {
+                    for (const { name, value } of cookiesToSet) {
                         request.cookies.set(name, value);
                     }
                     response = NextResponse.next({
                         request,
                     });
-                    for (const {
-                        name,
-                        value,
-                        options,
-                    } of cookiesToSet) {
-                        response.cookies.set(
-                            name,
-                            value,
-                            options,
-                        );
+                    for (const { name, value, options } of cookiesToSet) {
+                        response.cookies.set(name, value, options);
                     }
                 },
             },
@@ -54,8 +40,7 @@ export async function middleware(request: NextRequest) {
     // Restricted routes check
     const { pathname } = request.nextUrl;
     const isRestrictedTarget =
-        pathname.includes("/card-scraper") ||
-        pathname.includes("/ebay");
+        pathname.includes("/card-scraper") || pathname.includes("/ebay");
 
     if (isRestrictedTarget) {
         let isAdmin = false;
@@ -84,7 +69,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: [
-        "/((?!api|_next/static|_next/image|favicon.ico).*)",
-    ],
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

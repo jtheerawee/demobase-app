@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    ActionIcon,
-    Badge,
-    Group,
-    Menu,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Badge, Group, Menu, Text, Tooltip } from "@mantine/core";
 import {
     IconExternalLink,
     IconMinus,
@@ -38,18 +31,9 @@ export interface CollectedCard {
 interface CollectedCardProps {
     card: CollectedCard;
     onImageClick?: (url: string) => void;
-    onUpdateQuantity: (
-        id: number,
-        newQuantity: number,
-    ) => void;
-    onUpdateCondition: (
-        id: number,
-        newCondition: string,
-    ) => void;
-    onUpdateVariant: (
-        id: number,
-        newVariant: string,
-    ) => void;
+    onUpdateQuantity: (id: number, newQuantity: number) => void;
+    onUpdateCondition: (id: number, newCondition: string) => void;
+    onUpdateVariant: (id: number, newVariant: string) => void;
     onDelete: (id: number) => void;
     onAddEntry: (card: CollectedCard) => void;
 }
@@ -90,21 +74,13 @@ export function CollectedCard({
                             variant="subtle"
                             color="gray"
                             onClick={() =>
-                                onUpdateQuantity(
-                                    card.id,
-                                    card.quantity - 1,
-                                )
+                                onUpdateQuantity(card.id, card.quantity - 1)
                             }
                             disabled={card.quantity <= 1}
                         >
                             <IconMinus size={10} />
                         </ActionIcon>
-                        <Text
-                            size="10px"
-                            fw={700}
-                            w={14}
-                            ta="center"
-                        >
+                        <Text size="10px" fw={700} w={14} ta="center">
                             {card.quantity}
                         </Text>
                         <ActionIcon
@@ -112,10 +88,7 @@ export function CollectedCard({
                             variant="subtle"
                             color="gray"
                             onClick={() =>
-                                onUpdateQuantity(
-                                    card.id,
-                                    card.quantity + 1,
-                                )
+                                onUpdateQuantity(card.id, card.quantity + 1)
                             }
                         >
                             <IconPlus size={10} />
@@ -134,9 +107,7 @@ export function CollectedCard({
                                     cursor: "pointer",
                                 }}
                             >
-                                {(
-                                    card.variant || "nf"
-                                ).toUpperCase()}
+                                {(card.variant || "nf").toUpperCase()}
                             </Badge>
                         </Menu.Target>
                         <Menu.Dropdown>
@@ -145,10 +116,7 @@ export function CollectedCard({
                                 <Menu.Item
                                     key={v.value}
                                     onClick={() =>
-                                        onUpdateVariant(
-                                            card.id,
-                                            v.value,
-                                        )
+                                        onUpdateVariant(card.id, v.value)
                                     }
                                     style={{
                                         fontSize: "10px",
@@ -172,23 +140,16 @@ export function CollectedCard({
                                     cursor: "pointer",
                                 }}
                             >
-                                {(
-                                    card.condition || "nm"
-                                ).toUpperCase()}
+                                {(card.condition || "nm").toUpperCase()}
                             </Badge>
                         </Menu.Target>
                         <Menu.Dropdown>
-                            <Menu.Label>
-                                Condition
-                            </Menu.Label>
+                            <Menu.Label>Condition</Menu.Label>
                             {CONDITIONS.map((cond) => (
                                 <Menu.Item
                                     key={cond.value}
                                     onClick={() =>
-                                        onUpdateCondition(
-                                            card.id,
-                                            cond.value,
-                                        )
+                                        onUpdateCondition(card.id, cond.value)
                                     }
                                     style={{
                                         fontSize: "10px",

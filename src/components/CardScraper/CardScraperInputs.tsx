@@ -19,9 +19,7 @@ export function CardScraperInputs({
     onLanguageChange,
 }: CardScraperInputsProps) {
     const languageOptions = useMemo(() => {
-        return franchise
-            ? (LANGUAGE_OPTIONS[franchise] ?? [])
-            : [];
+        return franchise ? (LANGUAGE_OPTIONS[franchise] ?? []) : [];
     }, [franchise]);
 
     return (
@@ -37,10 +35,7 @@ export function CardScraperInputs({
                 value={language}
                 onChange={onLanguageChange}
                 data={languageOptions}
-                disabled={
-                    !franchise ||
-                    languageOptions.length === 0
-                }
+                disabled={!franchise || languageOptions.length === 0}
             />
         </Stack>
     );

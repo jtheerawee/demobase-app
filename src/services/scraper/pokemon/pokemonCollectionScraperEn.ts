@@ -14,8 +14,7 @@ export async function scrapePokemonCollectionsEn({
 }: ScraperOptions) {
     send({
         type: "step",
-        message:
-            "Fetching set name mapping from Pokemon.com...",
+        message: "Fetching set name mapping from Pokemon.com...",
     });
 
     const sharedCollectionList: any[] = [];
@@ -37,8 +36,7 @@ export async function scrapePokemonCollectionsEn({
 
         send({
             type: "step",
-            message:
-                "Activating Advanced Search filters...",
+            message: "Activating Advanced Search filters...",
         });
         // 1. Click "Show Advanced Search"
         // Try multiple selectors and wait for it to be visible
@@ -50,9 +48,7 @@ export async function scrapePokemonCollectionsEn({
             })
             .catch(() => {});
 
-        const advancedBtn = await page.$(
-            advancedBtnSelector,
-        );
+        const advancedBtn = await page.$(advancedBtnSelector);
         if (advancedBtn) {
             await advancedBtn.click();
             // Wait for expansion animation
@@ -61,8 +57,7 @@ export async function scrapePokemonCollectionsEn({
 
         send({
             type: "step",
-            message:
-                "Expanding the 'Expansions' section...",
+            message: "Expanding the 'Expansions' section...",
         });
         // 2. Click "Expansions" header
         const expansionHeaderSelector =
@@ -76,29 +71,20 @@ export async function scrapePokemonCollectionsEn({
                 timeout: 15000,
             })
             .catch(() => {
-                console.warn(
-                    "Expansion header selector timeout",
-                );
+                console.warn("Expansion header selector timeout");
             });
 
-        const expansionSection = await page.$(
-            expansionHeaderSelector,
-        );
+        const expansionSection = await page.$(expansionHeaderSelector);
         if (expansionSection) {
             send({
                 type: "step",
                 message: "Clicking Expansions section...",
             });
-            await expansionSection
-                .scrollIntoViewIfNeeded()
-                .catch(() => {});
+            await expansionSection.scrollIntoViewIfNeeded().catch(() => {});
             await expansionSection
                 .click({ force: true, timeout: 5000 })
                 .catch((e: any) => {
-                    console.warn(
-                        "Expansion click failed",
-                        e,
-                    );
+                    console.warn("Expansion click failed", e);
                 });
             await page.waitForTimeout(1000);
         } else {
@@ -126,19 +112,16 @@ export async function scrapePokemonCollectionsEn({
 
             if (labels.length === 0) {
                 // Try a broader search if the specific class failed
-                const altLabels =
-                    document.querySelectorAll("label[for]");
+                const altLabels = document.querySelectorAll("label[for]");
                 altLabels.forEach((l) => {
                     const id = l.getAttribute("for");
                     const text = l.textContent?.trim();
-                    if (id && text && id.length < 20)
-                        results[id] = text;
+                    if (id && text && id.length < 20) results[id] = text;
                 });
             } else {
                 labels.forEach((label) => {
                     const id = label.getAttribute("for");
-                    const span =
-                        label.querySelector("span");
+                    const span = label.querySelector("span");
                     if (id && span) {
                         results[id] = span.innerText.trim();
                     }
@@ -150,21 +133,15 @@ export async function scrapePokemonCollectionsEn({
         Object.assign(nameMap, mappings);
 
         if (Object.keys(nameMap).length === 0) {
-            throw new Error(
-                "No collections found in the DOM.",
-            );
+            throw new Error("No collections found in the DOM.");
         }
 
         await page.close();
     } catch (err) {
-        console.error(
-            "Failed to fetch name mappings:",
-            err,
-        );
+        console.error("Failed to fetch name mappings:", err);
         send({
             type: "step",
-            message:
-                "Error: Could not fetch set list from Pokemon.com.",
+            message: "Error: Could not fetch set list from Pokemon.com.",
         });
         return;
     }
@@ -178,11 +155,7 @@ export async function scrapePokemonCollectionsEn({
         });
     }
 
-    if (
-        franchise &&
-        language &&
-        sharedCollectionList.length > 0
-    ) {
+    if (franchise && language && sharedCollectionList.length > 0) {
         // Send to UI immediately for feedback
         send({
             type: "chunk",
@@ -195,13 +168,10 @@ export async function scrapePokemonCollectionsEn({
             message: `Scraped ${sharedCollectionList.length} collections from official site. Registering...`,
         });
         try {
-            const result = await saveScrapedCollections(
-                sharedCollectionList,
-                {
-                    franchise,
-                    language,
-                },
-            );
+            const result = await saveScrapedCollections(sharedCollectionList, {
+                franchise,
+                language,
+            });
             if (result) {
                 const { saved, added, matched } = result;
                 send({
@@ -221,14 +191,10 @@ export async function scrapePokemonCollectionsEn({
                 });
             }
         } catch (error) {
-            console.error(
-                "Failed to save English sets:",
-                error,
-            );
+            console.error("Failed to save English sets:", error);
             send({
                 type: "step",
-                message:
-                    "Error: Could not register collections.",
+                message: "Error: Could not register collections.",
             });
         }
     }

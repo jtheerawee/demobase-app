@@ -1,11 +1,6 @@
 "use client";
 
-import {
-    Button,
-    Container,
-    Stack,
-    Title,
-} from "@mantine/core";
+import { Button, Container, Stack, Title } from "@mantine/core";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 

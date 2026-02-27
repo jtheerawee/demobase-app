@@ -1,10 +1,7 @@
 "use client";
 
 import { ActionIcon, Tooltip } from "@mantine/core";
-import {
-    IconExternalLink,
-    IconPlus,
-} from "@tabler/icons-react";
+import { IconExternalLink, IconPlus } from "@tabler/icons-react";
 import { BaseCard } from "../BaseCard";
 import type { SearchedCard } from "./SearchResultWidget";
 
@@ -60,16 +57,10 @@ export function SearchCard({
                     >
                         <ActionIcon
                             variant="light"
-                            color={
-                                isCollected
-                                    ? "gray"
-                                    : "green"
-                            }
+                            color={isCollected ? "gray" : "green"}
                             size="sm"
                             disabled={isCollected}
-                            onClick={() =>
-                                onAddToCollection(card)
-                            }
+                            onClick={() => onAddToCollection(card)}
                             loading={addingId === card.id}
                         >
                             <IconPlus size={14} />

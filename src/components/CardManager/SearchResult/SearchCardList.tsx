@@ -30,14 +30,10 @@ export function SearchCardList({
                         card={card}
                         addingId={addingId}
                         collectedCardIds={collectedCardIds}
-                        onAddToCollection={
-                            onAddToCollection
-                        }
+                        onAddToCollection={onAddToCollection}
                         onImageClick={onImageClick}
                     />
-                    {index < results.length - 1 && (
-                        <Divider />
-                    )}
+                    {index < results.length - 1 && <Divider />}
                 </Box>
             ))}
         </Stack>

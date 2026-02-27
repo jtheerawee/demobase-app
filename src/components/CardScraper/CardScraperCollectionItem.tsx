@@ -1,17 +1,7 @@
 "use client";
 
-import {
-    ActionIcon,
-    Badge,
-    Card,
-    Group,
-    Stack,
-    Text,
-} from "@mantine/core";
-import {
-    IconExternalLink,
-    IconTrash,
-} from "@tabler/icons-react";
+import { ActionIcon, Badge, Card, Group, Stack, Text } from "@mantine/core";
+import { IconExternalLink, IconTrash } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";
 
 export interface CollectionItem {
@@ -39,15 +29,8 @@ export function CardScraperCollectionItem({
     onDelete,
 }: CardScraperCollectionItemProps) {
     const mappedCode = (() => {
-        if (
-            item.franchise === "pokemon" &&
-            item.collectionCode
-        ) {
-            const map =
-                APP_CONFIG.POKEMON_SET_MAP as Record<
-                    string,
-                    string
-                >;
+        if (item.franchise === "pokemon" && item.collectionCode) {
+            const map = APP_CONFIG.POKEMON_SET_MAP as Record<string, string>;
             const code = item.collectionCode.toLowerCase();
             // Try to find the key by value (case-insensitive)
             const keyByValue = Object.keys(map).find(
@@ -74,21 +57,10 @@ export function CardScraperCollectionItem({
             }}
             onClick={onSelect}
         >
-            <Group
-                justify="space-between"
-                align="center"
-                wrap="nowrap"
-            >
-                <Stack
-                    gap={0}
-                    style={{ flex: 1, minWidth: 0 }}
-                >
+            <Group justify="space-between" align="center" wrap="nowrap">
+                <Stack gap={0} style={{ flex: 1, minWidth: 0 }}>
                     <Group gap={6}>
-                        <Text
-                            size="sm"
-                            fw={600}
-                            lineClamp={1}
-                        >
+                        <Text size="sm" fw={600} lineClamp={1}>
                             {item.name}
                         </Text>
                         {item.collectionCode && (
@@ -100,8 +72,7 @@ export function CardScraperCollectionItem({
                             >
                                 {item.collectionCode}
                                 {mappedCode &&
-                                    mappedCode !==
-                                        item.collectionCode &&
+                                    mappedCode !== item.collectionCode &&
                                     ` (${mappedCode})`}
                             </Badge>
                         )}
@@ -118,9 +89,7 @@ export function CardScraperCollectionItem({
                     </Group>
                     <Text size="xs" c="dimmed">
                         {item.cardCount ?? 0} cards
-                        {item.updatedAt
-                            ? ` • ${item.updatedAt}`
-                            : ""}
+                        {item.updatedAt ? ` • ${item.updatedAt}` : ""}
                     </Text>
                 </Stack>
 
@@ -133,9 +102,7 @@ export function CardScraperCollectionItem({
                             component="a"
                             href={item.collectionUrl}
                             target="_blank"
-                            onClick={(e) =>
-                                e.stopPropagation()
-                            }
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <IconExternalLink size={16} />
                         </ActionIcon>

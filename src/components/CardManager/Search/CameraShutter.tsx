@@ -1,15 +1,7 @@
 "use client";
 
-import {
-    Button,
-    Center,
-    Group,
-    Tooltip,
-} from "@mantine/core";
-import {
-    IconCamera,
-    IconPlayerStop,
-} from "@tabler/icons-react";
+import { Button, Center, Group, Tooltip } from "@mantine/core";
+import { IconCamera, IconPlayerStop } from "@tabler/icons-react";
 import { useEffect } from "react";
 
 interface CameraShutterProps {
@@ -41,28 +33,18 @@ export function CameraShutter({
             }
         };
         window.addEventListener("keydown", handleKeyDown);
-        return () =>
-            window.removeEventListener(
-                "keydown",
-                handleKeyDown,
-            );
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [cameraActive, loading, onCapture]);
 
     return (
         <Center>
             <Group gap="xs">
-                <Tooltip
-                    label="Press Space to scan"
-                    position="top"
-                    withArrow
-                >
+                <Tooltip label="Press Space to scan" position="top" withArrow>
                     <Button
                         color="blue"
                         radius="xl"
                         size="md"
-                        leftSection={
-                            <IconCamera size={20} />
-                        }
+                        leftSection={<IconCamera size={20} />}
                         onClick={onCapture}
                         disabled={loading || !cameraActive}
                     >
@@ -76,9 +58,7 @@ export function CameraShutter({
                         color="red"
                         radius="xl"
                         size="md"
-                        leftSection={
-                            <IconPlayerStop size={20} />
-                        }
+                        leftSection={<IconPlayerStop size={20} />}
                         onClick={() => {
                             onLoopActiveChange?.(false);
                             onClear?.();

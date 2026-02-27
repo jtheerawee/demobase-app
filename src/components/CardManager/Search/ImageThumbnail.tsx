@@ -8,10 +8,7 @@ interface ImageThumbnailProps {
     onEnlarge: () => void;
 }
 
-export function ImageThumbnail({
-    preview,
-    onEnlarge,
-}: ImageThumbnailProps) {
+export function ImageThumbnail({ preview, onEnlarge }: ImageThumbnailProps) {
     if (!preview) return null;
 
     return (
@@ -21,10 +18,7 @@ export function ImageThumbnail({
             top="50%"
             style={{ transform: "translateY(-50%)" }}
         >
-            <Tooltip
-                label="Click to enlarge last snapshot"
-                position="top"
-            >
+            <Tooltip label="Click to enlarge last snapshot" position="top">
                 <Box
                     pos="relative"
                     onClick={onEnlarge}
@@ -33,8 +27,7 @@ export function ImageThumbnail({
                         borderRadius: "4px",
                         overflow: "hidden",
                         border: "2px solid var(--mantine-color-blue-4)",
-                        boxShadow:
-                            "var(--mantine-shadow-xs)",
+                        boxShadow: "var(--mantine-shadow-xs)",
                         transition: "transform 0.1s ease",
                         "&:hover": {
                             transform: "scale(1.05)",
@@ -59,10 +52,7 @@ export function ImageThumbnail({
                             padding: 1,
                         }}
                     >
-                        <IconMaximize
-                            size={8}
-                            color="white"
-                        />
+                        <IconMaximize size={8} color="white" />
                     </Box>
                 </Box>
             </Tooltip>

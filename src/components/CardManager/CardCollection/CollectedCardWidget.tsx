@@ -3,12 +3,7 @@
 import { ActionIcon, Divider, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconDownload } from "@tabler/icons-react";
-import {
-    forwardRef,
-    useEffect,
-    useImperativeHandle,
-    useState,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { WidgetHeader } from "@/components/WidgetHeader";
 import { APP_CONFIG } from "@/constants/app";
@@ -27,44 +22,31 @@ export const CollectedCardWidget = forwardRef(
         },
         ref,
     ) => {
-        const [collectedCards, setCollectedCards] =
-            useState<CollectedCard[]>([]);
+        const [collectedCards, setCollectedCards] = useState<CollectedCard[]>(
+            [],
+        );
         const [loading, setLoading] = useState(true);
-        const [addEntryCard, setAddEntryCard] =
-            useState<CollectedCard | null>(null);
-        const [addVariant, setAddVariant] =
-            useState<string>("nf");
-        const [addCondition, setAddCondition] =
-            useState<string>("nm");
-        const [addingEntry, setAddingEntry] =
-            useState(false);
-        const [previewImage, setPreviewImage] = useState<
-            string | null
-        >(null);
+        const [addEntryCard, setAddEntryCard] = useState<CollectedCard | null>(
+            null,
+        );
+        const [addVariant, setAddVariant] = useState<string>("nf");
+        const [addCondition, setAddCondition] = useState<string>("nm");
+        const [addingEntry, setAddingEntry] = useState(false);
+        const [previewImage, setPreviewImage] = useState<string | null>(null);
 
         const fetchCollection = async () => {
             setLoading(true);
             try {
-                const res = await fetch(
-                    "/api/card-manager/collected",
-                );
+                const res = await fetch("/api/card-manager/collected");
                 const data = await res.json();
                 if (data.success) {
                     setCollectedCards(data.cards);
                     onCollectionChange?.(
-                        new Set(
-                            data.cards.map(
-                                (c: CollectedCard) =>
-                                    c.cardId,
-                            ),
-                        ),
+                        new Set(data.cards.map((c: CollectedCard) => c.cardId)),
                     );
                 }
             } catch (err) {
-                console.error(
-                    "Failed to fetch collection:",
-                    err,
-                );
+                console.error("Failed to fetch collection:", err);
             } finally {
                 setLoading(false);
             }
@@ -91,27 +73,21 @@ export const CollectedCardWidget = forwardRef(
             // Optimistic update
             setCollectedCards((prev) =>
                 prev.map((c) =>
-                    c.id === id
-                        ? { ...c, quantity: newQuantity }
-                        : c,
+                    c.id === id ? { ...c, quantity: newQuantity } : c,
                 ),
             );
 
             try {
-                const res = await fetch(
-                    "/api/card-manager/collected",
-                    {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            id,
-                            quantity: newQuantity,
-                        }),
+                const res = await fetch("/api/card-manager/collected", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                );
+                    body: JSON.stringify({
+                        id,
+                        quantity: newQuantity,
+                    }),
+                });
                 if (!res.ok) fetchCollection(); // Revert on failure
             } catch (err) {
                 console.error("Update failed:", err);
@@ -126,27 +102,21 @@ export const CollectedCardWidget = forwardRef(
             // Optimistic update
             setCollectedCards((prev) =>
                 prev.map((c) =>
-                    c.id === id
-                        ? { ...c, condition: newCondition }
-                        : c,
+                    c.id === id ? { ...c, condition: newCondition } : c,
                 ),
             );
 
             try {
-                const res = await fetch(
-                    "/api/card-manager/collected",
-                    {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            id,
-                            condition: newCondition,
-                        }),
+                const res = await fetch("/api/card-manager/collected", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                );
+                    body: JSON.stringify({
+                        id,
+                        condition: newCondition,
+                    }),
+                });
                 if (!res.ok) fetchCollection(); // Revert on failure
             } catch (err) {
                 console.error("Update failed:", err);
@@ -154,34 +124,25 @@ export const CollectedCardWidget = forwardRef(
             }
         };
 
-        const handleUpdateVariant = async (
-            id: number,
-            newVariant: string,
-        ) => {
+        const handleUpdateVariant = async (id: number, newVariant: string) => {
             // Optimistic update
             setCollectedCards((prev) =>
                 prev.map((c) =>
-                    c.id === id
-                        ? { ...c, variant: newVariant }
-                        : c,
+                    c.id === id ? { ...c, variant: newVariant } : c,
                 ),
             );
 
             try {
-                const res = await fetch(
-                    "/api/card-manager/collected",
-                    {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            id,
-                            variant: newVariant,
-                        }),
+                const res = await fetch("/api/card-manager/collected", {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                );
+                    body: JSON.stringify({
+                        id,
+                        variant: newVariant,
+                    }),
+                });
                 if (!res.ok) fetchCollection(); // Revert on failure
             } catch (err) {
                 console.error("Update failed:", err);
@@ -239,22 +200,18 @@ export const CollectedCardWidget = forwardRef(
             if (!addEntryCard) return;
             setAddingEntry(true);
             try {
-                const res = await fetch(
-                    "/api/card-manager/collected",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type":
-                                "application/json",
-                        },
-                        body: JSON.stringify({
-                            cardId: addEntryCard.cardId,
-                            variant: addVariant,
-                            condition: addCondition,
-                            checkVariantCondition: true,
-                        }),
+                const res = await fetch("/api/card-manager/collected", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
                     },
-                );
+                    body: JSON.stringify({
+                        cardId: addEntryCard.cardId,
+                        variant: addVariant,
+                        condition: addCondition,
+                        checkVariantCondition: true,
+                    }),
+                });
                 const data = await res.json();
                 if (data.success) {
                     if (data.alreadyInCollection) {
@@ -262,16 +219,14 @@ export const CollectedCardWidget = forwardRef(
                             title: "Already Exists",
                             message: `${addEntryCard.name} (${addVariant} / ${addCondition}) is already in your collection.`,
                             color: "orange",
-                            autoClose:
-                                APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                            autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                         });
                     } else {
                         notifications.show({
                             title: "Entry Added",
                             message: `${addEntryCard.name} — ${addVariant} / ${addCondition} added.`,
                             color: "green",
-                            autoClose:
-                                APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                            autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                         });
                         setAddEntryCard(null);
                         fetchCollection();
@@ -279,12 +234,9 @@ export const CollectedCardWidget = forwardRef(
                 } else {
                     notifications.show({
                         title: "Failed",
-                        message:
-                            data.error ||
-                            "Could not add entry.",
+                        message: data.error || "Could not add entry.",
                         color: "red",
-                        autoClose:
-                            APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
             } catch (err) {
@@ -315,9 +267,7 @@ export const CollectedCardWidget = forwardRef(
                             color="gray"
                             title="Export to CSV"
                             onClick={handleExport}
-                            disabled={
-                                collectedCards.length === 0
-                            }
+                            disabled={collectedCards.length === 0}
                         >
                             <IconDownload size={18} />
                         </ActionIcon>
@@ -334,9 +284,7 @@ export const CollectedCardWidget = forwardRef(
                         }
                     }}
                     onUpdateQuantity={handleUpdateQuantity}
-                    onUpdateCondition={
-                        handleUpdateCondition
-                    }
+                    onUpdateCondition={handleUpdateCondition}
                     onUpdateVariant={handleUpdateVariant}
                     onDelete={handleDelete}
                     onAddEntry={(c) => {
@@ -364,8 +312,7 @@ export const CollectedCardWidget = forwardRef(
                     src={previewImage}
                     title={(() => {
                         const card = collectedCards.find(
-                            (c) =>
-                                c.imageUrl === previewImage,
+                            (c) => c.imageUrl === previewImage,
                         );
                         return card
                             ? `${card.name} (${card.collectionName} #${card.cardNo})`

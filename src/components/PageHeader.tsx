@@ -1,12 +1,6 @@
 "use client";
 
-import {
-    ActionIcon,
-    Group,
-    Stack,
-    Text,
-    Title,
-} from "@mantine/core";
+import { ActionIcon, Group, Stack, Text, Title } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { Link } from "@/i18n/navigation";

@@ -14,9 +14,7 @@ export async function scrapePokemonCardsTh({
     collectionId,
     cardLimit,
 }: ScraperOptions) {
-    const limit =
-        cardLimit ??
-        APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
+    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
@@ -57,102 +55,56 @@ export async function scrapePokemonCardsTh({
                         waitUntil: "networkidle",
                         timeout: 45000,
                     });
-                    if (shouldAbort || p > totalPages)
-                        break;
+                    if (shouldAbort || p > totalPages) break;
 
                     await workerPage.evaluate(() =>
-                        window.scrollTo(
-                            0,
-                            document.body.scrollHeight,
-                        ),
+                        window.scrollTo(0, document.body.scrollHeight),
                     );
                     await workerPage.waitForTimeout(1000);
 
-                    const pageData =
-                        await workerPage.evaluate(() => {
-                            const cardElements =
-                                document.querySelectorAll(
-                                    ".cardList li.card",
-                                );
-                            const items = Array.from(
-                                cardElements,
-                            ).map((el) => {
-                                const img =
-                                    el.querySelector("img");
-                                const anchor =
-                                    el.querySelector(
-                                        "a",
-                                    ) as HTMLAnchorElement;
-                                const imageUrl =
-                                    img?.getAttribute(
-                                        "data-original",
-                                    ) ||
-                                    img?.src ||
-                                    "";
-                                const absoluteImageUrl =
-                                    imageUrl.startsWith(
-                                        "http",
-                                    )
-                                        ? imageUrl
-                                        : window.location
-                                              .origin +
-                                          (imageUrl.startsWith(
-                                              "/",
-                                          )
-                                              ? ""
-                                              : "/") +
-                                          imageUrl;
-                                const link =
-                                    anchor?.getAttribute(
-                                        "href",
-                                    ) || "";
-                                const absoluteLink =
-                                    link.startsWith("http")
-                                        ? link
-                                        : window.location
-                                              .origin +
-                                          (link.startsWith(
-                                              "/",
-                                          )
-                                              ? ""
-                                              : "/") +
-                                          link;
-                                return {
-                                    imageUrl:
-                                        absoluteImageUrl,
-                                    alt:
-                                        img?.alt ||
-                                        "Pokemon Card",
-                                    name:
-                                        img?.alt ||
-                                        "Pokemon Card",
-                                    cardUrl: absoluteLink,
-                                };
-                            });
-
-                            let discoveredTotal = 0;
-                            const pageText =
-                                document.body.innerText;
-                            const match =
-                                pageText.match(
-                                    /ทั้งหมด\s*(\d+)\s*หน้า/,
-                                ) ||
-                                pageText.match(
-                                    /(\d+)\s*หน้า/,
-                                ) ||
-                                pageText.match(
-                                    /\/ ทั้งหมด\s*(\d+)/,
-                                );
-                            if (match)
-                                discoveredTotal = parseInt(
-                                    match[1],
-                                    10,
-                                );
+                    const pageData = await workerPage.evaluate(() => {
+                        const cardElements =
+                            document.querySelectorAll(".cardList li.card");
+                        const items = Array.from(cardElements).map((el) => {
+                            const img = el.querySelector("img");
+                            const anchor = el.querySelector(
+                                "a",
+                            ) as HTMLAnchorElement;
+                            const imageUrl =
+                                img?.getAttribute("data-original") ||
+                                img?.src ||
+                                "";
+                            const absoluteImageUrl = imageUrl.startsWith("http")
+                                ? imageUrl
+                                : window.location.origin +
+                                  (imageUrl.startsWith("/") ? "" : "/") +
+                                  imageUrl;
+                            const link = anchor?.getAttribute("href") || "";
+                            const absoluteLink = link.startsWith("http")
+                                ? link
+                                : window.location.origin +
+                                  (link.startsWith("/") ? "" : "/") +
+                                  link;
                             return {
-                                items,
-                                discoveredTotal,
+                                imageUrl: absoluteImageUrl,
+                                alt: img?.alt || "Pokemon Card",
+                                name: img?.alt || "Pokemon Card",
+                                cardUrl: absoluteLink,
                             };
                         });
+
+                        let discoveredTotal = 0;
+                        const pageText = document.body.innerText;
+                        const match =
+                            pageText.match(/ทั้งหมด\s*(\d+)\s*หน้า/) ||
+                            pageText.match(/(\d+)\s*หน้า/) ||
+                            pageText.match(/\/ ทั้งหมด\s*(\d+)/);
+                        if (match) discoveredTotal = parseInt(match[1], 10);
+                        return {
+                            items,
+                            discoveredTotal,
+                        };
+                    });
 
                     if (pageData.items.length === 0) {
                         if (p === 1) {
@@ -177,13 +129,11 @@ export async function scrapePokemonCardsTh({
                         pageData.discoveredTotal > 0 &&
                         totalPages === Infinity
                     ) {
-                        totalPages =
-                            pageData.discoveredTotal;
+                        totalPages = pageData.discoveredTotal;
                         send({ type: "meta", totalPages });
                     }
 
-                    const beforeCount =
-                        sharedCardList.length;
+                    const beforeCount = sharedCardList.length;
                     const canAdd = limit - beforeCount;
 
                     if (canAdd <= 0) {
@@ -191,10 +141,7 @@ export async function scrapePokemonCardsTh({
                         break;
                     }
 
-                    const cardsToAdd = pageData.items.slice(
-                        0,
-                        canAdd,
-                    );
+                    const cardsToAdd = pageData.items.slice(0, canAdd);
                     const startIndex = beforeCount;
                     sharedCardList.push(...cardsToAdd);
 
@@ -231,10 +178,7 @@ export async function scrapePokemonCardsTh({
         { length: concurrency },
         async (_, i) => {
             const workerId = i + 1;
-            if (i > 0)
-                await new Promise((r) =>
-                    setTimeout(r, i * 150),
-                );
+            if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
             if (shouldAbort) return;
             return paginationWorker(workerId);
         },
@@ -254,110 +198,64 @@ export async function scrapePokemonCardsTh({
             const workerPage = await context.newPage();
             try {
                 while (true) {
-                    const cardIndex =
-                        sharedCardList.findIndex(
-                            (c) =>
-                                c.cardUrl &&
-                                !c.isDeepScraped &&
-                                !c.isBeingScraped,
-                        );
+                    const cardIndex = sharedCardList.findIndex(
+                        (c) =>
+                            c.cardUrl && !c.isDeepScraped && !c.isBeingScraped,
+                    );
                     if (cardIndex === -1) break;
 
                     const card = sharedCardList[cardIndex];
                     card.isBeingScraped = true;
 
                     try {
-                        await workerPage.goto(
-                            card.cardUrl,
-                            {
-                                waitUntil: "networkidle",
-                                timeout: 30000,
-                            },
-                        );
-                        const details =
-                            await workerPage.evaluate(
-                                () => {
-                                    const getText = (
-                                        sel: string,
-                                    ) =>
-                                        document
-                                            .querySelector(
-                                                sel,
-                                            )
-                                            ?.textContent?.trim() ||
-                                        "";
-                                    const h1 =
-                                        document.querySelector(
-                                            "h1",
-                                        ) ||
-                                        document.querySelector(
-                                            ".p-cardDetail__header h1",
-                                        ) ||
-                                        document.querySelector(
-                                            ".pageHeader.cardDetail",
-                                        );
-                                    let name = "";
-                                    if (h1) {
-                                        const clone =
-                                            h1.cloneNode(
-                                                true,
-                                            ) as HTMLElement;
-                                        clone
-                                            .querySelectorAll(
-                                                ".evolveMarker",
-                                            )
-                                            .forEach((el) =>
-                                                el.remove(),
-                                            );
-                                        name =
-                                            clone.textContent?.trim() ||
-                                            "";
-                                    }
+                        await workerPage.goto(card.cardUrl, {
+                            waitUntil: "networkidle",
+                            timeout: 30000,
+                        });
+                        const details = await workerPage.evaluate(() => {
+                            const getText = (sel: string) =>
+                                document
+                                    .querySelector(sel)
+                                    ?.textContent?.trim() || "";
+                            const h1 =
+                                document.querySelector("h1") ||
+                                document.querySelector(
+                                    ".p-cardDetail__header h1",
+                                ) ||
+                                document.querySelector(
+                                    ".pageHeader.cardDetail",
+                                );
+                            let name = "";
+                            if (h1) {
+                                const clone = h1.cloneNode(true) as HTMLElement;
+                                clone
+                                    .querySelectorAll(".evolveMarker")
+                                    .forEach((el) => el.remove());
+                                name = clone.textContent?.trim() || "";
+                            }
 
-                                    const numberAndRarity =
-                                        getText(
-                                            ".p-cardDetail__number",
-                                        ) ||
-                                        getText(
-                                            ".p-cardDetail__header .number",
-                                        ) ||
-                                        getText(
-                                            ".collectorNumber",
-                                        );
+                            const numberAndRarity =
+                                getText(".p-cardDetail__number") ||
+                                getText(".p-cardDetail__header .number") ||
+                                getText(".collectorNumber");
 
-                                    let collectorNumber =
-                                        "N/A";
-                                    let rarity = "N/A";
-                                    if (
-                                        numberAndRarity?.includes(
-                                            "/",
-                                        )
-                                    ) {
-                                        const parts =
-                                            numberAndRarity.split(
-                                                "/",
-                                            );
-                                        collectorNumber =
-                                            parts[0]?.trim() ||
-                                            "N/A";
-                                        rarity =
-                                            parts[1]?.trim() ||
-                                            "N/A";
-                                    } else if (
-                                        numberAndRarity
-                                    ) {
-                                        collectorNumber =
-                                            numberAndRarity;
-                                    }
+                            let collectorNumber = "N/A";
+                            let rarity = "N/A";
+                            if (numberAndRarity?.includes("/")) {
+                                const parts = numberAndRarity.split("/");
+                                collectorNumber = parts[0]?.trim() || "N/A";
+                                rarity = parts[1]?.trim() || "N/A";
+                            } else if (numberAndRarity) {
+                                collectorNumber = numberAndRarity;
+                            }
 
-                                    return {
-                                        name,
-                                        cardNo: collectorNumber,
-                                        rarity,
-                                        isDeepScraped: true,
-                                    };
-                                },
-                            );
+                            return {
+                                name,
+                                cardNo: collectorNumber,
+                                rarity,
+                                isDeepScraped: true,
+                            };
+                        });
 
                         Object.assign(card, details);
                         card.isBeingScraped = false;
@@ -382,17 +280,11 @@ export async function scrapePokemonCardsTh({
 
         const workers = Array.from(
             {
-                length: Math.min(
-                    concurrency,
-                    sharedCardList.length,
-                ),
+                length: Math.min(concurrency, sharedCardList.length),
             },
             async (_, i) => {
                 const workerId = i + 1;
-                if (i > 0)
-                    await new Promise((r) =>
-                        setTimeout(r, i * 150),
-                    );
+                if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
                 return deepWorker(workerId);
             },
         );
@@ -405,10 +297,7 @@ export async function scrapePokemonCardsTh({
             message: "Saving Thai cards to database...",
         });
         try {
-            const result = await saveScrapedCards(
-                sharedCardList,
-                collectionId,
-            );
+            const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
                 const { added, matched } = result;
                 send({
@@ -424,14 +313,10 @@ export async function scrapePokemonCardsTh({
                 });
             }
         } catch (error) {
-            console.error(
-                "Failed to save Thai cards:",
-                error,
-            );
+            console.error("Failed to save Thai cards:", error);
             send({
                 type: "step",
-                message:
-                    "Warning: Failed to persist cards to database.",
+                message: "Warning: Failed to persist cards to database.",
             });
         }
     }

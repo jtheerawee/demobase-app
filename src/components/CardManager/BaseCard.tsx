@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    Box,
-    Card,
-    Group,
-    Image,
-    Stack,
-    Text,
-} from "@mantine/core";
+import { Box, Card, Group, Image, Stack, Text } from "@mantine/core";
 import type { ReactNode } from "react";
 
 export interface BaseCardData {
@@ -47,13 +40,7 @@ export function BaseCard({
             }}
             className="base-card-item"
         >
-            <Group
-                gap="sm"
-                wrap="nowrap"
-                align="center"
-                px="sm"
-                py="sm"
-            >
+            <Group gap="sm" wrap="nowrap" align="center" px="sm" py="sm">
                 <Box
                     w={85}
                     style={{
@@ -72,9 +59,7 @@ export function BaseCard({
                             cursor: "pointer",
                             filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
                         }}
-                        onClick={() =>
-                            onImageClick?.(card.imageUrl)
-                        }
+                        onClick={() => onImageClick?.(card.imageUrl)}
                     />
                 </Box>
 
@@ -87,11 +72,7 @@ export function BaseCard({
                         justifyContent: "center",
                     }}
                 >
-                    <Group
-                        justify="space-between"
-                        wrap="nowrap"
-                        gap={4}
-                    >
+                    <Group justify="space-between" wrap="nowrap" gap={4}>
                         <Text
                             size="xs"
                             fw={700}
@@ -101,17 +82,11 @@ export function BaseCard({
                             {card.name}
                         </Text>
                         {topRightActions && (
-                            <Group gap={2}>
-                                {topRightActions}
-                            </Group>
+                            <Group gap={2}>{topRightActions}</Group>
                         )}
                     </Group>
 
-                    <Text
-                        size="10px"
-                        c="dimmed"
-                        lineClamp={1}
-                    >
+                    <Text size="10px" c="dimmed" lineClamp={1}>
                         {card.franchise
                             ? `${card.franchise.toUpperCase()} • `
                             : ""}
@@ -155,12 +130,7 @@ export function BaseCard({
                     </Group>
 
                     {bottomLeftActions && (
-                        <Group
-                            gap={4}
-                            mt={4}
-                            align="center"
-                            wrap="nowrap"
-                        >
+                        <Group gap={4} mt={4} align="center" wrap="nowrap">
                             {bottomLeftActions}
                         </Group>
                     )}

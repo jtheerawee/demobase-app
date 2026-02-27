@@ -58,31 +58,20 @@ export default function EbayPage() {
                 data: { session },
             } = await supabase.auth.getSession();
 
-            const res = await fetch(
-                `/api/ebay/${encodeURIComponent(id)}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${session?.access_token ?? ""}`,
-                    },
+            const res = await fetch(`/api/ebay/${encodeURIComponent(id)}`, {
+                headers: {
+                    Authorization: `Bearer ${session?.access_token ?? ""}`,
                 },
-            );
+            });
 
             if (!res.ok) {
-                const body = await res
-                    .json()
-                    .catch(() => ({}));
-                throw new Error(
-                    body.error ?? `Error ${res.status}`,
-                );
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.error ?? `Error ${res.status}`);
             }
 
             setItem(await res.json());
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Unknown error",
-            );
+            setError(err instanceof Error ? err.message : "Unknown error");
         } finally {
             setLoading(false);
         }
@@ -100,19 +89,11 @@ export default function EbayPage() {
                         label="Item ID"
                         placeholder="e.g. 306761544440"
                         value={itemId}
-                        onChange={(e) =>
-                            setItemId(e.currentTarget.value)
-                        }
-                        onKeyDown={(e) =>
-                            e.key === "Enter" &&
-                            handleSearch()
-                        }
+                        onChange={(e) => setItemId(e.currentTarget.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                         style={{ flex: 1 }}
                     />
-                    <Button
-                        onClick={handleSearch}
-                        loading={loading}
-                    >
+                    <Button onClick={handleSearch} loading={loading}>
                         Search
                     </Button>
                 </Group>
@@ -129,44 +110,29 @@ export default function EbayPage() {
                     </Group>
                 )}
 
-                {item &&
-                    process.env
-                        .NEXT_PUBLIC_DEVELOPER_MODE ===
-                        "true" && (
-                        <ApiDebugPanel
-                            data={item}
-                            label={`GET /api/ebay/${item.itemId}`}
-                        />
-                    )}
+                {item && process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
+                    <ApiDebugPanel
+                        data={item}
+                        label={`GET /api/ebay/${item.itemId}`}
+                    />
+                )}
 
                 {item && (
-                    <Card
-                        withBorder
-                        radius="md"
-                        padding="xl"
-                    >
+                    <Card withBorder radius="md" padding="xl">
                         <Grid gutter="xl">
-                            <Grid.Col
-                                span={{ base: 12, sm: 4 }}
-                            >
+                            <Grid.Col span={{ base: 12, sm: 4 }}>
                                 <Image
-                                    src={
-                                        item.image?.imageUrl
-                                    }
+                                    src={item.image?.imageUrl}
                                     alt={item.title}
                                     radius="md"
                                     fallbackSrc="https://placehold.co/300x300?text=No+Image"
                                 />
                             </Grid.Col>
 
-                            <Grid.Col
-                                span={{ base: 12, sm: 8 }}
-                            >
+                            <Grid.Col span={{ base: 12, sm: 8 }}>
                                 <Stack gap="sm">
                                     <Anchor
-                                        href={
-                                            item.itemWebUrl
-                                        }
+                                        href={item.itemWebUrl}
                                         target="_blank"
                                         size="lg"
                                         fw={600}
@@ -175,18 +141,9 @@ export default function EbayPage() {
                                     </Anchor>
 
                                     <Group gap="sm">
-                                        <Text
-                                            size="xl"
-                                            fw={700}
-                                        >
-                                            {
-                                                item.price
-                                                    .currency
-                                            }{" "}
-                                            {
-                                                item.price
-                                                    .value
-                                            }
+                                        <Text size="xl" fw={700}>
+                                            {item.price.currency}{" "}
+                                            {item.price.value}
                                         </Text>
                                         <Badge variant="light">
                                             {item.condition}
@@ -194,24 +151,13 @@ export default function EbayPage() {
                                     </Group>
 
                                     <Stack gap={4}>
-                                        <Text
-                                            size="sm"
-                                            c="dimmed"
-                                            fw={600}
-                                        >
+                                        <Text size="sm" c="dimmed" fw={600}>
                                             Seller
                                         </Text>
                                         <Text size="sm">
-                                            {
-                                                item.seller
-                                                    .username
-                                            }{" "}
-                                            ·{" "}
-                                            {
-                                                item.seller
-                                                    .feedbackPercentage
-                                            }
-                                            % positive (
+                                            {item.seller.username} ·{" "}
+                                            {item.seller.feedbackPercentage}%
+                                            positive (
                                             {item.seller.feedbackScore.toLocaleString()}{" "}
                                             feedback)
                                         </Text>
@@ -219,22 +165,13 @@ export default function EbayPage() {
 
                                     {shipping && (
                                         <Stack gap={4}>
-                                            <Text
-                                                size="sm"
-                                                c="dimmed"
-                                                fw={600}
-                                            >
+                                            <Text size="sm" c="dimmed" fw={600}>
                                                 Shipping
                                             </Text>
                                             <Text size="sm">
-                                                {
-                                                    shipping.shippingServiceCode
-                                                }{" "}
-                                                ·{" "}
+                                                {shipping.shippingServiceCode} ·{" "}
                                                 {Number(
-                                                    shipping
-                                                        .shippingCost
-                                                        .value,
+                                                    shipping.shippingCost.value,
                                                 ) === 0
                                                     ? "Free"
                                                     : `${shipping.shippingCost.currency} ${shipping.shippingCost.value}`}
@@ -242,11 +179,7 @@ export default function EbayPage() {
                                         </Stack>
                                     )}
 
-                                    <Text
-                                        size="xs"
-                                        c="dimmed"
-                                        mt="xs"
-                                    >
+                                    <Text size="xs" c="dimmed" mt="xs">
                                         ID: {item.itemId}
                                     </Text>
                                 </Stack>

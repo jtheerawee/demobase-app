@@ -4,10 +4,7 @@ import { WidgetHeader } from "@/components/WidgetHeader";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { SearchInstructionModal } from "./SearchInstructionModal";
-import {
-    type SearchMode,
-    SearchModeSwitcher,
-} from "./SearchModeSwitcher";
+import { type SearchMode, SearchModeSwitcher } from "./SearchModeSwitcher";
 
 interface SearchWidgetProps {
     query: string;
@@ -68,8 +65,7 @@ export function SearchWidget({
     onLanguageChange,
     languageOptions,
 }: SearchWidgetProps) {
-    const [instructionOpened, setInstructionOpened] =
-        useState(false);
+    const [instructionOpened, setInstructionOpened] = useState(false);
 
     return (
         <Stack gap={0} h="100%">
@@ -102,9 +98,7 @@ export function SearchWidget({
                     <SearchModeSwitcher
                         value={searchMode}
                         onChange={onSearchModeChange}
-                        onInfoClick={() =>
-                            setInstructionOpened(true)
-                        }
+                        onInfoClick={() => setInstructionOpened(true)}
                     />
 
                     {searchMode === "text" ? (
@@ -124,30 +118,18 @@ export function SearchWidget({
                                 onClear?.();
                             }}
                             autoAdd={autoAdd}
-                            onAutoAddChange={
-                                onAutoAddChange
-                            }
+                            onAutoAddChange={onAutoAddChange}
                             autoCapture={autoCapture}
-                            onAutoCaptureChange={
-                                onAutoCaptureChange
-                            }
+                            onAutoCaptureChange={onAutoCaptureChange}
                             paused={paused}
                             loopActive={loopActive}
-                            onLoopActiveChange={
-                                onLoopActiveChange
-                            }
-                            manualCaptureDelay={
-                                manualCaptureDelay
-                            }
+                            onLoopActiveChange={onLoopActiveChange}
+                            manualCaptureDelay={manualCaptureDelay}
                             onManualCaptureDelayChange={
                                 onManualCaptureDelayChange
                             }
-                            autoCaptureDelay={
-                                autoCaptureDelay
-                            }
-                            onAutoCaptureDelayChange={
-                                onAutoCaptureDelayChange
-                            }
+                            autoCaptureDelay={autoCaptureDelay}
+                            onAutoCaptureDelayChange={onAutoCaptureDelayChange}
                             resetTrigger={resetTrigger}
                         />
                     )}

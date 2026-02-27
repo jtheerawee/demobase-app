@@ -1,11 +1,6 @@
 "use client";
 
-import {
-    ActionIcon,
-    Box,
-    ScrollArea,
-    Stack,
-} from "@mantine/core";
+import { ActionIcon, Box, ScrollArea, Stack } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
 import { useState } from "react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
@@ -48,9 +43,7 @@ export function SearchResultWidget({
     onReset,
     waitingForSelection,
 }: SearchResultWidgetProps) {
-    const [previewImage, setPreviewImage] = useState<
-        string | null
-    >(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     return (
         <Stack gap={0} h="100%">
@@ -82,9 +75,7 @@ export function SearchResultWidget({
                         results={results}
                         addingId={addingId}
                         collectedCardIds={collectedCardIds}
-                        onAddToCollection={
-                            onAddToCollection
-                        }
+                        onAddToCollection={onAddToCollection}
                         onImageClick={(url) => {
                             setPreviewImage(url);
                             if (onImageClick) {

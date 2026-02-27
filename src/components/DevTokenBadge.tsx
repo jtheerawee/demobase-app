@@ -1,19 +1,9 @@
 "use client";
 
-import {
-    ActionIcon,
-    CopyButton,
-    Group,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { ActionIcon, CopyButton, Group, Text, Tooltip } from "@mantine/core";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 
-export function DevTokenBadge({
-    token,
-}: {
-    token: string;
-}) {
+export function DevTokenBadge({ token }: { token: string }) {
     return (
         <Group
             gap={4}
@@ -42,19 +32,13 @@ export function DevTokenBadge({
             <CopyButton value={token}>
                 {({ copied, copy }) => (
                     <Tooltip
-                        label={
-                            copied
-                                ? "Copied!"
-                                : "Copy token"
-                        }
+                        label={copied ? "Copied!" : "Copy token"}
                         withArrow
                     >
                         <ActionIcon
                             size="xs"
                             variant="subtle"
-                            color={
-                                copied ? "teal" : "orange"
-                            }
+                            color={copied ? "teal" : "orange"}
                             onClick={copy}
                         >
                             {copied ? (

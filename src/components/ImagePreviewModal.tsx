@@ -75,8 +75,7 @@ export function ImagePreviewModal({
                             pointerEvents: "none",
                         }}
                     >
-                        {imgDimensions.w} ×{" "}
-                        {imgDimensions.h} px
+                        {imgDimensions.w} × {imgDimensions.h} px
                     </Badge>
                 )}
             </Stack>

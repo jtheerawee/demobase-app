@@ -26,10 +26,7 @@ export async function GET(request: Request) {
         const { data, error } = await query;
 
         if (error) {
-            console.error(
-                "[API] Error fetching collections:",
-                error,
-            );
+            console.error("[API] Error fetching collections:", error);
             return NextResponse.json(
                 { success: false, error: error.message },
                 { status: 500 },
@@ -52,10 +49,7 @@ export async function GET(request: Request) {
             collections,
         });
     } catch (err: any) {
-        console.error(
-            "[API] Unexpected error fetching collections:",
-            err,
-        );
+        console.error("[API] Unexpected error fetching collections:", err);
         return NextResponse.json(
             { success: false, error: err.message },
             { status: 500 },
@@ -82,9 +76,7 @@ export async function DELETE(request: Request) {
     try {
         const supabase = await createClient();
 
-        let query = supabase
-            .from("scraped_collections")
-            .delete();
+        let query = supabase.from("scraped_collections").delete();
 
         if (id) {
             query = query.eq("id", id);
@@ -98,10 +90,7 @@ export async function DELETE(request: Request) {
         const { error } = await query;
 
         if (error) {
-            console.error(
-                "[API] Error deleting collections:",
-                error,
-            );
+            console.error("[API] Error deleting collections:", error);
             return NextResponse.json(
                 { success: false, error: error.message },
                 { status: 500 },
@@ -113,10 +102,7 @@ export async function DELETE(request: Request) {
             message: "Collections deleted successfully",
         });
     } catch (err: any) {
-        console.error(
-            "[API] Unexpected error deleting collections:",
-            err,
-        );
+        console.error("[API] Unexpected error deleting collections:", err);
         return NextResponse.json(
             { success: false, error: err.message },
             { status: 500 },

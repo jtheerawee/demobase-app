@@ -33,8 +33,7 @@ export async function GET(request: Request) {
         const indices = Array.from(
             new Set(data.map((item) => item.scraped_index)),
         ).sort((a, b) => b - a);
-        const maxIndex =
-            indices.length > 0 ? indices[0] : 0;
+        const maxIndex = indices.length > 0 ? indices[0] : 0;
 
         return NextResponse.json({
             success: true,
