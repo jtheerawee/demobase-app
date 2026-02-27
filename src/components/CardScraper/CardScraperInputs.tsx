@@ -2,8 +2,7 @@
 
 import { Select, Stack } from "@mantine/core";
 import { useMemo } from "react";
-import { FRANCHISE_OPTIONS } from "@/constants/franchises";
-import { LANGUAGE_OPTIONS } from "@/constants/languages";
+import { FRANCHISE_OPTIONS, getLanguagesForFranchise } from "@/constants/franchises";
 
 interface CardScraperInputsProps {
     franchise?: string | null;
@@ -19,7 +18,7 @@ export function CardScraperInputs({
     onLanguageChange,
 }: CardScraperInputsProps) {
     const languageOptions = useMemo(() => {
-        return franchise ? (LANGUAGE_OPTIONS[franchise] ?? []) : [];
+        return getLanguagesForFranchise(franchise);
     }, [franchise]);
 
     return (

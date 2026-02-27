@@ -15,8 +15,7 @@ import {
 import { PageHeader } from "@/components/PageHeader";
 import { APP_CONFIG } from "@/constants/app";
 import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
-import { FRANCHISE_OPTIONS } from "@/constants/franchises";
-import { LANGUAGE_OPTIONS } from "@/constants/languages";
+import { FRANCHISE_OPTIONS, getLanguagesForFranchise } from "@/constants/franchises";
 import { OCR_CONFIG } from "@/constants/ocr";
 
 export default function CardManagerPage() {
@@ -123,7 +122,7 @@ export default function CardManagerPage() {
             return [{ value: "all", label: "All Languages" }];
         return [
             { value: "all", label: "All Languages" },
-            ...(LANGUAGE_OPTIONS[selectedFranchise] || []),
+            ...getLanguagesForFranchise(selectedFranchise),
         ];
     }, [selectedFranchise]);
 
