@@ -2,6 +2,7 @@
 
 import { Card, Group, Stack, Text, Badge, ActionIcon } from "@mantine/core";
 import { IconExternalLink, IconTrash } from "@tabler/icons-react";
+import { APP_CONFIG } from "@/constants/app";
 
 export interface CollectionItem {
     id: string | number;
@@ -27,6 +28,19 @@ export function CardScraperCollectionItem({
     onSelect,
     onDelete,
 }: CardScraperCollectionItemProps) {
+    const mappedCode = (() => {
+        if (item.franchise === "pokemon" && item.collectionCode) {
+            const map = APP_CONFIG.POKEMON_SET_MAP as Record<string, string>;
+            const code = item.collectionCode.toLowerCase();
+            // Try to find the key by value (case-insensitive)
+            const keyByValue = Object.keys(map).find(
+                (key) => map[key].toLowerCase() === code
+            );
+            return keyByValue ?? item.collectionCode;
+        }
+        return item.collectionCode;
+    })();
+
     return (
         <Card
             withBorder
@@ -57,6 +71,7 @@ export function CardScraperCollectionItem({
                                 style={{ flexShrink: 0 }}
                             >
                                 {item.collectionCode}
+                                {mappedCode && mappedCode !== item.collectionCode && ` (${mappedCode})`}
                             </Badge>
                         )}
                         {item.releaseYear && (

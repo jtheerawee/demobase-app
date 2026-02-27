@@ -22,6 +22,8 @@ import {
     IconCheck,
 } from "@tabler/icons-react";
 
+import { APP_CONFIG } from "@/constants/app";
+
 interface Step {
     id: string | number;
     message: string;
@@ -44,6 +46,23 @@ export function CardScraperRunningSteps({
         setTimeout(() => setCopiedId(null), 1500);
     };
 
+    // Filter "Deep scraping card" steps to keep only the latest one
+    const lastDeepScrapeIdx = steps.reduce((lastIdx, step, idx) => {
+        if (step.message.startsWith("Deep scraping card")) {
+            return idx;
+        }
+        return lastIdx;
+    }, -1);
+
+    const filteredSteps = steps
+        .filter((step, idx) => {
+            if (step.message.startsWith("Deep scraping card")) {
+                return idx === lastDeepScrapeIdx;
+            }
+            return true;
+        })
+        .slice(-APP_CONFIG.SCRAPER_RUNNING_STEPS_LIMIT);
+
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
             <Stack gap="sm">
@@ -52,14 +71,14 @@ export function CardScraperRunningSteps({
                         Running Steps
                     </Text>
                     <Group gap="xs">
-                        {steps.some((s) => s.status === "running") && (
+                        {filteredSteps.some((s) => s.status === "running") && (
                             <Badge variant="dot" color="blue" size="sm">
                                 Active
                             </Badge>
                         )}
-                        {steps.length > 0 && (
+                        {filteredSteps.length > 0 && (
                             <CopyButton
-                                value={[...steps]
+                                value={[...filteredSteps]
                                     .reverse()
                                     .map((s) => `[${s.timestamp}] ${s.message}`)
                                     .join("\n")}
@@ -93,8 +112,8 @@ export function CardScraperRunningSteps({
 
                 <ScrollArea h={400} offsetScrollbars>
                     <Stack gap="xs">
-                        {steps.length > 0 ? (
-                            [...steps].reverse().map((step) => (
+                        {filteredSteps.length > 0 ? (
+                            [...filteredSteps].reverse().map((step) => (
                                 <Group
                                     key={step.id}
                                     gap="sm"
@@ -162,12 +181,12 @@ export function CardScraperRunningSteps({
                                                 flexShrink: 0,
                                             }}
                                             onMouseEnter={(e) =>
-                                                (e.currentTarget.style.opacity =
-                                                    "1")
+                                            (e.currentTarget.style.opacity =
+                                                "1")
                                             }
                                             onMouseLeave={(e) =>
-                                                (e.currentTarget.style.opacity =
-                                                    "0.5")
+                                            (e.currentTarget.style.opacity =
+                                                "0.5")
                                             }
                                         >
                                             {copiedId === step.id ? (

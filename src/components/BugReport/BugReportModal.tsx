@@ -13,9 +13,10 @@ import {
     LoadingOverlay,
     Box,
 } from "@mantine/core";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { IconBug, IconCheck } from "@tabler/icons-react";
+import { createClient } from "@/utils/supabase/client";
 
 interface BugReportModalProps {
     opened: boolean;
@@ -27,6 +28,20 @@ export function BugReportModal({ opened, onClose, screenshot }: BugReportModalPr
     const [description, setDescription] = useState("");
     const [email, setEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.email) {
+                setEmail(user.email);
+            }
+        };
+
+        if (opened) {
+            fetchUser();
+        }
+    }, [opened]);
 
     const handleSubmit = async () => {
         setIsSubmitting(true);

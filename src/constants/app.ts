@@ -11,6 +11,7 @@ export const APP_CONFIG = {
   SCRAPER_GRID_COLS: 10,
   SCRAPER_PAGE_LOAD_DELAY_MS: 500,
   NUM_SCRAPED_CARDS_PER_COLLECTION: 50,
+  SCRAPER_RUNNING_STEPS_LIMIT: 5,
 
   // MTG
   MTG_COLLECTION_URL: "https://gatherer.wizards.com/sets",
@@ -48,6 +49,7 @@ export const APP_CONFIG = {
 
   POKEMON_SET_MAP: {
     MEW: "sv3pt5",
+    ASC: "me2pt5",
   } as Record<string, string>,
 
   // Pokemon
