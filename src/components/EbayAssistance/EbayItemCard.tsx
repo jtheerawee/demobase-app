@@ -28,8 +28,12 @@ const getTimeLeft = (endTime?: string) => {
     }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const hours = Math.floor(
+        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+    );
+    const mins = Math.floor(
+        (diff % (1000 * 60 * 60)) / (1000 * 60),
+    );
 
     if (days > 0) return `${days}d ${hours}h left`;
     if (hours > 0) return `${hours}h ${mins}m left`;
@@ -42,7 +46,11 @@ interface EbayItemCardProps {
     onHover?: (date: string | null) => void;
 }
 
-export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
+export function EbayItemCard({
+    item,
+    index,
+    onHover,
+}: EbayItemCardProps) {
     const dateStr =
         item.endDate ||
         (item as any).soldTime ||
@@ -55,11 +63,16 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
         ? new Date(dateStr).toISOString().split("T")[0]
         : null;
 
-    const isShowTooltip = process.env.NEXT_PUBLIC_SHOW_TOOLTIP === "true";
+    const isShowTooltip =
+        process.env.NEXT_PUBLIC_SHOW_TOOLTIP === "true";
 
     return (
         <Tooltip
-            key={item.itemId ? `${item.itemId}-${index}` : index}
+            key={
+                item.itemId
+                    ? `${item.itemId}-${index}`
+                    : index
+            }
             disabled={!isShowTooltip}
             label={
                 <div
@@ -96,13 +109,16 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                     }}
                     className="ebay-card"
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "translateY(-8px)";
+                        e.currentTarget.style.transform =
+                            "translateY(-8px)";
                         e.currentTarget.style.boxShadow =
                             "var(--mantine-shadow-xl)";
-                        if (onHover && chartDateKey) onHover(chartDateKey);
+                        if (onHover && chartDateKey)
+                            onHover(chartDateKey);
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.transform =
+                            "translateY(0)";
                         e.currentTarget.style.boxShadow =
                             "var(--mantine-shadow-sm)";
                         if (onHover) onHover(null);
@@ -125,12 +141,21 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                         </Center>
 
                         {/* Floating Action Top-Right */}
-                        <Group pos="absolute" top={12} right={12} gap={6}>
+                        <Group
+                            pos="absolute"
+                            top={12}
+                            right={12}
+                            gap={6}
+                        >
                             {timeLeft && (
                                 <Badge
                                     color={
-                                        timeLeft.includes("left") &&
-                                        !timeLeft.includes("d")
+                                        timeLeft.includes(
+                                            "left",
+                                        ) &&
+                                        !timeLeft.includes(
+                                            "d",
+                                        )
                                             ? "red"
                                             : "blue"
                                     }
@@ -138,8 +163,10 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                     size="xs"
                                     radius="sm"
                                     style={{
-                                        backdropFilter: "blur(4px)",
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                                        backdropFilter:
+                                            "blur(4px)",
+                                        boxShadow:
+                                            "0 2px 8px rgba(0,0,0,0.15)",
                                     }}
                                 >
                                     {timeLeft}
@@ -154,21 +181,33 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                 radius="md"
                                 size="md"
                                 style={{
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                    boxShadow:
+                                        "0 2px 8px rgba(0,0,0,0.1)",
                                 }}
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) =>
+                                    e.stopPropagation()
+                                }
                             >
-                                <IconExternalLink size={16} />
+                                <IconExternalLink
+                                    size={16}
+                                />
                             </ActionIcon>
                         </Group>
                     </CardSection>
 
-                    <Stack mt="md" gap="sm" style={{ flex: 1 }}>
+                    <Stack
+                        mt="md"
+                        gap="sm"
+                        style={{ flex: 1 }}
+                    >
                         <Text
                             fw={700}
                             size="sm"
                             lineClamp={2}
-                            style={{ height: 40, lineHeight: 1.4 }}
+                            style={{
+                                height: 40,
+                                lineHeight: 1.4,
+                            }}
                         >
                             {item.title}
                         </Text>
@@ -176,19 +215,24 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                         {/* Grade Info Box - Only for Supported Services */}
                         {(() => {
                             if (
-                                !item.gradeInfo?.certNumber ||
+                                !item.gradeInfo
+                                    ?.certNumber ||
                                 !item.gradeInfo?.grader
                             )
                                 return null;
 
                             const grader =
-                                item.gradeInfo.grader?.toUpperCase() || "";
-                            const cert = item.gradeInfo.certNumber;
+                                item.gradeInfo.grader?.toUpperCase() ||
+                                "";
+                            const cert =
+                                item.gradeInfo.certNumber;
                             const isSupported =
                                 grader.includes("PSA") ||
                                 grader.includes("CGC") ||
                                 grader.includes("BGS") ||
-                                grader.includes("BECKETT") ||
+                                grader.includes(
+                                    "BECKETT",
+                                ) ||
                                 grader.includes("SGC");
 
                             if (!isSupported) return null;
@@ -225,7 +269,10 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                         fw={800}
                                         tt="uppercase"
                                     >
-                                        {item.gradeInfo.grader}
+                                        {
+                                            item.gradeInfo
+                                                .grader
+                                        }
                                     </Text>
                                     <Anchor
                                         href={certUrl}
@@ -233,7 +280,9 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                         size="xs"
                                         fw={700}
                                         c="blue"
-                                        onClick={(e) => e.stopPropagation()}
+                                        onClick={(e) =>
+                                            e.stopPropagation()
+                                        }
                                     >
                                         #{cert}
                                     </Anchor>
@@ -247,39 +296,62 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                             mt="auto"
                         >
                             <Stack gap={0}>
-                                <Group gap={6} align="baseline">
+                                <Group
+                                    gap={6}
+                                    align="baseline"
+                                >
                                     <Text
                                         fw={900}
                                         size="xl"
                                         color="orange.9"
-                                        style={{ lineHeight: 1 }}
+                                        style={{
+                                            lineHeight: 1,
+                                        }}
                                     >
                                         {item.price}
                                     </Text>
-                                    <Text size="xs" fw={700} c="dimmed">
+                                    <Text
+                                        size="xs"
+                                        fw={700}
+                                        c="dimmed"
+                                    >
                                         {item.currency}
                                     </Text>
                                     {item.bids !== null &&
-                                        item.bids !== undefined && (
+                                        item.bids !==
+                                            undefined && (
                                             <Badge
                                                 variant="light"
                                                 color="gray"
                                                 size="xs"
                                             >
-                                                {item.bids} Bids
+                                                {item.bids}{" "}
+                                                Bids
                                             </Badge>
                                         )}
                                 </Group>
-                                {item.currency === "USD" && (
-                                    <Text size="xs" c="dimmed" fw={600} mt={2}>
+                                {item.currency ===
+                                    "USD" && (
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                        fw={600}
+                                        mt={2}
+                                    >
                                         ≈ ฿
                                         {(
                                             parseFloat(
-                                                item.price.replace(/,/g, ""),
+                                                item.price.replace(
+                                                    /,/g,
+                                                    "",
+                                                ),
                                             ) * 35
-                                        ).toLocaleString(undefined, {
-                                            maximumFractionDigits: 0,
-                                        })}{" "}
+                                        ).toLocaleString(
+                                            undefined,
+                                            {
+                                                maximumFractionDigits: 0,
+                                            },
+                                        )}{" "}
                                         THB
                                     </Text>
                                 )}
@@ -290,7 +362,10 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                     size="10px"
                                     c="dimmed"
                                     ta="right"
-                                    style={{ maxWidth: 80, lineHeight: 1.2 }}
+                                    style={{
+                                        maxWidth: 80,
+                                        lineHeight: 1.2,
+                                    }}
                                 >
                                     {item.itemLocation}
                                 </Text>

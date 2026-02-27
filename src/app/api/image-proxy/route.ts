@@ -27,7 +27,9 @@ export async function GET(request: Request) {
             );
         }
 
-        const contentType = response.headers.get("content-type") || "image/png";
+        const contentType =
+            response.headers.get("content-type") ||
+            "image/png";
         const buffer = await response.arrayBuffer();
 
         return new Response(buffer, {
@@ -37,6 +39,9 @@ export async function GET(request: Request) {
             },
         });
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json(
+            { error: error.message },
+            { status: 500 },
+        );
     }
 }

@@ -47,15 +47,22 @@ export async function GET() {
         const cards = data.map((item: any) => ({
             id: item.id,
             cardId: item.card_id,
-            collectionId: item.scraped_cards?.scraped_collections?.id,
+            collectionId:
+                item.scraped_cards?.scraped_collections?.id,
             name: item.scraped_cards?.name,
             imageUrl: item.scraped_cards?.image_url,
             cardUrl: item.scraped_cards?.card_url,
             cardNo: item.scraped_cards?.card_no,
             rarity: item.scraped_cards?.rarity,
-            collectionName: item.scraped_cards?.scraped_collections?.name,
-            collectionCode: item.scraped_cards?.scraped_collections?.collection_code,
-            franchise: item.scraped_cards?.scraped_collections?.franchise,
+            collectionName:
+                item.scraped_cards?.scraped_collections
+                    ?.name,
+            collectionCode:
+                item.scraped_cards?.scraped_collections
+                    ?.collection_code,
+            franchise:
+                item.scraped_cards?.scraped_collections
+                    ?.franchise,
             quantity: item.quantity,
             variant: item.variant,
             condition: item.condition,
@@ -84,8 +91,12 @@ export async function POST(request: Request) {
             );
         }
 
-        const { cardId, variant, condition, checkVariantCondition } =
-            await request.json();
+        const {
+            cardId,
+            variant,
+            condition,
+            checkVariantCondition,
+        } = await request.json();
 
         const variantValue = variant || null;
         const conditionValue = condition || "NM";
@@ -97,13 +108,17 @@ export async function POST(request: Request) {
             .eq("card_id", cardId);
 
         if (checkVariantCondition) {
-            existingQuery = existingQuery.eq("condition", conditionValue);
+            existingQuery = existingQuery.eq(
+                "condition",
+                conditionValue,
+            );
             existingQuery = variantValue
                 ? existingQuery.eq("variant", variantValue)
                 : existingQuery.is("variant", null);
         }
 
-        const { data: existing } = await existingQuery.maybeSingle();
+        const { data: existing } =
+            await existingQuery.maybeSingle();
 
         if (existing) {
             // already in collection — do nothing
@@ -144,7 +159,10 @@ export async function DELETE(request: Request) {
 
         if (!user || !id) {
             return NextResponse.json(
-                { success: false, error: "Missing ID or unauthorized" },
+                {
+                    success: false,
+                    error: "Missing ID or unauthorized",
+                },
                 { status: 400 },
             );
         }
@@ -179,7 +197,8 @@ export async function PATCH(request: Request) {
             );
         }
 
-        const { id, quantity, condition, variant } = await request.json();
+        const { id, quantity, condition, variant } =
+            await request.json();
 
         if (!id) {
             return NextResponse.json(
@@ -191,8 +210,10 @@ export async function PATCH(request: Request) {
         const updateData: any = {};
         if (quantity !== undefined && quantity >= 1)
             updateData.quantity = quantity;
-        if (condition !== undefined) updateData.condition = condition;
-        if (variant !== undefined) updateData.variant = variant;
+        if (condition !== undefined)
+            updateData.condition = condition;
+        if (variant !== undefined)
+            updateData.variant = variant;
 
         const { error } = await supabase
             .from("collected_cards")

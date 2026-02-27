@@ -10,7 +10,11 @@ interface MainLayoutProps {
     controls: ReactNode;
 }
 
-export function MainLayout({ collection, results, controls }: MainLayoutProps) {
+export function MainLayout({
+    collection,
+    results,
+    controls,
+}: MainLayoutProps) {
     return (
         <Grid
             gutter="md"
@@ -20,11 +24,18 @@ export function MainLayout({ collection, results, controls }: MainLayoutProps) {
             <Grid.Col
                 span={{
                     base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT.COLLECTION_SPAN,
+                    md: APP_CONFIG.CARD_MANAGER_LAYOUT
+                        .COLLECTION_SPAN,
                 }}
                 h="100%"
             >
-                <Card withBorder radius="md" padding={0} shadow="sm" h="100%">
+                <Card
+                    withBorder
+                    radius="md"
+                    padding={0}
+                    shadow="sm"
+                    h="100%"
+                >
                     {collection}
                 </Card>
             </Grid.Col>
@@ -32,11 +43,18 @@ export function MainLayout({ collection, results, controls }: MainLayoutProps) {
             <Grid.Col
                 span={{
                     base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT.RESULTS_SPAN,
+                    md: APP_CONFIG.CARD_MANAGER_LAYOUT
+                        .RESULTS_SPAN,
                 }}
                 h="100%"
             >
-                <Card withBorder radius="md" padding={0} shadow="sm" h="100%">
+                <Card
+                    withBorder
+                    radius="md"
+                    padding={0}
+                    shadow="sm"
+                    h="100%"
+                >
                     {results}
                 </Card>
             </Grid.Col>
@@ -44,11 +62,18 @@ export function MainLayout({ collection, results, controls }: MainLayoutProps) {
             <Grid.Col
                 span={{
                     base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT.CONTROLS_SPAN,
+                    md: APP_CONFIG.CARD_MANAGER_LAYOUT
+                        .CONTROLS_SPAN,
                 }}
                 h="100%"
             >
-                <Card withBorder radius="md" padding={0} shadow="sm" h="100%">
+                <Card
+                    withBorder
+                    radius="md"
+                    padding={0}
+                    shadow="sm"
+                    h="100%"
+                >
                     {controls}
                 </Card>
             </Grid.Col>

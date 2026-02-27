@@ -23,10 +23,17 @@ export function EbayActiveResults({
 
     return (
         <>
-            <SimpleGrid cols={{ base: 1, sm: 2, md: cols }} spacing="lg">
+            <SimpleGrid
+                cols={{ base: 1, sm: 2, md: cols }}
+                spacing="lg"
+            >
                 {results.map((item, index) => (
                     <EbayItemCard
-                        key={item.itemId ? `${item.itemId}-${index}` : index}
+                        key={
+                            item.itemId
+                                ? `${item.itemId}-${index}`
+                                : index
+                        }
                         item={item}
                         index={index}
                         onHover={onHover}

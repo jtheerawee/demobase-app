@@ -27,7 +27,8 @@ export function SearchResultInfo({
                 </Stack>
             ) : (
                 <>
-                    {info.length >= APP_CONFIG.SEARCH_MIN_CHARS ? (
+                    {info.length >=
+                    APP_CONFIG.SEARCH_MIN_CHARS ? (
                         <Text c="dimmed" size="xs">
                             No cards found matching "{info}"
                         </Text>

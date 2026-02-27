@@ -48,7 +48,9 @@ export function SearchResultWidget({
     onReset,
     waitingForSelection,
 }: SearchResultWidgetProps) {
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewImage, setPreviewImage] = useState<
+        string | null
+    >(null);
 
     return (
         <Stack gap={0} h="100%">
@@ -75,16 +77,14 @@ export function SearchResultWidget({
                 }
             />
             <Box style={{ flex: 1, minHeight: 0 }}>
-                <ScrollArea
-                    flex={1}
-                    type="hover"
-                    h="100%"
-                >
+                <ScrollArea flex={1} type="hover" h="100%">
                     <SearchCardList
                         results={results}
                         addingId={addingId}
                         collectedCardIds={collectedCardIds}
-                        onAddToCollection={onAddToCollection}
+                        onAddToCollection={
+                            onAddToCollection
+                        }
                         onImageClick={(url) => {
                             setPreviewImage(url);
                             if (onImageClick) {
@@ -105,12 +105,14 @@ export function SearchResultWidget({
                 opened={!!previewImage}
                 onClose={() => setPreviewImage(null)}
                 src={previewImage}
-                title={
-                    (() => {
-                        const card = results.find((c) => c.imageUrl === previewImage);
-                        return card ? `${card.name} (${card.collectionCode} #${card.cardNo})` : undefined;
-                    })()
-                }
+                title={(() => {
+                    const card = results.find(
+                        (c) => c.imageUrl === previewImage,
+                    );
+                    return card
+                        ? `${card.name} (${card.collectionCode} #${card.cardNo})`
+                        : undefined;
+                })()}
             />
         </Stack>
     );

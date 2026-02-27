@@ -70,9 +70,13 @@ export function ImagePreviewModal({
                         pos="absolute"
                         bottom={8}
                         right={8}
-                        style={{ opacity: 0.8, pointerEvents: "none" }}
+                        style={{
+                            opacity: 0.8,
+                            pointerEvents: "none",
+                        }}
                     >
-                        {imgDimensions.w} × {imgDimensions.h} px
+                        {imgDimensions.w} ×{" "}
+                        {imgDimensions.h} px
                     </Badge>
                 )}
             </Stack>

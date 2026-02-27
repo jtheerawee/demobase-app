@@ -3,9 +3,11 @@ import { Stack, Select, ScrollArea } from "@mantine/core";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
 import { WidgetHeader } from "@/components/WidgetHeader";
-import { SearchModeSwitcher, type SearchMode } from "./SearchModeSwitcher";
+import {
+    SearchModeSwitcher,
+    type SearchMode,
+} from "./SearchModeSwitcher";
 import { SearchInstructionModal } from "./SearchInstructionModal";
-
 
 interface SearchWidgetProps {
     query: string;
@@ -66,7 +68,8 @@ export function SearchWidget({
     onLanguageChange,
     languageOptions,
 }: SearchWidgetProps) {
-    const [instructionOpened, setInstructionOpened] = useState(false);
+    const [instructionOpened, setInstructionOpened] =
+        useState(false);
 
     return (
         <Stack gap={0} h="100%">
@@ -99,7 +102,9 @@ export function SearchWidget({
                     <SearchModeSwitcher
                         value={searchMode}
                         onChange={onSearchModeChange}
-                        onInfoClick={() => setInstructionOpened(true)}
+                        onInfoClick={() =>
+                            setInstructionOpened(true)
+                        }
                     />
 
                     {searchMode === "text" ? (
@@ -119,16 +124,30 @@ export function SearchWidget({
                                 onClear?.();
                             }}
                             autoAdd={autoAdd}
-                            onAutoAddChange={onAutoAddChange}
+                            onAutoAddChange={
+                                onAutoAddChange
+                            }
                             autoCapture={autoCapture}
-                            onAutoCaptureChange={onAutoCaptureChange}
+                            onAutoCaptureChange={
+                                onAutoCaptureChange
+                            }
                             paused={paused}
                             loopActive={loopActive}
-                            onLoopActiveChange={onLoopActiveChange}
-                            manualCaptureDelay={manualCaptureDelay}
-                            onManualCaptureDelayChange={onManualCaptureDelayChange}
-                            autoCaptureDelay={autoCaptureDelay}
-                            onAutoCaptureDelayChange={onAutoCaptureDelayChange}
+                            onLoopActiveChange={
+                                onLoopActiveChange
+                            }
+                            manualCaptureDelay={
+                                manualCaptureDelay
+                            }
+                            onManualCaptureDelayChange={
+                                onManualCaptureDelayChange
+                            }
+                            autoCaptureDelay={
+                                autoCaptureDelay
+                            }
+                            onAutoCaptureDelayChange={
+                                onAutoCaptureDelayChange
+                            }
                             resetTrigger={resetTrigger}
                         />
                     )}

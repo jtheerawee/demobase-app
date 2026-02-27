@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import createMiddleware from "next-intl/middleware";
-import { type NextRequest, NextResponse } from "next/server";
+import {
+    type NextRequest,
+    NextResponse,
+} from "next/server";
 import { routing } from "./i18n/routing";
 
 const handleI18nRouting = createMiddleware(routing);
@@ -19,23 +22,40 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll();
                 },
                 setAll(cookiesToSet) {
-                    for (const { name, value } of cookiesToSet) {
+                    for (const {
+                        name,
+                        value,
+                    } of cookiesToSet) {
                         request.cookies.set(name, value);
                     }
-                    response = NextResponse.next({ request });
-                    for (const { name, value, options } of cookiesToSet) {
-                        response.cookies.set(name, value, options);
+                    response = NextResponse.next({
+                        request,
+                    });
+                    for (const {
+                        name,
+                        value,
+                        options,
+                    } of cookiesToSet) {
+                        response.cookies.set(
+                            name,
+                            value,
+                            options,
+                        );
                     }
                 },
             },
         },
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
 
     // Restricted routes check
     const { pathname } = request.nextUrl;
-    const isRestrictedTarget = pathname.includes('/card-scraper') || pathname.includes('/ebay');
+    const isRestrictedTarget =
+        pathname.includes("/card-scraper") ||
+        pathname.includes("/ebay");
 
     if (isRestrictedTarget) {
         let isAdmin = false;
@@ -64,5 +84,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    matcher: [
+        "/((?!api|_next/static|_next/image|favicon.ico).*)",
+    ],
 };

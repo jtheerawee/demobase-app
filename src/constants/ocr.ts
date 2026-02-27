@@ -1,19 +1,20 @@
 export const OCR_CONFIG = {
-  OCR_API_URL: "http://localhost:3002/api/ocr/search",
-  OCR_MODEL: "CLIP",
-  OCR_SCORE_THRESHOLD: 0.8,
-  OCR_LIMIT: 5,
-  OCR_WORKERS: 2,
-  OCR_SCAN_WIDTH: "50%",
-  OCR_SCAN_MAX_WIDTH: 500,
-  CAMERA_VIEW_HEIGHT: 400,
+    OCR_API_URL: "http://localhost:3002/api/ocr/search",
+    OCR_MODEL: "CLIP",
+    OCR_SCORE_THRESHOLD: 0.8,
+    OCR_LIMIT: 5,
+    OCR_WORKERS: 2,
+    OCR_SCAN_WIDTH: "50%",
+    OCR_SCAN_MAX_WIDTH: 500,
+    CAMERA_VIEW_HEIGHT: 400,
 
-  MANUAL_CAPTURE_DELAY: 3,
-  AUTO_CAPTURE_DELAY: 7,
-  AUTO_CAPTURE_MAX_NO_CARD: 2,
-  AUTO_CAPTURE_MAX_SAME_CARD: 2,
+    MANUAL_CAPTURE_DELAY: 3,
+    AUTO_CAPTURE_DELAY: 7,
+    AUTO_CAPTURE_MAX_NO_CARD: 2,
+    AUTO_CAPTURE_MAX_SAME_CARD: 2,
 
-  // OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
+    // OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
 
-  OCR_TEXT_API_URL: "https://ocr-api-production-3bfa.up.railway.app/ocr/text-only",
+    OCR_TEXT_API_URL:
+        "https://ocr-api-production-3bfa.up.railway.app/ocr/text-only",
 };

@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -24,7 +23,11 @@ interface BugReportModalProps {
     screenshot: string | null;
 }
 
-export function BugReportModal({ opened, onClose, screenshot }: BugReportModalProps) {
+export function BugReportModal({
+    opened,
+    onClose,
+    screenshot,
+}: BugReportModalProps) {
     const [description, setDescription] = useState("");
     const [email, setEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +35,9 @@ export function BugReportModal({ opened, onClose, screenshot }: BugReportModalPr
     useEffect(() => {
         const fetchUser = async () => {
             const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
             if (user?.email) {
                 setEmail(user.email);
             }
@@ -47,7 +52,9 @@ export function BugReportModal({ opened, onClose, screenshot }: BugReportModalPr
         setIsSubmitting(true);
 
         // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await new Promise((resolve) =>
+            setTimeout(resolve, 1500),
+        );
 
         console.log("Bug Report Submitted:", {
             description,
@@ -60,7 +67,8 @@ export function BugReportModal({ opened, onClose, screenshot }: BugReportModalPr
 
         notifications.show({
             title: "Report Submitted",
-            message: "Thank you for your feedback! We will look into it.",
+            message:
+                "Thank you for your feedback! We will look into it.",
             color: "green",
             icon: <IconCheck size={18} />,
         });
@@ -77,25 +85,35 @@ export function BugReportModal({ opened, onClose, screenshot }: BugReportModalPr
             onClose={onClose}
             title={
                 <Group gap="xs">
-                    <IconBug size={20} color="var(--mantine-color-red-6)" />
+                    <IconBug
+                        size={20}
+                        color="var(--mantine-color-red-6)"
+                    />
                     <Text fw={700}>Report a Bug</Text>
                 </Group>
             }
             size="lg"
         >
             <Box pos="relative">
-                <LoadingOverlay visible={isSubmitting} overlayProps={{ blur: 2 }} />
+                <LoadingOverlay
+                    visible={isSubmitting}
+                    overlayProps={{ blur: 2 }}
+                />
 
                 <Stack gap="md">
                     <Text size="sm" c="dimmed">
-                        Tell us what went wrong. A screenshot of the current page has been captured to help us debug.
+                        Tell us what went wrong. A
+                        screenshot of the current page has
+                        been captured to help us debug.
                     </Text>
 
                     <TextInput
                         label="Email (Optional)"
                         placeholder="your@email.com"
                         value={email}
-                        onChange={(e) => setEmail(e.currentTarget.value)}
+                        onChange={(e) =>
+                            setEmail(e.currentTarget.value)
+                        }
                     />
 
                     <Textarea
@@ -104,30 +122,46 @@ export function BugReportModal({ opened, onClose, screenshot }: BugReportModalPr
                         required
                         minRows={4}
                         value={description}
-                        onChange={(e) => setDescription(e.currentTarget.value)}
+                        onChange={(e) =>
+                            setDescription(
+                                e.currentTarget.value,
+                            )
+                        }
                     />
 
                     {screenshot && (
                         <Box>
-                            <Text size="sm" fw={500} mb={4}>Captured Screenshot:</Text>
+                            <Text size="sm" fw={500} mb={4}>
+                                Captured Screenshot:
+                            </Text>
                             <Box
                                 style={{
                                     border: "1px solid var(--mantine-color-gray-3)",
-                                    borderRadius: "var(--mantine-radius-sm)",
-                                    overflow: "hidden"
+                                    borderRadius:
+                                        "var(--mantine-radius-sm)",
+                                    overflow: "hidden",
                                 }}
                             >
-                                <Image src={screenshot} alt="Bug screenshot" />
+                                <Image
+                                    src={screenshot}
+                                    alt="Bug screenshot"
+                                />
                             </Box>
                         </Box>
                     )}
 
                     <Group justify="flex-end">
-                        <Button variant="subtle" color="gray" onClick={onClose}>
+                        <Button
+                            variant="subtle"
+                            color="gray"
+                            onClick={onClose}
+                        >
                             Cancel
                         </Button>
                         <Button
-                            leftSection={<IconBug size={18} />}
+                            leftSection={
+                                <IconBug size={18} />
+                            }
                             color="red"
                             onClick={handleSubmit}
                             disabled={!description}

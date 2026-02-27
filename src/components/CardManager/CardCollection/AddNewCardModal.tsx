@@ -1,6 +1,14 @@
 "use client";
 
-import { Modal, Stack, Group, Image, Text, Select, Button } from "@mantine/core";
+import {
+    Modal,
+    Stack,
+    Group,
+    Image,
+    Text,
+    Select,
+    Button,
+} from "@mantine/core";
 import { CollectedCard } from "./CollectedCard";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
@@ -35,7 +43,10 @@ export function AddNewCardModal({
             title="Add Variant / Condition"
             centered
             size="sm"
-            overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
+            overlayProps={{
+                backgroundOpacity: 0.45,
+                blur: 3,
+            }}
         >
             {card && (
                 <Stack gap="md">
@@ -48,9 +59,15 @@ export function AddNewCardModal({
                             style={{
                                 objectFit: "contain",
                                 flexShrink: 0,
-                                cursor: onImageClick ? "pointer" : "default",
+                                cursor: onImageClick
+                                    ? "pointer"
+                                    : "default",
                             }}
-                            onClick={() => onImageClick?.(card.imageUrl)}
+                            onClick={() =>
+                                onImageClick?.(
+                                    card.imageUrl,
+                                )
+                            }
                         />
                         <Stack gap={4}>
                             <Text fw={700} size="sm">
@@ -66,7 +83,9 @@ export function AddNewCardModal({
                                     c="blue.7"
                                     bg="blue.0"
                                     px={4}
-                                    style={{ borderRadius: "2px" }}
+                                    style={{
+                                        borderRadius: "2px",
+                                    }}
                                 >
                                     #{card.cardNo}
                                 </Text>
@@ -75,7 +94,9 @@ export function AddNewCardModal({
                                     fw={500}
                                     bg="gray.1"
                                     px={4}
-                                    style={{ borderRadius: "2px" }}
+                                    style={{
+                                        borderRadius: "2px",
+                                    }}
                                 >
                                     {card.rarity}
                                 </Text>
@@ -85,19 +106,27 @@ export function AddNewCardModal({
                     <Select
                         label="Variant"
                         value={variant}
-                        onChange={(v) => onVariantChange(v || "nf")}
+                        onChange={(v) =>
+                            onVariantChange(v || "nf")
+                        }
                         data={VARIANTS}
                         size="sm"
                     />
                     <Select
                         label="Condition"
                         value={condition}
-                        onChange={(v) => onConditionChange(v || "nm")}
+                        onChange={(v) =>
+                            onConditionChange(v || "nm")
+                        }
                         data={CONDITIONS}
                         size="sm"
                     />
                     <Group justify="flex-end" gap="xs">
-                        <Button variant="default" size="sm" onClick={onClose}>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            onClick={onClose}
+                        >
                             Cancel
                         </Button>
                         <Button

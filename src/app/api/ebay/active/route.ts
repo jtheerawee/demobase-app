@@ -1,22 +1,36 @@
-import { type NextRequest, NextResponse } from "next/server";
+import {
+    type NextRequest,
+    NextResponse,
+} from "next/server";
 import { EBAY_CONFIG } from "@/constants/ebay";
 
 const CARD_API = EBAY_CONFIG.API_HOST;
 
 export async function GET(request: NextRequest) {
-    const authorization = request.headers.get("Authorization") ?? "";
-    const searchParams = request.nextUrl.searchParams.toString();
+    const authorization =
+        request.headers.get("Authorization") ?? "";
+    const searchParams =
+        request.nextUrl.searchParams.toString();
     const qs = searchParams ? `?${searchParams}` : "";
 
     try {
-        const res = await fetch(`${CARD_API}/api/ebay/active${qs}`, {
-            headers: { Authorization: authorization },
-        });
+        const res = await fetch(
+            `${CARD_API}/api/ebay/active${qs}`,
+            {
+                headers: { Authorization: authorization },
+            },
+        );
 
         if (!res.ok) {
-            const errorData = await res.json().catch(() => ({}));
+            const errorData = await res
+                .json()
+                .catch(() => ({}));
             return NextResponse.json(
-                { error: errorData.error || "Failed to fetch from card-api" },
+                {
+                    error:
+                        errorData.error ||
+                        "Failed to fetch from card-api",
+                },
                 { status: res.status },
             );
         }

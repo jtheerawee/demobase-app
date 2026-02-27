@@ -37,7 +37,10 @@ function calculateMedian(values: number[]): number {
         : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-function filterByDays(items: EbayItem[], days: number): EbayItem[] {
+function filterByDays(
+    items: EbayItem[],
+    days: number,
+): EbayItem[] {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return items.filter((item) => {
@@ -48,24 +51,40 @@ function filterByDays(items: EbayItem[], days: number): EbayItem[] {
             (item as any).timestamp;
         if (!dateStr) return false;
         const date = new Date(dateStr);
-        return !Number.isNaN(date.getTime()) && date >= cutoff;
+        return (
+            !Number.isNaN(date.getTime()) && date >= cutoff
+        );
     });
 }
 
 interface CustomDotProps {
     cx?: number;
     cy?: number;
-    payload: { price: number; date: string; fullDate: string };
+    payload: {
+        price: number;
+        date: string;
+        fullDate: string;
+    };
     minPrice: number;
     maxPrice: number;
     highlightedDate?: string | null;
 }
 
 const CustomDot = (props: CustomDotProps) => {
-    const { cx, cy, payload, minPrice, maxPrice, highlightedDate } = props;
+    const {
+        cx,
+        cy,
+        payload,
+        minPrice,
+        maxPrice,
+        highlightedDate,
+    } = props;
     if (cx === undefined || cy === undefined) return null;
 
-    if (highlightedDate && payload.fullDate === highlightedDate) {
+    if (
+        highlightedDate &&
+        payload.fullDate === highlightedDate
+    ) {
         return (
             <circle
                 cx={cx}
@@ -144,11 +163,15 @@ export function MarketTrendAnalysis({
 }: MarketTrendAnalysisProps) {
     const t = useTranslations("EbayAssistance.analysis");
     // Defensive: ensure results is always an array
-    const safeResults = Array.isArray(results) ? results : [];
+    const safeResults = Array.isArray(results)
+        ? results
+        : [];
 
     const currencySymbol = useMemo(() => {
         if (safeResults.length === 0) return "$";
-        const firstWithCurrency = safeResults.find((item) => item.currency);
+        const firstWithCurrency = safeResults.find(
+            (item) => item.currency,
+        );
         if (!firstWithCurrency) return "$";
         return firstWithCurrency.currency === "USD"
             ? "$"
@@ -171,7 +194,10 @@ export function MarketTrendAnalysis({
 
         const prices = safeResults
             .map((item) => {
-                const p = String(item.price || "0").replace(/[^0-9.]/g, "");
+                const p = String(item.price || "0").replace(
+                    /[^0-9.]/g,
+                    "",
+                );
                 return parseFloat(p);
             })
             .filter((price) => !Number.isNaN(price));
@@ -180,33 +206,43 @@ export function MarketTrendAnalysis({
 
         const min = Math.min(...prices);
         const max = Math.max(...prices);
-        const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const avg =
+            prices.reduce((a, b) => a + b, 0) /
+            prices.length;
         const median = calculateMedian(prices);
 
         const items14 = filterByDays(safeResults, 14);
         const prices14 = items14
             .map((item) => {
-                const p = String(item.price || "0").replace(/[^0-9.]/g, "");
+                const p = String(item.price || "0").replace(
+                    /[^0-9.]/g,
+                    "",
+                );
                 return parseFloat(p);
             })
             .filter((p) => !Number.isNaN(p));
         const median14 = calculateMedian(prices14);
         const avg14 =
             prices14.length > 0
-                ? prices14.reduce((a, b) => a + b, 0) / prices14.length
+                ? prices14.reduce((a, b) => a + b, 0) /
+                  prices14.length
                 : 0;
 
         const items30 = filterByDays(safeResults, 30);
         const prices30 = items30
             .map((item) => {
-                const p = String(item.price || "0").replace(/[^0-9.]/g, "");
+                const p = String(item.price || "0").replace(
+                    /[^0-9.]/g,
+                    "",
+                );
                 return parseFloat(p);
             })
             .filter((p) => !Number.isNaN(p));
         const median30 = calculateMedian(prices30);
         const avg30 =
             prices30.length > 0
-                ? prices30.reduce((a, b) => a + b, 0) / prices30.length
+                ? prices30.reduce((a, b) => a + b, 0) /
+                  prices30.length
                 : 0;
 
         return {
@@ -237,25 +273,36 @@ export function MarketTrendAnalysis({
             const date = new Date(dateStr);
             if (Number.isNaN(date.getTime())) return;
 
-            const dateKey = date.toISOString().split("T")[0];
-            if (!groupedByDate[dateKey]) groupedByDate[dateKey] = [];
-            const pRaw = String(item.price || "0").replace(/[^0-9.]/g, "");
+            const dateKey = date
+                .toISOString()
+                .split("T")[0];
+            if (!groupedByDate[dateKey])
+                groupedByDate[dateKey] = [];
+            const pRaw = String(item.price || "0").replace(
+                /[^0-9.]/g,
+                "",
+            );
             const price = parseFloat(pRaw);
             if (!Number.isNaN(price)) {
                 groupedByDate[dateKey].push(price);
             }
         });
 
-        const sortedKeys = Object.keys(groupedByDate).sort();
+        const sortedKeys =
+            Object.keys(groupedByDate).sort();
 
         return sortedKeys.map((dateKey) => {
             const prices = groupedByDate[dateKey];
-            const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+            const maxPrice =
+                prices.length > 0 ? Math.max(...prices) : 0;
             return {
-                date: new Date(dateKey).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                }),
+                date: new Date(dateKey).toLocaleDateString(
+                    undefined,
+                    {
+                        month: "short",
+                        day: "numeric",
+                    },
+                ),
                 price: parseFloat(maxPrice.toFixed(2)),
                 fullDate: dateKey,
                 count: prices.length,
@@ -275,7 +322,11 @@ export function MarketTrendAnalysis({
 
     return (
         <Stack gap="md" mb="xl">
-            <Group gap="xs" justify="space-between" align="center">
+            <Group
+                gap="xs"
+                justify="space-between"
+                align="center"
+            >
                 <MarketTrendAnalysisHeader
                     query={query}
                     service={service}
@@ -287,49 +338,89 @@ export function MarketTrendAnalysis({
                     listingType={listingType}
                 />
                 {exchangeRate && (
-                    <Badge variant="light" color="gray" size="sm">
-                        1 USD = {(1 / exchangeRate).toFixed(2)} THB
+                    <Badge
+                        variant="light"
+                        color="gray"
+                        size="sm"
+                    >
+                        1 USD ={" "}
+                        {(1 / exchangeRate).toFixed(2)} THB
                     </Badge>
                 )}
             </Group>
 
             <Grid gutter="md">
                 <Grid.Col span={{ base: 12, sm: 3 }}>
-                    <Card withBorder padding="sm" radius="md">
+                    <Card
+                        withBorder
+                        padding="sm"
+                        radius="md"
+                    >
                         <Stack gap={0}>
-                            <Text size="xs" fw={700} c="dimmed">
+                            <Text
+                                size="xs"
+                                fw={700}
+                                c="dimmed"
+                            >
                                 {t("average")}
                             </Text>
-                            <Text size="xl" fw={900} color="blue.7">
+                            <Text
+                                size="xl"
+                                fw={900}
+                                color="blue.7"
+                            >
                                 {currencySymbol}
-                                {stats.avg.toLocaleString(undefined, {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                })}
+                                {stats.avg.toLocaleString(
+                                    undefined,
+                                    {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                    },
+                                )}
                             </Text>
                             <SimpleGrid cols={2} mt="xs">
                                 <Stack gap={0}>
-                                    <Text size="xs" c="dimmed">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                    >
                                         30d
                                     </Text>
-                                    <Text size="sm" fw={700} color="blue.6">
+                                    <Text
+                                        size="sm"
+                                        fw={700}
+                                        color="blue.6"
+                                    >
                                         {currencySymbol}
-                                        {stats.avg30.toLocaleString(undefined, {
-                                            minimumFractionDigits: 0,
-                                            maximumFractionDigits: 0,
-                                        })}
+                                        {stats.avg30.toLocaleString(
+                                            undefined,
+                                            {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            },
+                                        )}
                                     </Text>
                                 </Stack>
                                 <Stack gap={0}>
-                                    <Text size="xs" c="dimmed">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                    >
                                         14d
                                     </Text>
-                                    <Text size="sm" fw={700} color="blue.6">
+                                    <Text
+                                        size="sm"
+                                        fw={700}
+                                        color="blue.6"
+                                    >
                                         {currencySymbol}
-                                        {stats.avg14.toLocaleString(undefined, {
-                                            minimumFractionDigits: 0,
-                                            maximumFractionDigits: 0,
-                                        })}
+                                        {stats.avg14.toLocaleString(
+                                            undefined,
+                                            {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0,
+                                            },
+                                        )}
                                     </Text>
                                 </Stack>
                             </SimpleGrid>
@@ -337,24 +428,46 @@ export function MarketTrendAnalysis({
                     </Card>
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, sm: 3 }}>
-                    <Card withBorder padding="sm" radius="md">
+                    <Card
+                        withBorder
+                        padding="sm"
+                        radius="md"
+                    >
                         <Stack gap={0}>
-                            <Text size="xs" fw={700} c="dimmed">
+                            <Text
+                                size="xs"
+                                fw={700}
+                                c="dimmed"
+                            >
                                 {t("median")}
                             </Text>
-                            <Text size="xl" fw={900} color="teal.7">
+                            <Text
+                                size="xl"
+                                fw={900}
+                                color="teal.7"
+                            >
                                 {currencySymbol}
-                                {stats.median.toLocaleString(undefined, {
-                                    minimumFractionDigits: 0,
-                                    maximumFractionDigits: 0,
-                                })}
+                                {stats.median.toLocaleString(
+                                    undefined,
+                                    {
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                    },
+                                )}
                             </Text>
                             <SimpleGrid cols={2} mt="xs">
                                 <Stack gap={0}>
-                                    <Text size="xs" c="dimmed">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                    >
                                         30d
                                     </Text>
-                                    <Text size="sm" fw={700} color="teal.6">
+                                    <Text
+                                        size="sm"
+                                        fw={700}
+                                        color="teal.6"
+                                    >
                                         {currencySymbol}
                                         {stats.median30.toLocaleString(
                                             undefined,
@@ -366,10 +479,17 @@ export function MarketTrendAnalysis({
                                     </Text>
                                 </Stack>
                                 <Stack gap={0}>
-                                    <Text size="xs" c="dimmed">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                    >
                                         14d
                                     </Text>
-                                    <Text size="sm" fw={700} color="teal.6">
+                                    <Text
+                                        size="sm"
+                                        fw={700}
+                                        color="teal.6"
+                                    >
                                         {currencySymbol}
                                         {stats.median14.toLocaleString(
                                             undefined,
@@ -385,47 +505,90 @@ export function MarketTrendAnalysis({
                     </Card>
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, sm: 3 }}>
-                    <Card withBorder padding="sm" radius="md">
+                    <Card
+                        withBorder
+                        padding="sm"
+                        radius="md"
+                    >
                         <Stack gap={0}>
-                            <Text size="xs" fw={700} c="dimmed">
+                            <Text
+                                size="xs"
+                                fw={700}
+                                c="dimmed"
+                            >
                                 {t("lowest")}
                             </Text>
-                            <Text size="xl" fw={900} color="green.7">
+                            <Text
+                                size="xl"
+                                fw={900}
+                                color="green.7"
+                            >
                                 {currencySymbol}
-                                {stats.min.toLocaleString(undefined, {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                })}
+                                {stats.min.toLocaleString(
+                                    undefined,
+                                    {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    },
+                                )}
                             </Text>
                         </Stack>
                     </Card>
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, sm: 3 }}>
-                    <Card withBorder padding="sm" radius="md">
+                    <Card
+                        withBorder
+                        padding="sm"
+                        radius="md"
+                    >
                         <Stack gap={0}>
-                            <Text size="xs" fw={700} c="dimmed">
+                            <Text
+                                size="xs"
+                                fw={700}
+                                c="dimmed"
+                            >
                                 {t("highest")}
                             </Text>
-                            <Text size="xl" fw={900} color="red.7">
+                            <Text
+                                size="xl"
+                                fw={900}
+                                color="red.7"
+                            >
                                 {currencySymbol}
-                                {stats.max.toLocaleString(undefined, {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                })}
+                                {stats.max.toLocaleString(
+                                    undefined,
+                                    {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2,
+                                    },
+                                )}
                             </Text>
                         </Stack>
                     </Card>
                 </Grid.Col>
             </Grid>
 
-            <Paper withBorder p="md" radius="md" bg="gray.0">
+            <Paper
+                withBorder
+                p="md"
+                radius="md"
+                bg="gray.0"
+            >
                 <Stack gap="xs">
                     <Text size="xs" fw={700} c="dimmed">
                         {t("trend", { count: stats.count })}
                     </Text>
-                    <div style={{ height: 200, width: "100%" }}>
+                    <div
+                        style={{
+                            height: 200,
+                            width: "100%",
+                        }}
+                    >
                         {chartData.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer
+                                width="100%"
+                                height="100%"
+                            >
                                 <LineChart
                                     data={chartData}
                                     margin={{
@@ -442,11 +605,21 @@ export function MarketTrendAnalysis({
                                     />
                                     <XAxis
                                         dataKey="fullDate"
-                                        tick={{ fontSize: 12, fill: "#868e96" }}
+                                        tick={{
+                                            fontSize: 12,
+                                            fill: "#868e96",
+                                        }}
                                         tickLine={false}
-                                        axisLine={{ stroke: "#dee2e6" }}
-                                        tickFormatter={(val) => {
-                                            const d = new Date(val);
+                                        axisLine={{
+                                            stroke: "#dee2e6",
+                                        }}
+                                        tickFormatter={(
+                                            val,
+                                        ) => {
+                                            const d =
+                                                new Date(
+                                                    val,
+                                                );
                                             return d.toLocaleDateString(
                                                 undefined,
                                                 {
@@ -457,19 +630,28 @@ export function MarketTrendAnalysis({
                                         }}
                                     />
                                     <YAxis
-                                        tick={{ fontSize: 12, fill: "#868e96" }}
+                                        tick={{
+                                            fontSize: 12,
+                                            fill: "#868e96",
+                                        }}
                                         tickLine={false}
                                         axisLine={false}
-                                        tickFormatter={(value) =>
+                                        tickFormatter={(
+                                            value,
+                                        ) =>
                                             `${currencySymbol}${value}`
                                         }
-                                        domain={["auto", "auto"]}
+                                        domain={[
+                                            "auto",
+                                            "auto",
+                                        ]}
                                     />
                                     <Tooltip
                                         cursor={{
                                             stroke: "#adb5bd",
                                             strokeWidth: 1,
-                                            strokeDasharray: "4 4",
+                                            strokeDasharray:
+                                                "4 4",
                                         }}
                                         content={({
                                             active,
@@ -489,28 +671,42 @@ export function MarketTrendAnalysis({
                                                         bg="gray.1"
                                                         shadow="xs"
                                                     >
-                                                        <Stack gap={2}>
+                                                        <Stack
+                                                            gap={
+                                                                2
+                                                            }
+                                                        >
                                                             <Text
                                                                 size="xs"
                                                                 c="dimmed"
-                                                                fw={700}
+                                                                fw={
+                                                                    700
+                                                                }
                                                             >
-                                                                {label}
+                                                                {
+                                                                    label
+                                                                }
                                                             </Text>
                                                             <Group
-                                                                gap={4}
+                                                                gap={
+                                                                    4
+                                                                }
                                                                 align="baseline"
                                                             >
                                                                 <Text
                                                                     size="xs"
-                                                                    fw={700}
+                                                                    fw={
+                                                                        700
+                                                                    }
                                                                     c="dimmed"
                                                                 >
                                                                     Max:
                                                                 </Text>
                                                                 <Text
                                                                     size="sm"
-                                                                    fw={800}
+                                                                    fw={
+                                                                        800
+                                                                    }
                                                                     c="blue.7"
                                                                 >
                                                                     {
@@ -540,7 +736,9 @@ export function MarketTrendAnalysis({
                                     />
                                     {highlightedDate && (
                                         <ReferenceLine
-                                            x={highlightedDate}
+                                            x={
+                                                highlightedDate
+                                            }
                                             stroke="#fa5252"
                                             strokeDasharray="3 3"
                                         />
@@ -550,12 +748,21 @@ export function MarketTrendAnalysis({
                                         dataKey="price"
                                         stroke="#228be6"
                                         strokeWidth={3}
-                                        activeDot={{ r: 8, strokeWidth: 0 }}
-                                        dot={(props: any) => (
+                                        activeDot={{
+                                            r: 8,
+                                            strokeWidth: 0,
+                                        }}
+                                        dot={(
+                                            props: any,
+                                        ) => (
                                             <CustomDot
                                                 {...props}
-                                                minPrice={chartMinPrice}
-                                                maxPrice={chartMaxPrice}
+                                                minPrice={
+                                                    chartMinPrice
+                                                }
+                                                maxPrice={
+                                                    chartMaxPrice
+                                                }
                                                 highlightedDate={
                                                     highlightedDate
                                                 }
@@ -566,12 +773,24 @@ export function MarketTrendAnalysis({
                             </ResponsiveContainer>
                         ) : (
                             <Center h="100%">
-                                <Stack align="center" gap={4}>
-                                    <Text size="sm" c="dimmed" fw={500}>
+                                <Stack
+                                    align="center"
+                                    gap={4}
+                                >
+                                    <Text
+                                        size="sm"
+                                        c="dimmed"
+                                        fw={500}
+                                    >
                                         {t("noData")}
                                     </Text>
-                                    <Text size="xs" c="dimmed">
-                                        {t("buildingHistory")}
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                    >
+                                        {t(
+                                            "buildingHistory",
+                                        )}
                                     </Text>
                                 </Stack>
                             </Center>

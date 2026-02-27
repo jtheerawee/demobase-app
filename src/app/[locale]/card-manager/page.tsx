@@ -4,7 +4,12 @@ import { Container, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
-import { useState, useEffect, useRef, useMemo } from "react";
+import {
+    useState,
+    useEffect,
+    useRef,
+    useMemo,
+} from "react";
 import { MainLayout } from "@/components/CardManager/MainLayout";
 import { useDebouncedValue } from "@mantine/hooks";
 import { APP_CONFIG } from "@/constants/app";
@@ -24,60 +29,91 @@ import { FRANCHISE_OPTIONS } from "@/constants/franchises";
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedFranchise, setSelectedFranchise] = useState<string | null>(
-        null,
+    const [selectedFranchise, setSelectedFranchise] =
+        useState<string | null>(null);
+    const [selectedLanguage, setSelectedLanguage] =
+        useState<string | null>(null);
+    const [debouncedQuery] = useDebouncedValue(
+        searchQuery,
+        400,
     );
-    const [selectedLanguage, setSelectedLanguage] = useState<string | null>(
-        null,
-    );
-    const [debouncedQuery] = useDebouncedValue(searchQuery, 400);
     const [resultInfo, setResultInfo] = useState("");
-    const [results, setResults] = useState<SearchedCard[]>([]);
+    const [results, setResults] = useState<SearchedCard[]>(
+        [],
+    );
     const [loading, setLoading] = useState(false);
-    const [addingId, setAddingId] = useState<number | null>(null);
-    const [searchMode, setSearchMode] = useState<SearchMode>("text");
+    const [addingId, setAddingId] = useState<number | null>(
+        null,
+    );
+    const [searchMode, setSearchMode] =
+        useState<SearchMode>("text");
     const [autoAdd, setAutoAdd] = useState(false);
     const [autoCapture, setAutoCapture] = useState(false);
-    const [manualCaptureDelay, setManualCaptureDelay] = useState(OCR_CONFIG.MANUAL_CAPTURE_DELAY);
-    const [autoCaptureDelay, setAutoCaptureDelay] = useState(OCR_CONFIG.AUTO_CAPTURE_DELAY);
-    const [autoCaptureActive, setAutoCaptureActive] = useState(false);
-    const [waitingForSelection, setWaitingForSelection] = useState(false);
+    const [manualCaptureDelay, setManualCaptureDelay] =
+        useState(OCR_CONFIG.MANUAL_CAPTURE_DELAY);
+    const [autoCaptureDelay, setAutoCaptureDelay] =
+        useState(OCR_CONFIG.AUTO_CAPTURE_DELAY);
+    const [autoCaptureActive, setAutoCaptureActive] =
+        useState(false);
+    const [waitingForSelection, setWaitingForSelection] =
+        useState(false);
     const [resetTrigger, setResetTrigger] = useState(0);
-    const [collectedCardIds, setCollectedCardIds] = useState<Set<number>>(
-        new Set(),
-    );
+    const [collectedCardIds, setCollectedCardIds] =
+        useState<Set<number>>(new Set());
     const consecutiveNoCard = useRef(0);
     const consecutiveSameCard = useRef(0);
     const lastDetectedCardId = useRef<number | null>(null);
 
-    const refreshCollection = () => listRef.current?.refresh();
+    const refreshCollection = () =>
+        listRef.current?.refresh();
 
     // Initial load from localStorage
     useEffect(() => {
         const savedFranchise =
-            localStorage.getItem("manager_selected_franchise") || "all";
+            localStorage.getItem(
+                "manager_selected_franchise",
+            ) || "all";
         const savedLanguage =
-            localStorage.getItem("manager_selected_language") || "all";
+            localStorage.getItem(
+                "manager_selected_language",
+            ) || "all";
         let savedMode =
-            (localStorage.getItem("manager_search_mode") as SearchMode) ||
-            "text";
+            (localStorage.getItem(
+                "manager_search_mode",
+            ) as SearchMode) || "text";
         const savedAutoAdd =
-            localStorage.getItem("manager_auto_add") === "true";
+            localStorage.getItem("manager_auto_add") ===
+            "true";
         const savedAutoCapture =
-            localStorage.getItem("manager_auto_capture") === "true";
+            localStorage.getItem("manager_auto_capture") ===
+            "true";
         const savedManualDelay = parseInt(
-            localStorage.getItem("manager_manual_capture_delay") || String(OCR_CONFIG.MANUAL_CAPTURE_DELAY),
+            localStorage.getItem(
+                "manager_manual_capture_delay",
+            ) || String(OCR_CONFIG.MANUAL_CAPTURE_DELAY),
         );
         const savedAutoDelay = parseInt(
-            localStorage.getItem("manager_auto_capture_delay") || String(OCR_CONFIG.AUTO_CAPTURE_DELAY),
+            localStorage.getItem(
+                "manager_auto_capture_delay",
+            ) || String(OCR_CONFIG.AUTO_CAPTURE_DELAY),
         );
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
         setSearchMode(savedMode);
         setAutoAdd(savedAutoAdd);
         setAutoCapture(savedAutoCapture);
-        setManualCaptureDelay(Math.max(OCR_CONFIG.MANUAL_CAPTURE_DELAY, savedManualDelay));
-        setAutoCaptureDelay(Math.max(OCR_CONFIG.AUTO_CAPTURE_DELAY, savedAutoDelay));
+        setManualCaptureDelay(
+            Math.max(
+                OCR_CONFIG.MANUAL_CAPTURE_DELAY,
+                savedManualDelay,
+            ),
+        );
+        setAutoCaptureDelay(
+            Math.max(
+                OCR_CONFIG.AUTO_CAPTURE_DELAY,
+                savedAutoDelay,
+            ),
+        );
     }, []);
 
     // Save to localStorage when changed
@@ -88,12 +124,30 @@ export default function CardManagerPage() {
                 selectedFranchise,
             );
         if (selectedLanguage)
-            localStorage.setItem("manager_selected_language", selectedLanguage);
-        localStorage.setItem("manager_search_mode", searchMode);
-        localStorage.setItem("manager_auto_add", autoAdd.toString());
-        localStorage.setItem("manager_auto_capture", autoCapture.toString());
-        localStorage.setItem("manager_manual_capture_delay", manualCaptureDelay.toString());
-        localStorage.setItem("manager_auto_capture_delay", autoCaptureDelay.toString());
+            localStorage.setItem(
+                "manager_selected_language",
+                selectedLanguage,
+            );
+        localStorage.setItem(
+            "manager_search_mode",
+            searchMode,
+        );
+        localStorage.setItem(
+            "manager_auto_add",
+            autoAdd.toString(),
+        );
+        localStorage.setItem(
+            "manager_auto_capture",
+            autoCapture.toString(),
+        );
+        localStorage.setItem(
+            "manager_manual_capture_delay",
+            manualCaptureDelay.toString(),
+        );
+        localStorage.setItem(
+            "manager_auto_capture_delay",
+            autoCaptureDelay.toString(),
+        );
     }, [
         selectedFranchise,
         selectedLanguage,
@@ -105,8 +159,13 @@ export default function CardManagerPage() {
     ]);
 
     const languageOptions = useMemo(() => {
-        if (!selectedFranchise || selectedFranchise === "all")
-            return [{ value: "all", label: "All Languages" }];
+        if (
+            !selectedFranchise ||
+            selectedFranchise === "all"
+        )
+            return [
+                { value: "all", label: "All Languages" },
+            ];
         return [
             { value: "all", label: "All Languages" },
             ...(LANGUAGE_OPTIONS[selectedFranchise] || []),
@@ -114,12 +173,19 @@ export default function CardManagerPage() {
     }, [selectedFranchise]);
 
     useEffect(() => {
-        if (debouncedQuery.length >= APP_CONFIG.SEARCH_MIN_CHARS) {
+        if (
+            debouncedQuery.length >=
+            APP_CONFIG.SEARCH_MIN_CHARS
+        ) {
             handleSearch(debouncedQuery);
         } else {
             setResults([]);
         }
-    }, [debouncedQuery, selectedFranchise, selectedLanguage]);
+    }, [
+        debouncedQuery,
+        selectedFranchise,
+        selectedLanguage,
+    ]);
 
     const handleSearch = async (query: string) => {
         setLoading(true);
@@ -158,7 +224,8 @@ export default function CardManagerPage() {
                         title: "Auto-capture Stopped",
                         message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange",
-                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                        autoClose:
+                            APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
             }
@@ -186,9 +253,15 @@ export default function CardManagerPage() {
                 }
 
                 // Track consecutive same card
-                if (autoCapture && data.cards.length === 1) {
+                if (
+                    autoCapture &&
+                    data.cards.length === 1
+                ) {
                     const cardId = data.cards[0].id;
-                    if (cardId === lastDetectedCardId.current) {
+                    if (
+                        cardId ===
+                        lastDetectedCardId.current
+                    ) {
                         consecutiveSameCard.current += 1;
                     } else {
                         consecutiveSameCard.current = 1;
@@ -203,7 +276,7 @@ export default function CardManagerPage() {
                 if (
                     autoCapture &&
                     consecutiveNoCard.current >=
-                    OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                        OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
                     consecutiveNoCard.current = 0;
                     setAutoCaptureActive(false);
@@ -211,7 +284,8 @@ export default function CardManagerPage() {
                         title: "Auto-capture Stopped",
                         message: `No card detected for ${OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD} consecutive captures. Process paused.`,
                         color: "orange",
-                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                        autoClose:
+                            APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
 
@@ -219,7 +293,7 @@ export default function CardManagerPage() {
                 if (
                     autoCapture &&
                     consecutiveSameCard.current >=
-                    OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD
+                        OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD
                 ) {
                     consecutiveSameCard.current = 0;
                     lastDetectedCardId.current = null;
@@ -228,7 +302,8 @@ export default function CardManagerPage() {
                         title: "Auto-capture Stopped",
                         message: `Same card detected ${OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD} times in a row. Process paused.`,
                         color: "orange",
-                        autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                        autoClose:
+                            APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                     });
                 }
 
@@ -246,7 +321,8 @@ export default function CardManagerPage() {
             consecutiveNoCard.current += 1;
             if (
                 autoCapture &&
-                consecutiveNoCard.current >= OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                consecutiveNoCard.current >=
+                    OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
             ) {
                 consecutiveNoCard.current = 0;
                 setAutoCaptureActive(false);
@@ -256,19 +332,26 @@ export default function CardManagerPage() {
         }
     };
 
-    const handleAddToCollection = async (card: SearchedCard) => {
+    const handleAddToCollection = async (
+        card: SearchedCard,
+    ) => {
         setAddingId(card.id);
         try {
-            const res = await fetch("/api/card-manager/collected", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    cardId: card.id,
-                    variant: "nf",
-                    condition: "nm",
-                    checkVariantCondition: false,
-                }),
-            });
+            const res = await fetch(
+                "/api/card-manager/collected",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        cardId: card.id,
+                        variant: "nf",
+                        condition: "nm",
+                        checkVariantCondition: false,
+                    }),
+                },
+            );
             const data = await res.json();
             if (data.success) {
                 refreshCollection();
@@ -282,14 +365,18 @@ export default function CardManagerPage() {
                         ? `${card.name} (${card.collectionCode}) is already in your collection.`
                         : `${card.name} (${card.collectionCode}) added.`,
                     color: "green",
-                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                    autoClose:
+                        APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
             } else {
                 notifications.show({
                     title: "Failed to Add",
-                    message: data.error || "Could not add card to collection.",
+                    message:
+                        data.error ||
+                        "Could not add card to collection.",
                     color: "red",
-                    autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                    autoClose:
+                        APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
                 });
             }
         } catch (err) {
@@ -298,7 +385,8 @@ export default function CardManagerPage() {
                 title: "Error",
                 message: "Network error while adding card.",
                 color: "red",
-                autoClose: APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
+                autoClose:
+                    APP_CONFIG.NOTIFICATION_AUTO_CLOSE,
             });
         } finally {
             setAddingId(null);
@@ -337,19 +425,31 @@ export default function CardManagerPage() {
                     collection={
                         <CollectedCardWidget
                             ref={listRef}
-                            onCollectionChange={setCollectedCardIds}
+                            onCollectionChange={
+                                setCollectedCardIds
+                            }
                         />
                     }
                     results={
                         <SearchResultWidget
                             results={results}
                             loading={loading}
-                            info={searchMode === "text" ? searchQuery : resultInfo}
+                            info={
+                                searchMode === "text"
+                                    ? searchQuery
+                                    : resultInfo
+                            }
                             addingId={addingId}
-                            collectedCardIds={collectedCardIds}
-                            onAddToCollection={handleAddToCollection}
+                            collectedCardIds={
+                                collectedCardIds
+                            }
+                            onAddToCollection={
+                                handleAddToCollection
+                            }
                             onReset={handleReset}
-                            waitingForSelection={waitingForSelection}
+                            waitingForSelection={
+                                waitingForSelection
+                            }
                         />
                     }
                     controls={
@@ -359,7 +459,9 @@ export default function CardManagerPage() {
                                 setQuery={setSearchQuery}
                                 loading={loading}
                                 searchMode={searchMode}
-                                onSearchModeChange={setSearchMode}
+                                onSearchModeChange={
+                                    setSearchMode
+                                }
                                 onScanIds={handleScanIds}
                                 onScanStart={() => {
                                     setResults([]);
@@ -370,42 +472,82 @@ export default function CardManagerPage() {
                                 autoAdd={autoAdd}
                                 onAutoAddChange={setAutoAdd}
                                 autoCapture={autoCapture}
-                                onAutoCaptureChange={(val) => {
+                                onAutoCaptureChange={(
+                                    val,
+                                ) => {
                                     setAutoCapture(val);
-                                    if (val) setAutoAdd(true);
-                                    else setAutoCaptureActive(false);
+                                    if (val)
+                                        setAutoAdd(true);
+                                    else
+                                        setAutoCaptureActive(
+                                            false,
+                                        );
                                 }}
-                                manualCaptureDelay={manualCaptureDelay}
-                                onManualCaptureDelayChange={setManualCaptureDelay}
-                                autoCaptureDelay={autoCaptureDelay}
-                                onAutoCaptureDelayChange={setAutoCaptureDelay}
-                                loopActive={autoCaptureActive}
-                                onLoopActiveChange={(val) => {
+                                manualCaptureDelay={
+                                    manualCaptureDelay
+                                }
+                                onManualCaptureDelayChange={
+                                    setManualCaptureDelay
+                                }
+                                autoCaptureDelay={
+                                    autoCaptureDelay
+                                }
+                                onAutoCaptureDelayChange={
+                                    setAutoCaptureDelay
+                                }
+                                loopActive={
+                                    autoCaptureActive
+                                }
+                                onLoopActiveChange={(
+                                    val,
+                                ) => {
                                     if (!val) {
                                         consecutiveNoCard.current = 0;
                                         consecutiveSameCard.current = 0;
-                                        lastDetectedCardId.current = null;
+                                        lastDetectedCardId.current =
+                                            null;
                                     }
-                                    setAutoCaptureActive(val);
+                                    setAutoCaptureActive(
+                                        val,
+                                    );
                                 }}
                                 paused={waitingForSelection}
                                 onClear={() => {
-                                    setWaitingForSelection(false);
+                                    setWaitingForSelection(
+                                        false,
+                                    );
                                     setResultInfo("");
                                 }}
                                 resetTrigger={resetTrigger}
-                                selectedFranchise={selectedFranchise}
-                                onFranchiseChange={(val) => {
-                                    setSelectedFranchise(val);
-                                    setSelectedLanguage("all");
+                                selectedFranchise={
+                                    selectedFranchise
+                                }
+                                onFranchiseChange={(
+                                    val,
+                                ) => {
+                                    setSelectedFranchise(
+                                        val,
+                                    );
+                                    setSelectedLanguage(
+                                        "all",
+                                    );
                                 }}
                                 franchiseOptions={[
-                                    { value: "all", label: "All Franchises" },
+                                    {
+                                        value: "all",
+                                        label: "All Franchises",
+                                    },
                                     ...FRANCHISE_OPTIONS,
                                 ]}
-                                selectedLanguage={selectedLanguage}
-                                onLanguageChange={setSelectedLanguage}
-                                languageOptions={languageOptions}
+                                selectedLanguage={
+                                    selectedLanguage
+                                }
+                                onLanguageChange={
+                                    setSelectedLanguage
+                                }
+                                languageOptions={
+                                    languageOptions
+                                }
                             />
                         </Stack>
                     }

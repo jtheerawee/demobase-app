@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { Tooltip, Button, Center, Group } from "@mantine/core";
-import { IconCamera, IconPlayerStop } from "@tabler/icons-react";
+import {
+    Tooltip,
+    Button,
+    Center,
+    Group,
+} from "@mantine/core";
+import {
+    IconCamera,
+    IconPlayerStop,
+} from "@tabler/icons-react";
 
 interface CameraShutterProps {
     loading: boolean;
@@ -33,7 +41,11 @@ export function CameraShutter({
             }
         };
         window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
+        return () =>
+            window.removeEventListener(
+                "keydown",
+                handleKeyDown,
+            );
     }, [cameraActive, loading, onCapture]);
 
     return (
@@ -48,7 +60,9 @@ export function CameraShutter({
                         color="blue"
                         radius="xl"
                         size="md"
-                        leftSection={<IconCamera size={20} />}
+                        leftSection={
+                            <IconCamera size={20} />
+                        }
                         onClick={onCapture}
                         disabled={loading || !cameraActive}
                     >
@@ -62,7 +76,9 @@ export function CameraShutter({
                         color="red"
                         radius="xl"
                         size="md"
-                        leftSection={<IconPlayerStop size={20} />}
+                        leftSection={
+                            <IconPlayerStop size={20} />
+                        }
                         onClick={() => {
                             onLoopActiveChange?.(false);
                             onClear?.();
@@ -75,4 +91,3 @@ export function CameraShutter({
         </Center>
     );
 }
-

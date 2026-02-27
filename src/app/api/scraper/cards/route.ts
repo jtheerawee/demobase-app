@@ -7,7 +7,10 @@ export async function GET(request: Request) {
 
     if (!collectionId) {
         return NextResponse.json(
-            { success: false, error: "Missing collectionId" },
+            {
+                success: false,
+                error: "Missing collectionId",
+            },
             { status: 400 },
         );
     }
@@ -17,12 +20,17 @@ export async function GET(request: Request) {
 
         const { data, error } = await supabase
             .from("scraped_cards")
-            .select("id, name, image_url, card_url, card_no, rarity")
+            .select(
+                "id, name, image_url, card_url, card_no, rarity",
+            )
             .eq("collection_id", collectionId)
             .order("id", { ascending: true });
 
         if (error) {
-            console.error("[API] Error fetching cards:", error);
+            console.error(
+                "[API] Error fetching cards:",
+                error,
+            );
             return NextResponse.json(
                 { success: false, error: error.message },
                 { status: 500 },
@@ -43,7 +51,10 @@ export async function GET(request: Request) {
             cards,
         });
     } catch (err: any) {
-        console.error("[API] Unexpected error fetching cards:", err);
+        console.error(
+            "[API] Unexpected error fetching cards:",
+            err,
+        );
         return NextResponse.json(
             { success: false, error: err.message },
             { status: 500 },
@@ -58,7 +69,10 @@ export async function DELETE(request: Request) {
 
     if (!id && !collectionId) {
         return NextResponse.json(
-            { success: false, error: "Missing id or collectionId" },
+            {
+                success: false,
+                error: "Missing id or collectionId",
+            },
             { status: 400 },
         );
     }

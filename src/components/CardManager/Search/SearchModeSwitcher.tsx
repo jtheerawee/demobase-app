@@ -1,5 +1,14 @@
-import { SegmentedControl, Center, Box, ActionIcon } from "@mantine/core";
-import { IconAlphabetLatin, IconCamera, IconInfoCircle } from "@tabler/icons-react";
+import {
+    SegmentedControl,
+    Center,
+    Box,
+    ActionIcon,
+} from "@mantine/core";
+import {
+    IconAlphabetLatin,
+    IconCamera,
+    IconInfoCircle,
+} from "@tabler/icons-react";
 
 export type SearchMode = "text" | "camera";
 
@@ -9,19 +18,27 @@ interface SearchModeSwitcherProps {
     onInfoClick?: () => void;
 }
 
-export function SearchModeSwitcher({ value, onChange, onInfoClick }: SearchModeSwitcherProps) {
+export function SearchModeSwitcher({
+    value,
+    onChange,
+    onInfoClick,
+}: SearchModeSwitcherProps) {
     return (
         <Box pos="relative" w="100%">
             <Center>
                 <SegmentedControl
                     value={value}
-                    onChange={(val) => onChange(val as SearchMode)}
+                    onChange={(val) =>
+                        onChange(val as SearchMode)
+                    }
                     data={[
                         {
                             value: "text",
                             label: (
                                 <Center style={{ gap: 10 }}>
-                                    <IconAlphabetLatin size={16} />
+                                    <IconAlphabetLatin
+                                        size={16}
+                                    />
                                     <span>Text Search</span>
                                 </Center>
                             ),

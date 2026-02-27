@@ -47,10 +47,19 @@ export function BaseCard({
             }}
             className="base-card-item"
         >
-            <Group gap="sm" wrap="nowrap" align="center" px="sm" py="sm">
+            <Group
+                gap="sm"
+                wrap="nowrap"
+                align="center"
+                px="sm"
+                py="sm"
+            >
                 <Box
                     w={85}
-                    style={{ display: "flex", justifyContent: "center" }}
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                    }}
                 >
                     <Image
                         src={card.imageUrl}
@@ -63,7 +72,9 @@ export function BaseCard({
                             cursor: "pointer",
                             filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
                         }}
-                        onClick={() => onImageClick?.(card.imageUrl)}
+                        onClick={() =>
+                            onImageClick?.(card.imageUrl)
+                        }
                     />
                 </Box>
 
@@ -76,7 +87,11 @@ export function BaseCard({
                         justifyContent: "center",
                     }}
                 >
-                    <Group justify="space-between" wrap="nowrap" gap={4}>
+                    <Group
+                        justify="space-between"
+                        wrap="nowrap"
+                        gap={4}
+                    >
                         <Text
                             size="xs"
                             fw={700}
@@ -86,12 +101,20 @@ export function BaseCard({
                             {card.name}
                         </Text>
                         {topRightActions && (
-                            <Group gap={2}>{topRightActions}</Group>
+                            <Group gap={2}>
+                                {topRightActions}
+                            </Group>
                         )}
                     </Group>
 
-                    <Text size="10px" c="dimmed" lineClamp={1}>
-                        {card.franchise ? `${card.franchise.toUpperCase()} • ` : ""}
+                    <Text
+                        size="10px"
+                        c="dimmed"
+                        lineClamp={1}
+                    >
+                        {card.franchise
+                            ? `${card.franchise.toUpperCase()} • `
+                            : ""}
                         {card.collectionName}
                     </Text>
 
@@ -103,7 +126,9 @@ export function BaseCard({
                                 c="grape.7"
                                 bg="grape.0"
                                 px={4}
-                                style={{ borderRadius: "2px" }}
+                                style={{
+                                    borderRadius: "2px",
+                                }}
                             >
                                 {card.collectionCode}
                             </Text>
@@ -130,14 +155,26 @@ export function BaseCard({
                     </Group>
 
                     {bottomLeftActions && (
-                        <Group gap={4} mt={4} align="center" wrap="nowrap">
+                        <Group
+                            gap={4}
+                            mt={4}
+                            align="center"
+                            wrap="nowrap"
+                        >
                             {bottomLeftActions}
                         </Group>
                     )}
                 </Stack>
 
                 {rightActions && (
-                    <Stack gap={4} pt={5} style={{ height: "100%", justifyContent: "flex-start" }}>
+                    <Stack
+                        gap={4}
+                        pt={5}
+                        style={{
+                            height: "100%",
+                            justifyContent: "flex-start",
+                        }}
+                    >
                         {rightActions}
                     </Stack>
                 )}

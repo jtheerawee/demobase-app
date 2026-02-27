@@ -2,13 +2,15 @@ import { scrapePokemonCardsEn } from "./pokemonCardScraperEn";
 import { scrapePokemonCollectionsEn } from "./pokemonCollectionScraperEn";
 import { scrapePokemonCardsTh } from "./pokemonCardScraperTh";
 import { scrapePokemonCollectionsTh } from "./pokemonCollectionScraperTh";
-import type { ScraperOptions } from "./types";
+import type { ScraperOptions } from "../types";
 
 /**
  * ENTRY POINT: Scrape Pokemon Cards
  * Dispatches to Th or En version based on language.
  */
-export async function scrapePokemonCards(options: ScraperOptions) {
+export async function scrapePokemonCards(
+    options: ScraperOptions,
+) {
     const { language } = options;
     if (language === "th") {
         return scrapePokemonCardsTh(options);
@@ -21,7 +23,9 @@ export async function scrapePokemonCards(options: ScraperOptions) {
  * ENTRY POINT: Scrape Pokemon Collections
  * Dispatches to Th or En version based on language.
  */
-export async function scrapePokemonCollections(options: ScraperOptions) {
+export async function scrapePokemonCollections(
+    options: ScraperOptions,
+) {
     const { language } = options;
     if (language === "th") {
         return scrapePokemonCollectionsTh(options);

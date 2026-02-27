@@ -9,7 +9,10 @@ export async function DELETE(request: Request) {
 
     if (!franchise || !language) {
         return NextResponse.json(
-            { success: false, error: "Franchise and language are required" },
+            {
+                success: false,
+                error: "Franchise and language are required",
+            },
             { status: 400 },
         );
     }

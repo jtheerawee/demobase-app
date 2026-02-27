@@ -1,6 +1,13 @@
 "use client";
 
-import { Group, Text, Badge, Loader, Stack, Divider } from "@mantine/core";
+import {
+    Group,
+    Text,
+    Badge,
+    Loader,
+    Stack,
+    Divider,
+} from "@mantine/core";
 import { ReactNode } from "react";
 
 interface WidgetHeaderProps {
@@ -20,7 +27,12 @@ export function WidgetHeader({
 }: WidgetHeaderProps) {
     return (
         <Stack gap={0}>
-            <Group justify="space-between" align="center" px="sm" py="xs">
+            <Group
+                justify="space-between"
+                align="center"
+                px="sm"
+                py="xs"
+            >
                 <Text fw={700} size="lg">
                     {title}
                 </Text>
@@ -34,7 +46,11 @@ export function WidgetHeader({
                                 color={badgeColor}
                                 variant="filled"
                                 h={18}
-                                styles={{ label: { fontSize: "10px" } }}
+                                styles={{
+                                    label: {
+                                        fontSize: "10px",
+                                    },
+                                }}
                             >
                                 {count}
                             </Badge>

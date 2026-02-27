@@ -17,7 +17,13 @@ export function CameraDevices({
     if (devices.length <= 1) return null;
 
     return (
-        <Box pos="absolute" top={10} left={10} w={APP_CONFIG.CAMERA_DEVICES_WIDTH} style={{ zIndex: 10 }}>
+        <Box
+            pos="absolute"
+            top={10}
+            left={10}
+            w={APP_CONFIG.CAMERA_DEVICES_WIDTH}
+            style={{ zIndex: 10 }}
+        >
             <Select
                 size="xs"
                 placeholder="Select Camera"
@@ -26,7 +32,8 @@ export function CameraDevices({
                 onChange={onDeviceChange}
                 styles={{
                     input: {
-                        backgroundColor: "rgba(255,255,255,0.8)",
+                        backgroundColor:
+                            "rgba(255,255,255,0.8)",
                         backdropFilter: "blur(4px)",
                         borderColor: "transparent",
                     },
@@ -36,21 +43,24 @@ export function CameraDevices({
     );
 }
 
-const STORAGE_KEY = 'preferred-camera-device';
+const STORAGE_KEY = "preferred-camera-device";
 
 export function useCameraDevices() {
-    const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
-    const [selectedDeviceId, setSelectedDeviceId] = useLocalStorage<string | null>({
-        key: STORAGE_KEY,
-        defaultValue: null,
-    });
+    const [devices, setDevices] = useState<
+        { value: string; label: string }[]
+    >([]);
+    const [selectedDeviceId, setSelectedDeviceId] =
+        useLocalStorage<string | null>({
+            key: STORAGE_KEY,
+            defaultValue: null,
+        });
 
     // Read saved device directly from localStorage — guaranteed to be available immediately,
     // even before React state hydration completes.
     const getSavedDeviceId = () => {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
-            return raw ? JSON.parse(raw) as string : null;
+            return raw ? (JSON.parse(raw) as string) : null;
         } catch {
             return null;
         }
@@ -58,19 +68,33 @@ export function useCameraDevices() {
 
     const loadDevices = async () => {
         try {
-            const allDevices = await navigator.mediaDevices.enumerateDevices();
+            const allDevices =
+                await navigator.mediaDevices.enumerateDevices();
             const videoDevices = allDevices
-                .filter((device) => device.kind === "videoinput" && device.deviceId)
+                .filter(
+                    (device) =>
+                        device.kind === "videoinput" &&
+                        device.deviceId,
+                )
                 .map((device) => ({
                     value: device.deviceId,
-                    label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`,
+                    label:
+                        device.label ||
+                        `Camera ${device.deviceId.slice(0, 5)}...`,
                 }));
             setDevices(videoDevices);
 
             // Only fall back to first device if nothing is saved
             setSelectedDeviceId((prev) => {
-                if (prev && videoDevices.some(d => d.value === prev)) return prev;
-                if (!prev && videoDevices.length > 0) return videoDevices[0].value;
+                if (
+                    prev &&
+                    videoDevices.some(
+                        (d) => d.value === prev,
+                    )
+                )
+                    return prev;
+                if (!prev && videoDevices.length > 0)
+                    return videoDevices[0].value;
                 return prev;
             });
         } catch (err) {
@@ -78,5 +102,11 @@ export function useCameraDevices() {
         }
     };
 
-    return { devices, selectedDeviceId, setSelectedDeviceId, loadDevices, getSavedDeviceId };
+    return {
+        devices,
+        selectedDeviceId,
+        setSelectedDeviceId,
+        loadDevices,
+        getSavedDeviceId,
+    };
 }

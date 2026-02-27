@@ -1,5 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
-import type { ScrapedCard, ScrapedCollection } from "./types";
+import type {
+    ScrapedCard,
+    ScrapedCollection,
+} from "./types";
 
 export async function saveScrapedCollections(
     collections: ScrapedCollection[],
@@ -9,11 +12,18 @@ export async function saveScrapedCollections(
     },
 ) {
     if (collections.length === 0)
-        return { saved: [], added: 0, matched: 0, missed: 0 };
+        return {
+            saved: [],
+            added: 0,
+            matched: 0,
+            missed: 0,
+        };
 
     const supabase = await createClient();
     const scrapedUrls = new Set(
-        collections.map((col) => col.collectionUrl).filter(Boolean),
+        collections
+            .map((col) => col.collectionUrl)
+            .filter(Boolean),
     );
 
     // Fetch ALL existing collections for this franchise from DB
@@ -24,7 +34,9 @@ export async function saveScrapedCollections(
         .eq("language", context.language);
 
     const allExistingUrls = new Set(
-        (allExisting || []).map((e: any) => e.collection_url),
+        (allExisting || []).map(
+            (e: any) => e.collection_url,
+        ),
     );
 
     // added: scraped but NOT yet in DB
@@ -48,11 +60,16 @@ export async function saveScrapedCollections(
 
     const { data, error } = await supabase
         .from("scraped_collections")
-        .upsert(dataToInsert, { onConflict: "collection_url" })
+        .upsert(dataToInsert, {
+            onConflict: "collection_url",
+        })
         .select();
 
     if (error) {
-        console.error("[Persistence] Error saving collections:", error);
+        console.error(
+            "[Persistence] Error saving collections:",
+            error,
+        );
         throw error;
     }
 
@@ -83,7 +100,10 @@ export async function updateScrapedCollectionYear(
         .eq("id", id);
 
     if (error) {
-        console.error("[Persistence] Error updating collection year:", error);
+        console.error(
+            "[Persistence] Error updating collection year:",
+            error,
+        );
     }
 }
 
@@ -91,10 +111,13 @@ export async function saveScrapedCards(
     cards: ScrapedCard[],
     collectionId: number | string,
 ) {
-    if (cards.length === 0) return { added: 0, matched: 0, missed: 0 };
+    if (cards.length === 0)
+        return { added: 0, matched: 0, missed: 0 };
 
     const supabase = await createClient();
-    const scrapedUrls = new Set(cards.map((c) => c.cardUrl).filter(Boolean));
+    const scrapedUrls = new Set(
+        cards.map((c) => c.cardUrl).filter(Boolean),
+    );
 
     const colId =
         typeof collectionId === "string"
@@ -124,7 +147,9 @@ export async function saveScrapedCards(
     // 2. OR Exist but we now have rarity information (meaning we just deep-scraped them or found them in legacy view)
     const cardsToUpsert = cards.filter((c) => {
         const urlExists = existingKeys.has(c.cardUrl);
-        const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
+        const nameNoExists = existingKeys.has(
+            `${c.name}|${c.cardNo}`,
+        );
         const exists = urlExists || nameNoExists;
 
         if (!exists) return true; // It's new, definitely save it
@@ -133,7 +158,9 @@ export async function saveScrapedCards(
 
     const addedCardsList = cards.filter((c) => {
         const urlExists = existingKeys.has(c.cardUrl);
-        const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
+        const nameNoExists = existingKeys.has(
+            `${c.name}|${c.cardNo}`,
+        );
         return !urlExists && !nameNoExists;
     });
     const added = addedCardsList.length;
@@ -155,13 +182,18 @@ export async function saveScrapedCards(
 
         const { error } = await supabase
             .from("scraped_cards")
-            .upsert(dataToInsert, { onConflict: "card_url" });
+            .upsert(dataToInsert, {
+                onConflict: "card_url",
+            });
 
         if (error) {
-            console.error("[Persistence] Error saving cards:", {
-                error,
-                dataToInsert,
-            });
+            console.error(
+                "[Persistence] Error saving cards:",
+                {
+                    error,
+                    dataToInsert,
+                },
+            );
             throw error;
         }
     }
@@ -170,7 +202,12 @@ export async function saveScrapedCards(
         `[Persistence] Processed ${cards.length} cards for collection ${collectionId}. (Upserted ${cardsToUpsert.length})`,
         { added, matched, missed },
     );
-    return { added, matched, missed, addedCards: addedCardsList };
+    return {
+        added,
+        matched,
+        missed,
+        addedCards: addedCardsList,
+    };
 }
 
 /** Call once after all pages scraped to get real missed count for collections */
@@ -184,8 +221,12 @@ export async function computeMissedCollections(
         .select("collection_url")
         .eq("franchise", context.franchise)
         .eq("language", context.language);
-    const dbUrls = (data || []).map((e: any) => e.collection_url);
-    return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
+    const dbUrls = (data || []).map(
+        (e: any) => e.collection_url,
+    );
+    return dbUrls.filter(
+        (u: string) => !allScrapedUrls.has(u),
+    ).length;
 }
 
 /** Call once after all cards scraped to get real missed count for a collection */
@@ -203,5 +244,7 @@ export async function computeMissedCards(
         .select("card_url")
         .eq("collection_id", colId);
     const dbUrls = (data || []).map((e: any) => e.card_url);
-    return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
+    return dbUrls.filter(
+        (u: string) => !allScrapedUrls.has(u),
+    ).length;
 }

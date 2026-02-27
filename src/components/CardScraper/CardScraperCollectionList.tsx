@@ -54,11 +54,15 @@ export function CardScraperCollectionList({
     loading,
 }: CardScraperCollectionListProps) {
     const [search, setSearch] = useState("");
-    const [sortBy, setSortBy] = useState<"name" | "cards" | "year">("name");
+    const [sortBy, setSortBy] = useState<
+        "name" | "cards" | "year"
+    >("name");
     const [sortAsc, setSortAsc] = useState(true);
     const totalCount = collections.length;
 
-    const handleSort = (field: "name" | "cards" | "year") => {
+    const handleSort = (
+        field: "name" | "cards" | "year",
+    ) => {
         if (sortBy === field) {
             setSortAsc((prev) => !prev);
         } else {
@@ -74,7 +78,9 @@ export function CardScraperCollectionList({
             return (
                 item.name.toLowerCase().includes(query) ||
                 (item.collectionCode &&
-                    item.collectionCode.toLowerCase().includes(query))
+                    item.collectionCode
+                        .toLowerCase()
+                        .includes(query))
             );
         })
         .sort((a, b) => {
@@ -94,12 +100,20 @@ export function CardScraperCollectionList({
         });
 
     return (
-        <Card withBorder radius="md" padding="md" shadow="sm">
+        <Card
+            withBorder
+            radius="md"
+            padding="md"
+            shadow="sm"
+        >
             <Stack gap="md">
                 <Group justify="space-between">
                     <Text fw={700}>Collections</Text>
                     <Group gap="xs">
-                        <Tooltip label="Refresh from database" withArrow>
+                        <Tooltip
+                            label="Refresh from database"
+                            withArrow
+                        >
                             <ActionIcon
                                 variant="light"
                                 color="blue"
@@ -118,10 +132,14 @@ export function CardScraperCollectionList({
                                 variant="light"
                                 color="violet"
                                 size="sm"
-                                onClick={onDownloadAllCollections}
+                                onClick={
+                                    onDownloadAllCollections
+                                }
                                 loading={loading}
                             >
-                                <IconDatabaseImport size={16} />
+                                <IconDatabaseImport
+                                    size={16}
+                                />
                             </ActionIcon>
                         </Tooltip>
                         <ActionIcon
@@ -140,13 +158,24 @@ export function CardScraperCollectionList({
                             withArrow
                         >
                             <ActionIcon
-                                variant={sortBy === "name" ? "light" : "subtle"}
-                                color={sortBy === "name" ? "blue" : "gray"}
+                                variant={
+                                    sortBy === "name"
+                                        ? "light"
+                                        : "subtle"
+                                }
+                                color={
+                                    sortBy === "name"
+                                        ? "blue"
+                                        : "gray"
+                                }
                                 size="sm"
-                                onClick={() => handleSort("name")}
+                                onClick={() =>
+                                    handleSort("name")
+                                }
                                 disabled={totalCount === 0}
                             >
-                                {sortBy === "name" && !sortAsc ? (
+                                {sortBy === "name" &&
+                                !sortAsc ? (
                                     <IconSortZA size={14} />
                                 ) : (
                                     <IconSortAZ size={14} />
@@ -158,10 +187,20 @@ export function CardScraperCollectionList({
                             withArrow
                         >
                             <ActionIcon
-                                variant={sortBy === "year" ? "light" : "subtle"}
-                                color={sortBy === "year" ? "blue" : "gray"}
+                                variant={
+                                    sortBy === "year"
+                                        ? "light"
+                                        : "subtle"
+                                }
+                                color={
+                                    sortBy === "year"
+                                        ? "blue"
+                                        : "gray"
+                                }
                                 size="sm"
-                                onClick={() => handleSort("year")}
+                                onClick={() =>
+                                    handleSort("year")
+                                }
                                 disabled={totalCount === 0}
                             >
                                 <IconCalendar size={14} />
@@ -173,17 +212,30 @@ export function CardScraperCollectionList({
                         >
                             <ActionIcon
                                 variant={
-                                    sortBy === "cards" ? "light" : "subtle"
+                                    sortBy === "cards"
+                                        ? "light"
+                                        : "subtle"
                                 }
-                                color={sortBy === "cards" ? "blue" : "gray"}
+                                color={
+                                    sortBy === "cards"
+                                        ? "blue"
+                                        : "gray"
+                                }
                                 size="sm"
-                                onClick={() => handleSort("cards")}
+                                onClick={() =>
+                                    handleSort("cards")
+                                }
                                 disabled={totalCount === 0}
                             >
-                                {sortBy === "cards" && sortAsc ? (
-                                    <IconSortAscendingNumbers size={14} />
+                                {sortBy === "cards" &&
+                                sortAsc ? (
+                                    <IconSortAscendingNumbers
+                                        size={14}
+                                    />
                                 ) : (
-                                    <IconSortDescendingNumbers size={14} />
+                                    <IconSortDescendingNumbers
+                                        size={14}
+                                    />
                                 )}
                             </ActionIcon>
                         </Tooltip>
@@ -213,14 +265,18 @@ export function CardScraperCollectionList({
                                 size="xs"
                                 color="gray"
                                 variant="subtle"
-                                onClick={() => setSearch("")}
+                                onClick={() =>
+                                    setSearch("")
+                                }
                             >
                                 <IconX size={12} />
                             </ActionIcon>
                         ) : null
                     }
                     value={search}
-                    onChange={(e) => setSearch(e.currentTarget.value)}
+                    onChange={(e) =>
+                        setSearch(e.currentTarget.value)
+                    }
                     size="xs"
                     radius="md"
                 />
@@ -231,19 +287,38 @@ export function CardScraperCollectionList({
                             <CardScraperCollectionItem
                                 key={item.id}
                                 item={item}
-                                selected={selectedId === item.id}
-                                onSelect={() => onSelect?.(item.id)}
-                                onDelete={() => onDeleteCollection?.(item.id)}
+                                selected={
+                                    selectedId === item.id
+                                }
+                                onSelect={() =>
+                                    onSelect?.(item.id)
+                                }
+                                onDelete={() =>
+                                    onDeleteCollection?.(
+                                        item.id,
+                                    )
+                                }
                             />
                         ))}
                         {totalCount === 0 && !loading && (
-                            <Text size="sm" c="dimmed" ta="center" py="xl">
-                                No collections found. Click &quot;Download&quot;
-                                to fetch.
+                            <Text
+                                size="sm"
+                                c="dimmed"
+                                ta="center"
+                                py="xl"
+                            >
+                                No collections found. Click
+                                &quot;Download&quot; to
+                                fetch.
                             </Text>
                         )}
                         {loading && (
-                            <Text size="sm" c="dimmed" ta="center" py="xl">
+                            <Text
+                                size="sm"
+                                c="dimmed"
+                                ta="center"
+                                py="xl"
+                            >
                                 Loading collections...
                             </Text>
                         )}

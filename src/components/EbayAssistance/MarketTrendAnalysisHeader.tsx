@@ -41,32 +41,63 @@ export function MarketTrendAnalysisHeader({
             >
                 {t("title")}
                 {query && (
-                    <Badge variant="light" color="orange" size="sm" radius="sm">
+                    <Badge
+                        variant="light"
+                        color="orange"
+                        size="sm"
+                        radius="sm"
+                    >
                         {query}
                     </Badge>
                 )}
                 {service && service !== "---" && (
-                    <Badge variant="light" color="orange" size="sm" radius="sm">
+                    <Badge
+                        variant="light"
+                        color="orange"
+                        size="sm"
+                        radius="sm"
+                    >
                         {service.toUpperCase()} {grade}
                     </Badge>
                 )}
                 {(minPrice || maxPrice) && (
-                    <Badge variant="light" color="orange" size="sm" radius="sm">
-                        ${minPrice || 0} - ${maxPrice || "∞"}
+                    <Badge
+                        variant="light"
+                        color="orange"
+                        size="sm"
+                        radius="sm"
+                    >
+                        ${minPrice || 0} - $
+                        {maxPrice || "∞"}
                     </Badge>
                 )}
                 {excludeJp && (
-                    <Badge variant="light" color="orange" size="sm" radius="sm">
+                    <Badge
+                        variant="light"
+                        color="orange"
+                        size="sm"
+                        radius="sm"
+                    >
                         {t("noJp")}
                     </Badge>
                 )}
                 {onlyUs && (
-                    <Badge variant="light" color="orange" size="sm" radius="sm">
+                    <Badge
+                        variant="light"
+                        color="orange"
+                        size="sm"
+                        radius="sm"
+                    >
                         {t("usOnly")}
                     </Badge>
                 )}
                 {listingType && (
-                    <Badge variant="light" color="orange" size="sm" radius="sm">
+                    <Badge
+                        variant="light"
+                        color="orange"
+                        size="sm"
+                        radius="sm"
+                    >
                         {listingType === "auction"
                             ? t("auctions")
                             : t("fixedPrice")}

@@ -8,7 +8,10 @@ interface ImageThumbnailProps {
     onEnlarge: () => void;
 }
 
-export function ImageThumbnail({ preview, onEnlarge }: ImageThumbnailProps) {
+export function ImageThumbnail({
+    preview,
+    onEnlarge,
+}: ImageThumbnailProps) {
     if (!preview) return null;
 
     return (
@@ -30,9 +33,12 @@ export function ImageThumbnail({ preview, onEnlarge }: ImageThumbnailProps) {
                         borderRadius: "4px",
                         overflow: "hidden",
                         border: "2px solid var(--mantine-color-blue-4)",
-                        boxShadow: "var(--mantine-shadow-xs)",
+                        boxShadow:
+                            "var(--mantine-shadow-xs)",
                         transition: "transform 0.1s ease",
-                        "&:hover": { transform: "scale(1.05)" },
+                        "&:hover": {
+                            transform: "scale(1.05)",
+                        },
                     }}
                 >
                     <Image
@@ -53,7 +59,10 @@ export function ImageThumbnail({ preview, onEnlarge }: ImageThumbnailProps) {
                             padding: 1,
                         }}
                     >
-                        <IconMaximize size={8} color="white" />
+                        <IconMaximize
+                            size={8}
+                            color="white"
+                        />
                     </Box>
                 </Box>
             </Tooltip>

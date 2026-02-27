@@ -17,4 +17,3 @@ export const LANGUAGE_OPTIONS: Record<
     ],
     lorcana: [{ value: "en", label: "English" }],
 };
-

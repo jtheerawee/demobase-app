@@ -1,8 +1,8 @@
 import {
     saveScrapedCollections,
     computeMissedCollections,
-} from "./persistence";
-import type { ScraperOptions } from "./types";
+} from "../persistence";
+import type { ScraperOptions } from "../types";
 
 export async function scrapeMTGCollections({
     url,
@@ -12,7 +12,10 @@ export async function scrapeMTGCollections({
     language,
     skipSave,
 }: ScraperOptions) {
-    send({ type: "step", message: "MTG Gatherer detected. Fetching sets..." });
+    send({
+        type: "step",
+        message: "MTG Gatherer detected. Fetching sets...",
+    });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
@@ -33,8 +36,8 @@ export async function scrapeMTGCollections({
                 p === 1
                     ? url
                     : url.includes("?")
-                        ? `${url}&page=${p}`
-                        : `${url}?page=${p}`;
+                      ? `${url}&page=${p}`
+                      : `${url}?page=${p}`;
             send({
                 type: "step",
                 message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
@@ -60,28 +63,46 @@ export async function scrapeMTGCollections({
             });
             const pageResults = await workerPage.evaluate(
                 () => {
-                    const rows = document.querySelectorAll("tr");
+                    const rows =
+                        document.querySelectorAll("tr");
                     const items: any[] = [];
 
-                    rows.forEach(row => {
-                        const cells = row.querySelectorAll("td");
+                    rows.forEach((row) => {
+                        const cells =
+                            row.querySelectorAll("td");
                         if (cells.length < 5) return;
 
-                        const setLink = row.querySelector('a[href*="/sets/"], a[href*="set="]') as HTMLAnchorElement;
+                        const setLink = row.querySelector(
+                            'a[href*="/sets/"], a[href*="set="]',
+                        ) as HTMLAnchorElement;
                         if (!setLink) return;
 
-                        const name = setLink.textContent?.trim() || "";
-                        const href = setLink.getAttribute("href") || "";
+                        const name =
+                            setLink.textContent?.trim() ||
+                            "";
+                        const href =
+                            setLink.getAttribute("href") ||
+                            "";
 
                         // Release date is typically in td index 4
-                        const dateText = cells[4].textContent?.trim() || "";
-                        const releaseYear = dateText.match(/^\d{4}/) ? parseInt(dateText.slice(0, 4)) : undefined;
+                        const dateText =
+                            cells[4].textContent?.trim() ||
+                            "";
+                        const releaseYear = dateText.match(
+                            /^\d{4}/,
+                        )
+                            ? parseInt(dateText.slice(0, 4))
+                            : undefined;
 
-                        items.push({ name, href, releaseYear });
+                        items.push({
+                            name,
+                            href,
+                            releaseYear,
+                        });
                     });
 
                     return { rawItems: items };
-                }
+                },
             );
 
             const { rawItems } = pageResults;
@@ -96,7 +117,9 @@ export async function scrapeMTGCollections({
 
             const pageSets = rawItems
                 .map((item: any) => {
-                    const codeMatch = item.href.match(/\/sets\/([^/&?]+)/);
+                    const codeMatch = item.href.match(
+                        /\/sets\/([^/&?]+)/,
+                    );
                     const collectionCode = codeMatch
                         ? codeMatch[1].toUpperCase()
                         : "";
@@ -112,11 +135,17 @@ export async function scrapeMTGCollections({
                     };
                 })
                 .filter(
-                    (s: any) => s.name && s.name !== "Sets" && s.collectionCode,
+                    (s: any) =>
+                        s.name &&
+                        s.name !== "Sets" &&
+                        s.collectionCode,
                 );
 
             const newSets = pageSets.filter(
-                (s: any) => !uniqueCollectionCodes.has(s.collectionCode),
+                (s: any) =>
+                    !uniqueCollectionCodes.has(
+                        s.collectionCode,
+                    ),
             );
 
             if (newSets.length === 0) {
@@ -143,17 +172,30 @@ export async function scrapeMTGCollections({
             });
             allDiscoveredSets.push(...newSets);
 
-            if (!skipSave && franchise && language && newSets.length > 0) {
+            if (
+                !skipSave &&
+                franchise &&
+                language &&
+                newSets.length > 0
+            ) {
                 try {
-                    const result = await saveScrapedCollections(newSets, {
-                        franchise,
-                        language,
-                    });
+                    const result =
+                        await saveScrapedCollections(
+                            newSets,
+                            {
+                                franchise,
+                                language,
+                            },
+                        );
                     if (result) {
-                        const { saved, added, matched } = result;
+                        const { saved, added, matched } =
+                            result;
                         totalAdded += added;
                         totalMatched += matched;
-                        send({ type: "savedCollections", items: saved });
+                        send({
+                            type: "savedCollections",
+                            items: saved,
+                        });
                         send({
                             type: "step",
                             message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} matched.`,
@@ -191,10 +233,13 @@ export async function scrapeMTGCollections({
                     .map((s: any) => s.collectionUrl)
                     .filter(Boolean),
             );
-            const missed = await computeMissedCollections(allCollectionUrls, {
-                franchise,
-                language,
-            });
+            const missed = await computeMissedCollections(
+                allCollectionUrls,
+                {
+                    franchise,
+                    language,
+                },
+            );
             if (missed > 0) {
                 send({
                     type: "step",

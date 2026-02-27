@@ -1,4 +1,8 @@
-import { Container, SimpleGrid, Stack } from "@mantine/core";
+import {
+    Container,
+    SimpleGrid,
+    Stack,
+} from "@mantine/core";
 import { WidgetCard } from "@/components/WidgetCard";
 import {
     IconDatabaseExport,

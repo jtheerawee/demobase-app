@@ -1,4 +1,7 @@
-import { type NextRequest, NextResponse } from "next/server";
+import {
+    type NextRequest,
+    NextResponse,
+} from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
 export async function POST(req: NextRequest) {
@@ -8,7 +11,10 @@ export async function POST(req: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 },
+        );
     }
 
     try {
@@ -35,7 +41,8 @@ export async function POST(req: NextRequest) {
         await supabase.from("users").upsert({
             id: user.id,
             email: user.email,
-            avatar_url: user.user_metadata?.avatar_url || null,
+            avatar_url:
+                user.user_metadata?.avatar_url || null,
             last_login: user.last_sign_in_at,
         });
 
@@ -54,20 +61,28 @@ export async function POST(req: NextRequest) {
                 {
                     user_id: user.id,
                     keyword: query,
-                    service: service && service !== "---" ? service : "---",
+                    service:
+                        service && service !== "---"
+                            ? service
+                            : "---",
                     grade:
                         psaGrade && service !== "---"
                             ? parseInt(psaGrade, 10)
                             : null,
-                    min_price: minPrice ? parseFloat(String(minPrice)) : null,
-                    max_price: maxPrice ? parseFloat(String(maxPrice)) : null,
+                    min_price: minPrice
+                        ? parseFloat(String(minPrice))
+                        : null,
+                    max_price: maxPrice
+                        ? parseFloat(String(maxPrice))
+                        : null,
                     listing_type: listingType || "auction",
                     exclude_jp: excludeJp ?? false,
                     only_us: onlyUs ?? false,
                     updated_at: new Date().toISOString(),
                 },
                 {
-                    onConflict: "user_id,keyword,service,grade",
+                    onConflict:
+                        "user_id,keyword,service,grade",
                 },
             )
             .select()
@@ -79,7 +94,11 @@ export async function POST(req: NextRequest) {
     } catch (error: any) {
         console.error("Save Search Error:", error);
         return NextResponse.json(
-            { error: error.message || "Failed to save search" },
+            {
+                error:
+                    error.message ||
+                    "Failed to save search",
+            },
             { status: 500 },
         );
     }
