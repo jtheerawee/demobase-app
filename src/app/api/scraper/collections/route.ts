@@ -62,12 +62,13 @@ export async function DELETE(request: Request) {
     const franchise = searchParams.get("franchise");
     const language = searchParams.get("language");
     const id = searchParams.get("id");
+    const all = searchParams.get("all") === "true";
 
-    if (!id && !franchise) {
+    if (!id && !franchise && !all) {
         return NextResponse.json(
             {
                 success: false,
-                error: "Franchise or ID is required",
+                error: "Franchise, ID, or all flag is required",
             },
             { status: 400 },
         );
@@ -78,7 +79,9 @@ export async function DELETE(request: Request) {
 
         let query = supabase.from("scraped_collections").delete();
 
-        if (id) {
+        if (all) {
+            query = query.neq("id", -1); // Deletes all rows safely
+        } else if (id) {
             query = query.eq("id", id);
         } else {
             query = query.eq("franchise", franchise);

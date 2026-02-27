@@ -32,6 +32,8 @@ import {
 
 interface CardScraperCollectionListProps {
     collections?: CollectionItem[];
+    franchise?: string | null;
+    language?: string | null;
     selectedId?: string | number | null;
     onSelect?: (id: string | number) => void;
     onDownloadAllCollections?: () => void;
@@ -44,6 +46,8 @@ interface CardScraperCollectionListProps {
 
 export function CardScraperCollectionList({
     collections = [],
+    franchise,
+    language,
     selectedId,
     onSelect,
     onDownloadAllCollections,
@@ -94,10 +98,15 @@ export function CardScraperCollectionList({
         });
 
     return (
-        <Card withBorder radius="md" padding="md" shadow="sm">
+        <Card withBorder radius="sm" padding="sm" shadow="sm">
             <Stack gap="md">
                 <Group justify="space-between">
-                    <Text fw={700}>Collections</Text>
+                    <Group gap="xs" align="center">
+                        <Text fw={700}>Collections</Text>
+                        <Badge variant="light" color="blue">
+                            {totalCount} Cols
+                        </Badge>
+                    </Group>
                     <Group gap="xs">
                         <Tooltip label="Refresh from database" withArrow>
                             <ActionIcon
@@ -124,17 +133,18 @@ export function CardScraperCollectionList({
                                 <IconDatabaseImport size={16} />
                             </ActionIcon>
                         </Tooltip>
-                        <ActionIcon
-                            variant="light"
-                            color="red"
-                            size="sm"
-                            onClick={onDeleteAllCollections}
-                            title="Delete all collections"
-                            loading={loading}
-                            disabled={totalCount === 0}
-                        >
-                            <IconTrash size={16} />
-                        </ActionIcon>
+                        <Tooltip label={`Delete all ${franchise ? franchise.toUpperCase() + " " : ""}${language ? language.toUpperCase() + " " : ""}collections`} withArrow>
+                            <ActionIcon
+                                variant="light"
+                                color="red"
+                                size="sm"
+                                onClick={onDeleteAllCollections}
+                                loading={loading}
+                                disabled={totalCount === 0}
+                            >
+                                <IconTrash size={16} />
+                            </ActionIcon>
+                        </Tooltip>
                         <Tooltip
                             label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`}
                             withArrow
@@ -187,20 +197,18 @@ export function CardScraperCollectionList({
                                 )}
                             </ActionIcon>
                         </Tooltip>
-                        <ActionIcon
-                            variant="light"
-                            color="green"
-                            size="sm"
-                            onClick={onDownloadAllCards}
-                            title="Download cards for all collections"
-                            loading={loading}
-                            disabled={totalCount === 0}
-                        >
-                            <IconDownload size={16} />
-                        </ActionIcon>
-                        <Badge variant="light" color="blue">
-                            {totalCount} Cols
-                        </Badge>
+                        <Tooltip label={`Download cards for all ${franchise ? franchise.toUpperCase() + " " : ""}${language ? language.toUpperCase() + " " : ""}collections`} withArrow>
+                            <ActionIcon
+                                variant="light"
+                                color="green"
+                                size="sm"
+                                onClick={onDownloadAllCards}
+                                loading={loading}
+                                disabled={totalCount === 0}
+                            >
+                                <IconDownload size={16} />
+                            </ActionIcon>
+                        </Tooltip>
                     </Group>
                 </Group>
 
@@ -225,7 +233,7 @@ export function CardScraperCollectionList({
                     radius="md"
                 />
 
-                <ScrollArea h={600} offsetScrollbars>
+                <ScrollArea h={480}>
                     <Stack gap="xs">
                         {filteredCollections.map((item) => (
                             <CardScraperCollectionItem

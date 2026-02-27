@@ -20,6 +20,7 @@ import {
     IconCheck,
     IconDatabaseExport,
     IconSettings,
+    IconTrash,
 } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardList";
@@ -207,6 +208,42 @@ export default function CardScraperPage() {
             },
         );
     };
+
+    const handleDeleteAllDatabaseCollections = async () => {
+        askConfirm(
+            `Delete EVERYTHING in database`,
+            `This will permanently delete EVERY collection and EVERY scraped card across all franchises in the database. This cannot be undone.`,
+            async () => {
+                setCollectionLoading(true);
+                setCardLoading(true);
+                try {
+                    const res = await fetch(`/api/scraper/collections?all=true`, {
+                        method: "DELETE",
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        setCollections([]);
+                        setCards([]);
+                        setSelectedCollection(null);
+                        notifications.show({
+                            title: "Global Wipe Complete",
+                            message: `Successfully wiped all collections from the database.`,
+                            color: "green",
+                            icon: <IconCheck size={18} />,
+                        });
+                    } else {
+                        setError(data.error || "Failed to wipe database");
+                    }
+                } catch (err: any) {
+                    setError(err.message || "An unexpected error occurred during global deletion");
+                } finally {
+                    setCollectionLoading(false);
+                    setCardLoading(false);
+                }
+            },
+        );
+    };
+
 
     const handleDeleteCollection = async (id: string | number) => {
         const collection = collections.find((c) => c.id === id);
@@ -712,17 +749,31 @@ export default function CardScraperPage() {
                         />
                     }
                     actions={
-                        <Tooltip label="Scraper Settings">
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="lg"
-                                radius="md"
-                                onClick={openSettings}
-                            >
-                                <IconSettings size={22} />
-                            </ActionIcon>
-                        </Tooltip>
+                        <Group gap="xs">
+                            <Tooltip label="Delete All Database Collections" color="red">
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="red"
+                                    size="lg"
+                                    radius="md"
+                                    onClick={handleDeleteAllDatabaseCollections}
+                                    loading={collectionLoading}
+                                >
+                                    <IconTrash size={22} />
+                                </ActionIcon>
+                            </Tooltip>
+                            <Tooltip label="Scraper Settings">
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="gray"
+                                    size="lg"
+                                    radius="md"
+                                    onClick={openSettings}
+                                >
+                                    <IconSettings size={22} />
+                                </ActionIcon>
+                            </Tooltip>
+                        </Group>
                     }
                 />
 
@@ -773,6 +824,8 @@ export default function CardScraperPage() {
 
                     <div>
                         <CardScraperCollectionList
+                            franchise={selectedFranchise}
+                            language={selectedLanguage}
                             collections={collections}
                             selectedId={selectedCollection?.id}
                             loading={collectionLoading}

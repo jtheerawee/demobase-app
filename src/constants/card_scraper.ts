@@ -8,3 +8,12 @@ export const CARD_SCRAPER_CONFIG = {
     NUM_SCRAPED_CARDS_PER_COLLECTION: 50,
     RUNNING_STEPS_LIMIT: 5,
 } as const;
+
+export const SCRAPER_STEP_STATUS = {
+    PENDING: "pending",
+    RUNNING: "running",
+    COMPLETED: "completed",
+    ERROR: "error",
+} as const;
+
+export type ScraperStepStatus = (typeof SCRAPER_STEP_STATUS)[keyof typeof SCRAPER_STEP_STATUS];

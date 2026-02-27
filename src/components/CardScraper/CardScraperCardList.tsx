@@ -142,7 +142,7 @@ export function CardScraperCardList({
     };
 
     return (
-        <Card withBorder radius="md" padding="md" shadow="sm">
+        <Card withBorder radius="sm" padding="sm" shadow="sm">
             <Stack gap="md">
                 <Group justify="space-between">
                     <Text fw={600}>
@@ -225,7 +225,7 @@ export function CardScraperCardList({
                     </Group>
                 </Group>
 
-                <ScrollArea h={600} offsetScrollbars pt="xs">
+                <ScrollArea h={480} pt="xs">
                     <SimpleGrid cols={1} spacing="xs">
                         {filteredCards.map((card, index) => (
                             <Card

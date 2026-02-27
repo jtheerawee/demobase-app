@@ -23,12 +23,16 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 
-import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
+import {
+    CARD_SCRAPER_CONFIG,
+    SCRAPER_STEP_STATUS,
+    type ScraperStepStatus,
+} from "@/constants/card_scraper";
 
 interface Step {
     id: string | number;
     message: string;
-    status: "pending" | "running" | "completed" | "error";
+    status: ScraperStepStatus;
     timestamp: string;
 }
 
@@ -67,14 +71,17 @@ export function CardScraperRunningSteps({
         .slice(-CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT);
 
     return (
-        <Card withBorder radius="md" padding="md" shadow="sm">
+        <Card withBorder radius="sm" padding="sm" shadow="sm">
             <Stack gap="sm">
                 <Group justify="space-between">
                     <Text fw={600} size="sm">
-                        Running Steps
+                        Running Steps{" "}
+                        <Text component="span" fw={400} c="dimmed">
+                            (Limit to {CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT})
+                        </Text>
                     </Text>
                     <Group gap="xs">
-                        {filteredSteps.some((s) => s.status === "running") && (
+                        {filteredSteps.some((s) => s.status === SCRAPER_STEP_STATUS.RUNNING) && (
                             <Group gap="xs">
                                 <Badge variant="dot" color="blue" size="sm">
                                     Active
@@ -127,7 +134,7 @@ export function CardScraperRunningSteps({
                     </Group>
                 </Group>
 
-                <ScrollArea h={400} offsetScrollbars>
+                <ScrollArea h={300} offsetScrollbars>
                     <Stack gap="xs">
                         {filteredSteps.length > 0 ? (
                             [...filteredSteps].reverse().map((step) => (
@@ -138,13 +145,13 @@ export function CardScraperRunningSteps({
                                     wrap="nowrap"
                                 >
                                     <Box mt={2}>
-                                        {step.status === "completed" && (
+                                        {step.status === SCRAPER_STEP_STATUS.COMPLETED && (
                                             <IconCircleCheck
                                                 size={16}
                                                 color="var(--mantine-color-green-6)"
                                             />
                                         )}
-                                        {step.status === "running" && (
+                                        {step.status === SCRAPER_STEP_STATUS.RUNNING && (
                                             <IconLoader2
                                                 size={16}
                                                 color="var(--mantine-color-blue-6)"
@@ -155,13 +162,13 @@ export function CardScraperRunningSteps({
                                                 }}
                                             />
                                         )}
-                                        {step.status === "pending" && (
+                                        {step.status === SCRAPER_STEP_STATUS.PENDING && (
                                             <IconCircleDashed
                                                 size={16}
                                                 color="var(--mantine-color-gray-4)"
                                             />
                                         )}
-                                        {step.status === "error" && (
+                                        {step.status === SCRAPER_STEP_STATUS.ERROR && (
                                             <IconAlertCircle
                                                 size={16}
                                                 color="var(--mantine-color-red-6)"
