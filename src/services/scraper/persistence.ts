@@ -11,8 +11,8 @@ export async function saveScrapedCollections(
     if (collections.length === 0)
         return {
             saved: [],
-            added: 0,
-            matched: 0,
+            addedItems: [],
+            matchedItems: [],
             missed: 0,
         };
 
@@ -36,13 +36,11 @@ export async function saveScrapedCollections(
     const addedItems = collections.filter(
         (c) => !allExistingUrls.has(c.collectionUrl),
     );
-    const added = addedItems.length;
 
     // matched: scraped AND already in DB
     const matchedItems = collections.filter((c) =>
         allExistingUrls.has(c.collectionUrl),
     );
-    const matched = matchedItems.length;
 
     // missed is calculated after the full scrape run, not per-page
     const missed = 0;
@@ -80,15 +78,12 @@ export async function saveScrapedCollections(
 
     console.log(
         `[Persistence] Saving ${collections.length} collections for ${context.franchise}...`,
-        { added, matched, missed },
     );
     return {
         saved,
-        added,
-        matched,
-        missed,
         addedItems,
         matchedItems,
+        missed,
     };
 }
 
@@ -111,7 +106,12 @@ export async function saveScrapedCards(
     cards: ScrapedCard[],
     collectionId: number | string,
 ) {
-    if (cards.length === 0) return { added: 0, matched: 0, missed: 0 };
+    if (cards.length === 0)
+        return {
+            addedItems: [],
+            matchedItems: [],
+            missed: 0,
+        };
 
     const supabase = await createClient();
     const scrapedUrls = new Set(cards.map((c) => c.cardUrl).filter(Boolean));
@@ -154,7 +154,6 @@ export async function saveScrapedCards(
         const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
         return !urlExists && !nameNoExists;
     });
-    const added = addedCardsList.length;
 
     // matched: scraped AND already in DB
     const matchedCardsList = cards.filter((c) => {
@@ -162,7 +161,6 @@ export async function saveScrapedCards(
         const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
         return urlExists || nameNoExists;
     });
-    const matched = matchedCardsList.length;
 
     // missed is calculated after the full scrape run
     const missed = 0;
@@ -195,14 +193,11 @@ export async function saveScrapedCards(
 
     console.log(
         `[Persistence] Processed ${cards.length} cards for collection ${collectionId}. (Upserted ${cardsToUpsert.length})`,
-        { added, matched, missed },
     );
     return {
-        added,
-        matched,
-        missed,
         addedItems: addedCardsList,
         matchedItems: matchedCardsList,
+        missed,
     };
 }
 
@@ -224,9 +219,9 @@ export async function updateTcgUrls(
         .select("id, name, card_no")
         .eq("collection_id", colId);
 
-    if (!dbCards || dbCards.length === 0) return { matched: 0 };
-
-    let matched = 0;
+    if (!dbCards || dbCards.length === 0)
+        return { matchedItems: [] };
+    const matchedItems: any[] = [];
 
     for (const card of cards) {
         if (!card.cardUrl) continue;
@@ -251,14 +246,16 @@ export async function updateTcgUrls(
                 .update({ tcg_url: card.cardUrl })
                 .eq("id", match.id);
 
-            if (!error) matched++;
+            if (!error) matchedItems.push(card);
         }
     }
 
     console.log(
-        `[Persistence] updateTcgUrls: matched ${matched} out of ${cards.length} cards.`,
+        `[Persistence] Mapped ${matchedItems.length} cards to TCGPlayer URLs for collection ${collectionId}.`,
     );
-    return { matched };
+    return {
+        matchedItems,
+    };
 }
 
 /** Call once after all pages scraped to get real missed count for collections */

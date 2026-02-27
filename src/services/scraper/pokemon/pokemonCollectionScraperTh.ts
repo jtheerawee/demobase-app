@@ -1,6 +1,7 @@
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
+import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // THAI (TH) COLLECTION SCRAPER LOGIC
@@ -27,14 +28,14 @@ export async function scrapePokemonCollectionsTh({
     let shouldAbort = false;
     const concurrency = CARD_SCRAPER_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: `Initializing ${concurrency} parallel workers for Thai collections...`,
     });
 
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
-        send({ type: "workers", count: activeWorkers });
+        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
     };
 
     const paginationWorker = async (workerId: number) => {
@@ -125,7 +126,7 @@ export async function scrapePokemonCollectionsTh({
 
                     sharedCollectionList.push(...pageData.items);
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} found ${pageData.items.length} sets on page ${p}.`,
                     });
                 } catch (pageErr) {
@@ -134,7 +135,7 @@ export async function scrapePokemonCollectionsTh({
                         pageErr,
                     );
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} failed at page ${p}. Retrying...`,
                     });
                 }
@@ -159,17 +160,17 @@ export async function scrapePokemonCollectionsTh({
     if (franchise && language && sharedCollectionList.length > 0) {
         // Now that we have all items, trigger the UI update (consistency with MTG)
         send({
-            type: "meta",
+            type: SCRAPER_MESSAGE_TYPE.META,
             totalItems: sharedCollectionList.length,
         });
         send({
-            type: "chunk",
+            type: SCRAPER_MESSAGE_TYPE.CHUNK,
             items: sharedCollectionList,
             startIndex: 0,
         });
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Saving discovered Thai collections to database...",
         });
         try {
@@ -178,27 +179,27 @@ export async function scrapePokemonCollectionsTh({
                 language,
             });
             if (result) {
-                const { saved, added, matched } = result;
+                const { saved, addedItems, matchedItems } = result;
                 send({
-                    type: "savedCollections",
+                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
                     items: saved,
                 });
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "collections",
-                    added,
-                    matched,
+                    addedItems,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully saved ${sharedCollectionList.length} collections — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully saved ${sharedCollectionList.length} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                 });
             }
         } catch (error) {
             console.error("Failed to save Thai collections:", error);
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Warning: Failed to persist collections to database.",
             });
         }

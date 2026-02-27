@@ -1,5 +1,6 @@
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
+import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // ENGLISH (EN) COLLECTION SCRAPER LOGIC
@@ -13,7 +14,7 @@ export async function scrapePokemonCollectionsEn({
     language,
 }: ScraperOptions) {
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: "Fetching set name mapping from Pokemon.com...",
     });
 
@@ -25,7 +26,7 @@ export async function scrapePokemonCollectionsEn({
         const page = await context.newPage();
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Navigating to ${url}...`,
         });
         // Use a more realistic user agent if possible through context, but here we just navigate
@@ -35,7 +36,7 @@ export async function scrapePokemonCollectionsEn({
         });
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Activating Advanced Search filters...",
         });
         // 1. Click "Show Advanced Search"
@@ -46,7 +47,7 @@ export async function scrapePokemonCollectionsEn({
             .waitForSelector(advancedBtnSelector, {
                 timeout: 15000,
             })
-            .catch(() => {});
+            .catch(() => { });
 
         const advancedBtn = await page.$(advancedBtnSelector);
         if (advancedBtn) {
@@ -56,14 +57,14 @@ export async function scrapePokemonCollectionsEn({
         }
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Expanding the 'Expansions' section...",
         });
         // 2. Click "Expansions" header
         const expansionHeaderSelector =
             "header:has-text('Expansions'), div.column-12:has-text('Expansions'), .expansion-filter header";
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Waiting for Expansions section...",
         });
         await page
@@ -77,10 +78,10 @@ export async function scrapePokemonCollectionsEn({
         const expansionSection = await page.$(expansionHeaderSelector);
         if (expansionSection) {
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Clicking Expansions section...",
             });
-            await expansionSection.scrollIntoViewIfNeeded().catch(() => {});
+            await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
             await expansionSection
                 .click({ force: true, timeout: 5000 })
                 .catch((e: any) => {
@@ -89,14 +90,14 @@ export async function scrapePokemonCollectionsEn({
             await page.waitForTimeout(1000);
         } else {
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message:
                     "Warning: Expansions section not found, proceeding anyway...",
             });
         }
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Scraping set names from filters...",
         });
         // Scroll down a bit to ensure lazy-loaded labels are triggered
@@ -140,7 +141,7 @@ export async function scrapePokemonCollectionsEn({
     } catch (err) {
         console.error("Failed to fetch name mappings:", err);
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Error: Could not fetch set list from Pokemon.com.",
         });
         return;
@@ -158,13 +159,13 @@ export async function scrapePokemonCollectionsEn({
     if (franchise && language && sharedCollectionList.length > 0) {
         // Send to UI immediately for feedback
         send({
-            type: "chunk",
+            type: SCRAPER_MESSAGE_TYPE.CHUNK,
             items: sharedCollectionList,
             startIndex: 0,
         });
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Scraped ${sharedCollectionList.length} collections from official site. Registering...`,
         });
         try {
@@ -173,27 +174,27 @@ export async function scrapePokemonCollectionsEn({
                 language,
             });
             if (result) {
-                const { saved, added, matched } = result;
+                const { saved, addedItems, matchedItems } = result;
                 send({
-                    type: "savedCollections",
+                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
                     items: saved,
                 });
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "collections",
-                    added,
-                    matched,
+                    addedItems,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                 });
             }
         } catch (error) {
             console.error("Failed to save English sets:", error);
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Error: Could not register collections.",
             });
         }

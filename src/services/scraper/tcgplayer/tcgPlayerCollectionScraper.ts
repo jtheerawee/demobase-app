@@ -1,6 +1,7 @@
 import { APP_CONFIG } from "@/constants/app";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
+import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // LORCANA COLLECTION SCRAPER LOGIC
@@ -14,7 +15,7 @@ export async function scrapeTCGPlayerCollections({
     language,
 }: ScraperOptions) {
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: `Fetching ${franchise} collections from TCGPlayer...`,
     });
 
@@ -24,7 +25,7 @@ export async function scrapeTCGPlayerCollections({
         const page = await context.newPage();
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Navigating to ${url}...`,
         });
         await page.goto(url, {
@@ -33,7 +34,7 @@ export async function scrapeTCGPlayerCollections({
         });
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Opening the 'Set' filter dropdown...",
         });
 
@@ -76,7 +77,7 @@ export async function scrapeTCGPlayerCollections({
         }
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Extracting collection names from the dropdown...",
         });
 
@@ -152,7 +153,7 @@ export async function scrapeTCGPlayerCollections({
         }
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Found ${sharedCollectionList.length} collections: ${sharedCollectionList
                 .map((c) => c.name)
                 .slice(0, 3)
@@ -163,7 +164,7 @@ export async function scrapeTCGPlayerCollections({
     } catch (err) {
         console.error(`Failed to fetch ${franchise} collections:`, err);
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message:
                 "Error: Could not fetch set list from TCGPlayer. " +
                 (err instanceof Error ? err.message : String(err)),
@@ -174,13 +175,13 @@ export async function scrapeTCGPlayerCollections({
     if (franchise && language && sharedCollectionList.length > 0) {
         // Send to UI immediately for feedback
         send({
-            type: "chunk",
+            type: SCRAPER_MESSAGE_TYPE.CHUNK,
             items: sharedCollectionList,
             startIndex: 0,
         });
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Scraped ${sharedCollectionList.length} collections from TCGPlayer. Registering...`,
         });
 
@@ -190,27 +191,27 @@ export async function scrapeTCGPlayerCollections({
                 language,
             });
             if (result) {
-                const { saved, added, matched } = result;
+                const { saved, addedItems, matchedItems } = result;
                 send({
-                    type: "savedCollections",
+                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
                     items: saved,
                 });
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "collections",
-                    added,
-                    matched,
+                    addedItems,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                 });
             }
         } catch (error) {
             console.error(`Failed to save ${franchise} sets:`, error);
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Error: Could not register collections.",
             });
         }

@@ -29,6 +29,7 @@ import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardLis
 import { CardScraperCollectionList } from "@/components/CardScraper/CardScraperCollectionList";
 import { CardScraperInputs } from "@/components/CardScraper/CardScraperInputs";
 import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRunningSteps";
+import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 import {
     CardScraperStats,
     type ScraperStats,
@@ -565,9 +566,11 @@ export default function CardScraperPage() {
                             continue;
                         }
 
-                        if (msg.type === "chunk") {
+                        if (msg.type === SCRAPER_MESSAGE_TYPE.CHUNK) {
                             onItems(msg.items);
-                        } else if (msg.type === "savedCollections") {
+                        } else if (
+                            msg.type === SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS
+                        ) {
                             setCollections((prev) => {
                                 const newMap = new Map(
                                     prev.map((c) => [c.collectionCode, c]),
@@ -583,12 +586,14 @@ export default function CardScraperPage() {
                                 });
                                 return Array.from(newMap.values());
                             });
-                        } else if (msg.type === "savedCards") {
+                        } else if (
+                            msg.type === SCRAPER_MESSAGE_TYPE.SAVED_CARDS
+                        ) {
                             setCards((prev) => {
                                 // Match by name or URL to update with DB IDs if needed
                                 return prev;
                             });
-                        } else if (msg.type === "stats") {
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.STATS) {
                             console.log(`[Frontend] Received stats:`, msg);
                             setScraperStats((prev) => {
                                 const category =
@@ -598,18 +603,11 @@ export default function CardScraperPage() {
                                 return {
                                     ...prev,
                                     [category]: {
-                                        added:
-                                            (current?.added ?? 0) +
-                                            (msg.added ?? 0),
-                                        matched:
-                                            (current?.matched ?? 0) +
-                                            (msg.matched ?? 0),
-                                        missed:
-                                            (current?.missed ?? 0) +
-                                            (msg.missed ?? 0),
-                                        discarded:
-                                            (current?.discarded ?? 0) +
-                                            (msg.discarded ?? 0),
+                                        ...current,
+                                        added: (current?.added ?? 0) + (msg.added ?? 0),
+                                        matched: (current?.matched ?? 0) + (msg.matched ?? 0),
+                                        missed: (current?.missed ?? 0) + (msg.missed ?? 0),
+                                        discarded: (current?.discarded ?? 0) + (msg.discarded ?? 0),
                                         addedItems: [
                                             ...(current?.addedItems ?? []),
                                             ...(msg.addedItems ?? []),
@@ -629,9 +627,9 @@ export default function CardScraperPage() {
                                     },
                                 };
                             });
-                        } else if (msg.type === "workers") {
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.WORKERS) {
                             setWorkerCount(msg.count ?? 0);
-                        } else if (msg.type === "step") {
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.STEP) {
                             setSteps((prev) => {
                                 const newSteps = prev.map((s) => ({
                                     ...s,
@@ -648,7 +646,7 @@ export default function CardScraperPage() {
                                     },
                                 ];
                             });
-                        } else if (msg.type === "complete") {
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.COMPLETE) {
                             setSteps((prev) => {
                                 return prev.map((s) => ({
                                     ...s,

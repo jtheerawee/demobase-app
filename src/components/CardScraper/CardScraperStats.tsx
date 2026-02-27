@@ -15,7 +15,7 @@ import { useState } from "react";
 
 export type StatCategory = "added" | "matched" | "missed" | "discarded";
 
-export type CategoryStats = Record<StatCategory, number> & {
+export type CategoryStats = Partial<Record<StatCategory, number>> & {
     [K in StatCategory as `${K}Items`]?: any[];
 };
 
@@ -169,12 +169,15 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
         badgeTooltip: string
     ) => {
         const itemKey = `${category}Items` as keyof CategoryStats;
+        const itemCount = ((stats.cards[itemKey] as any[])?.length ?? 0) || (stats.cards[category] ?? 0);
+        const colCount = ((stats.collections[itemKey] as any[])?.length ?? 0) || (stats.collections[category] ?? 0);
+
         return (
             <StatWidget
                 label={label}
                 color={color}
-                collections={stats.collections[category]}
-                cards={stats.cards[category]}
+                collections={colCount}
+                cards={itemCount}
                 badgeTooltip={badgeTooltip}
                 collectionTooltip={renderTooltip(stats.collections[itemKey] as any[], `${label} Collections`)}
                 cardTooltip={renderTooltip(stats.cards[itemKey] as any[], `${label} Cards`)}

@@ -6,6 +6,7 @@ import {
     updateScrapedCollectionYear,
 } from "../persistence";
 import type { ScraperOptions } from "../types";
+import { SCRAPER_MESSAGE_TYPE } from "../types";
 
 export async function scrapeMTGCards({
     url,
@@ -22,7 +23,7 @@ export async function scrapeMTGCards({
         collectionId,
     );
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: "MTG Gatherer detected. Starting card extraction...",
     });
     let activeWorkers = 0;
@@ -62,7 +63,7 @@ export async function scrapeMTGCards({
 
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
-        send({ type: "workers", count: activeWorkers });
+        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
     };
 
     // Detect if this is a modern /sets/CODE URL
@@ -88,7 +89,7 @@ export async function scrapeMTGCards({
                             ? `${url}&page=${p}`
                             : `${url}?page=${p}`;
                 send({
-                    type: "step",
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
                     message: `Loading page ${p}...`,
                 });
 
@@ -207,14 +208,14 @@ export async function scrapeMTGCards({
                         releaseYear,
                     );
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Updated collection release year: ${releaseYear}`,
                     });
                 }
 
                 if (pageCards.length === 0 && rawPageCards.length === 0) {
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `No more cards found for set ${setCode} at page ${p + 1}.`,
                     });
                     break;
@@ -226,7 +227,7 @@ export async function scrapeMTGCards({
                 );
                 if (newCards.length === 0 && pageCards.length > 0) {
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Page ${p + 1} returned only duplicate cards. Evolution complete.`,
                     });
                     break;
@@ -240,39 +241,36 @@ export async function scrapeMTGCards({
                 allCards.push(...cardsToAdd);
 
                 send({
-                    type: "step",
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
                     message: `Found ${cardsToAdd.length} new cards on page ${p}${pageDiscardedCount > 0 ? ` (${pageDiscardedCount} discarded)` : ""}.`,
                 });
 
                 // Save this page's cards immediately to get real-time stats
                 if (collectionId !== undefined && collectionId !== null) {
                     try {
-                        const result = (await saveScrapedCards(
+                        const result = await saveScrapedCards(
                             cardsToAdd,
                             collectionId,
-                        )) as any;
+                        );
                         if (result) {
-                            const { added, matched, addedItems, matchedItems } = result;
+                            const { addedItems, matchedItems } = result;
                             if (addedItems)
                                 cardsToDeepScrape.push(...addedItems);
                             console.log(
                                 `[Scraper] Sending incremental card stats for page ${p}:`,
                                 {
-                                    added,
-                                    matched,
+                                    added: addedItems.length,
+                                    matched: matchedItems.length,
                                     discarded: discardedCount,
                                 },
                             );
                             send({
-                                type: "stats",
+                                type: SCRAPER_MESSAGE_TYPE.STATS,
                                 category: "cards",
-                                added,
-                                matched,
-                                missed: 0,
-                                discarded: pageDiscardedCount,
-                                discardedItems: pageDiscardedItems,
                                 addedItems,
                                 matchedItems,
+                                discardedItems: pageDiscardedItems,
+                                missed: 0,
                             });
                         }
                     } catch (error) {
@@ -282,7 +280,7 @@ export async function scrapeMTGCards({
 
                 if (allCards.length >= limit) {
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Reached card limit (${limit}). Stopping pagination...`,
                     });
                     break;
@@ -297,7 +295,7 @@ export async function scrapeMTGCards({
             const skipCount = allCards.length - cardsToDeepScrape.length;
             if (skipCount > 0) {
                 send({
-                    type: "step",
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
                     message: `Skipping deep scrape for ${skipCount} cards already in database.`,
                 });
             }
@@ -305,7 +303,7 @@ export async function scrapeMTGCards({
             if (cardsToDeepScrape.length > 0) {
                 // ── Deep Scraping / Details Extraction ──
                 send({
-                    type: "step",
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
                     message: `Launching workers to deep scrape ${cardsToDeepScrape.length} new cards...`,
                 });
                 const concurrency = Math.min(
@@ -425,7 +423,7 @@ export async function scrapeMTGCards({
 
                                 Object.assign(card, details);
                                 send({
-                                    type: "chunk",
+                                    type: SCRAPER_MESSAGE_TYPE.CHUNK,
                                     items: [card],
                                     startIndex: idx,
                                 });
@@ -450,7 +448,7 @@ export async function scrapeMTGCards({
                 // Final Save: persist only deep-scraped details to prevent overwriting existing data with sparse objects
                 if (collectionId !== undefined && collectionId !== null) {
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: "Finalizing card details in database...",
                     });
                     try {
@@ -460,13 +458,11 @@ export async function scrapeMTGCards({
                         );
                         if (result) {
                             send({
-                                type: "stats",
+                                type: SCRAPER_MESSAGE_TYPE.STATS,
                                 category: "cards",
-                                added: 0,
-                                matched: 0,
-                                missed: 0,
                                 addedItems: [],
                                 matchedItems: [],
+                                missed: 0,
                             });
                             const allCardUrls = new Set(
                                 allCards
@@ -479,18 +475,17 @@ export async function scrapeMTGCards({
                             );
                             if (missedResult.count > 0) {
                                 send({
-                                    type: "step",
+                                    type: SCRAPER_MESSAGE_TYPE.STEP,
                                     message: `⚠️ ${missedResult.count} cards are in DB but were not found in this scrape.`,
                                 });
                             }
                             send({
-                                type: "stats",
+                                type: SCRAPER_MESSAGE_TYPE.STATS,
                                 category: "cards",
-                                added: 0,
-                                matched: 0,
-                                missed: missedResult.count,
+                                addedItems: [],
+                                matchedItems: [],
                                 missedItems: missedResult.items,
-                                discarded: 0, // already reported incrementally
+                                missed: missedResult.count,
                             });
                         }
                     } catch (error) {
@@ -501,11 +496,11 @@ export async function scrapeMTGCards({
         }
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Total extracted: ${allCards.length} cards.${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}`,
         });
         send({
-            type: "meta",
+            type: SCRAPER_MESSAGE_TYPE.META,
             totalItems: allCards.length,
             totalPages: 1,
         });

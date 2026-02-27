@@ -5,6 +5,7 @@ import {
     updateTcgUrls,
 } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
+import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // LORCANA CARD SCRAPER LOGIC (TCGPlayer)
@@ -53,7 +54,7 @@ export async function scrapeTCGPlayerCards({
                 const targetPageUrl = getTargetUrl(p);
                 try {
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} scraping page ${p} - ${targetPageUrl}`,
                     });
 
@@ -138,7 +139,7 @@ export async function scrapeTCGPlayerCards({
                     ) {
                         totalPages = Math.ceil(currentTotalResults / 24);
                         send({
-                            type: "meta",
+                            type: SCRAPER_MESSAGE_TYPE.META,
                             totalPages,
                             totalCards: currentTotalResults,
                         });
@@ -273,7 +274,7 @@ export async function scrapeTCGPlayerCards({
                     sharedCardList.push(...cardsToAdd);
 
                     send({
-                        type: "chunk",
+                        type: SCRAPER_MESSAGE_TYPE.CHUNK,
                         items: cardsToAdd,
                         startIndex: beforeCount,
                     });
@@ -308,7 +309,7 @@ export async function scrapeTCGPlayerCards({
     // Note: Temporarily disabled (false) as requested by user
     if (false && deepScrape && sharedCardList.length > 0) {
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Deep scraping ${sharedCardList.length} Lorcana cards for high-quality images...`,
         });
 
@@ -327,7 +328,7 @@ export async function scrapeTCGPlayerCards({
 
                     try {
                         send({
-                            type: "step",
+                            type: SCRAPER_MESSAGE_TYPE.STEP,
                             message: `Deep scraping card ${cardIndex + 1}/${sharedCardList.length}: ${card.name}`,
                         });
 
@@ -397,26 +398,25 @@ export async function scrapeTCGPlayerCards({
 
     if (collectionId && sharedCardList.length > 0) {
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Scraped ${sharedCardList.length} cards. Registering...`,
         });
 
         try {
             if (tcgUrlOnly) {
-                const { matched } = await updateTcgUrls(
+                const { matchedItems } = await updateTcgUrls(
                     sharedCardList,
                     collectionId,
                 );
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "cards",
-                    added: 0,
-                    matched,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully mapped TCGPlayer URLs for ${matched} ${franchise} cards!`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully mapped TCGPlayer URLs for ${matchedItems?.length ?? 0} ${franchise} cards!`,
                 });
             } else {
                 const result = await saveScrapedCards(
@@ -424,31 +424,31 @@ export async function scrapeTCGPlayerCards({
                     collectionId,
                 );
                 if (result) {
-                    const { added, matched } = result;
+                    const { addedItems, matchedItems } = result;
                     send({
-                        type: "stats",
+                        type: SCRAPER_MESSAGE_TYPE.STATS,
                         category: "cards",
-                        added,
-                        matched,
+                        addedItems,
+                        matchedItems,
                         missed: 0,
                     });
                     send({
-                        type: "step",
-                        message: `Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
+                        message: `Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                     });
                 }
             }
         } catch (error) {
             console.error(`Failed to save ${franchise} cards:`, error);
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Error: Could not register cards.",
             });
         }
     }
 
     send({
-        type: "complete",
+        type: SCRAPER_MESSAGE_TYPE.COMPLETE,
         success: true,
     });
 }

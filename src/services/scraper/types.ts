@@ -1,3 +1,18 @@
+export const SCRAPER_MESSAGE_TYPE = {
+    CHUNK: "chunk",
+    SAVED_COLLECTIONS: "savedCollections",
+    SAVED_CARDS: "savedCards",
+    STATS: "stats",
+    WORKERS: "workers",
+    STEP: "step",
+    COMPLETE: "complete",
+    META: "meta",
+    CARD_UPDATE: "cardUpdate",
+} as const;
+
+export type ScraperMessageType =
+    (typeof SCRAPER_MESSAGE_TYPE)[keyof typeof SCRAPER_MESSAGE_TYPE];
+
 export interface ScraperOptions {
     url: string;
     type: string;

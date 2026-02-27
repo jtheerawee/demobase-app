@@ -1,5 +1,5 @@
 import { saveScrapedCollections } from "@/services/scraper/persistence";
-import type { ScraperOptions } from "@/services/scraper/types";
+import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // ONE PIECE COLLECTION SCRAPER
@@ -13,14 +13,14 @@ export async function scrapeOnepieceCollections({
     language,
 }: ScraperOptions) {
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: "Discovering One Piece collections...",
     });
 
     const workerPage = await context.newPage();
     try {
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Navigating to: ${url}`,
         });
         await workerPage.goto(url, {
@@ -29,7 +29,7 @@ export async function scrapeOnepieceCollections({
         });
 
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Opening series selector modal...",
         });
         // Match the button provided by the user
@@ -89,11 +89,11 @@ export async function scrapeOnepieceCollections({
 
         if (franchise && language && collections.length > 0) {
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: `Found ${collections.length} One Piece collections.`,
             });
             send({
-                type: "chunk",
+                type: SCRAPER_MESSAGE_TYPE.CHUNK,
                 items: collections,
                 startIndex: 0,
             });
@@ -102,26 +102,26 @@ export async function scrapeOnepieceCollections({
                 language,
             });
             if (result) {
-                const { saved, added, matched } = result;
+                const { saved, addedItems, matchedItems } = result;
                 send({
-                    type: "savedCollections",
+                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
                     items: saved,
                 });
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "collections",
-                    added,
-                    matched,
+                    addedItems,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully registered ${collections.length} One Piece collections — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully registered ${collections.length} One Piece collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                 });
             }
         } else {
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "No collections found in the series modal.",
             });
         }

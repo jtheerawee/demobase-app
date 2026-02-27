@@ -1,7 +1,7 @@
 import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
-import type { ScraperOptions } from "@/services/scraper/types";
+import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // ENGLISH (EN) CARD SCRAPER LOGIC
@@ -29,14 +29,14 @@ export async function scrapePokemonCardsEn({
     const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
 
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: `Initializing ${concurrency} parallel pagination workers for English site...`,
     });
 
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
-        send({ type: "workers", count: activeWorkers });
+        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
     };
 
     const paginationWorker = async (workerId: number) => {
@@ -51,7 +51,7 @@ export async function scrapePokemonCardsEn({
                 const targetPageUrl = getTargetUrl(p);
                 try {
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} scraping page ${p}: ${targetPageUrl}`,
                     });
                     await workerPage.goto(targetPageUrl, {
@@ -169,7 +169,7 @@ export async function scrapePokemonCardsEn({
                             )
                         ) {
                             send({
-                                type: "step",
+                                type: SCRAPER_MESSAGE_TYPE.STEP,
                                 message: `Worker ${workerId} context destroyed. Retrying...`,
                             });
                             await workerPage.waitForTimeout(2000);
@@ -181,7 +181,7 @@ export async function scrapePokemonCardsEn({
 
                     if (pageData.error) {
                         send({
-                            type: "step",
+                            type: SCRAPER_MESSAGE_TYPE.STEP,
                             message: `ERROR: ${pageData.error}`,
                         });
                         shouldAbort = true;
@@ -193,14 +193,14 @@ export async function scrapePokemonCardsEn({
                             shouldAbort = true;
                             totalPages = 0;
                             send({
-                                type: "meta",
+                                type: SCRAPER_MESSAGE_TYPE.META,
                                 totalPages: 0,
                                 totalCards: 0,
                             });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
                             send({
-                                type: "meta",
+                                type: SCRAPER_MESSAGE_TYPE.META,
                                 totalPages,
                             });
                         }
@@ -212,7 +212,7 @@ export async function scrapePokemonCardsEn({
                         totalPages === Infinity
                     ) {
                         totalPages = pageData.discoveredTotal;
-                        send({ type: "meta", totalPages });
+                        send({ type: SCRAPER_MESSAGE_TYPE.META, totalPages });
                     }
 
                     const beforeCount = sharedCardList.length;
@@ -228,19 +228,19 @@ export async function scrapePokemonCardsEn({
                     sharedCardList.push(...cardsToAdd);
 
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} found ${cardsToAdd.length} cards on page ${p}.`,
                     });
 
                     if (sharedCardList.length >= limit) {
                         send({
-                            type: "step",
+                            type: SCRAPER_MESSAGE_TYPE.STEP,
                             message: `Reached card limit (${limit}). Stopping all workers...`,
                         });
                         shouldAbort = true;
                     }
                     send({
-                        type: "chunk",
+                        type: SCRAPER_MESSAGE_TYPE.CHUNK,
                         items: cardsToAdd,
                         startIndex,
                     });
@@ -250,7 +250,7 @@ export async function scrapePokemonCardsEn({
                         pageErr,
                     );
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} failed at page ${p}. Retrying...`,
                     });
                 }
@@ -276,7 +276,7 @@ export async function scrapePokemonCardsEn({
     if (deepScrape && sharedCardList.length > 0) {
         const totalCards = sharedCardList.length;
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Starting deep scrape for ${totalCards} English cards...`,
         });
 
@@ -296,7 +296,7 @@ export async function scrapePokemonCardsEn({
 
                     try {
                         send({
-                            type: "step",
+                            type: SCRAPER_MESSAGE_TYPE.STEP,
                             message: `Deep scraping card ${cardIndex + 1}/${totalCards}: ${card.name}`,
                         });
 
@@ -313,7 +313,7 @@ export async function scrapePokemonCardsEn({
                             } catch (gotoErr) {
                                 if (attempt === 2) throw gotoErr;
                                 send({
-                                    type: "step",
+                                    type: SCRAPER_MESSAGE_TYPE.STEP,
                                     message: `Worker ${workerId} timeout on card ${cardIndex + 1}. Retrying...`,
                                 });
                                 await workerPage.waitForTimeout(2000);
@@ -392,7 +392,7 @@ export async function scrapePokemonCardsEn({
                         Object.assign(card, details);
                         card.isBeingScraped = false;
                         send({
-                            type: "cardUpdate",
+                            type: SCRAPER_MESSAGE_TYPE.CARD_UPDATE,
                             index: cardIndex,
                             details,
                         });
@@ -425,29 +425,29 @@ export async function scrapePokemonCardsEn({
 
     if (collectionId && sharedCardList.length > 0) {
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Saving English cards to database...",
         });
         try {
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
-                const { added, matched } = result;
+                const { addedItems, matchedItems } = result;
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "cards",
-                    added,
-                    matched,
+                    addedItems,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully saved ${sharedCardList.length} English cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                 });
             }
         } catch (error) {
             console.error("Failed to save English cards:", error);
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Warning: Failed to persist cards to database.",
             });
         }

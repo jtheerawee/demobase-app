@@ -2,7 +2,10 @@ import {
     computeMissedCollections,
     saveScrapedCollections,
 } from "../persistence";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
+import { FRANCHISES } from "@/constants/franchises";
 import type { ScraperOptions } from "../types";
+import { SCRAPER_MESSAGE_TYPE } from "../types";
 
 export async function scrapeMTGCollections({
     url,
@@ -13,14 +16,19 @@ export async function scrapeMTGCollections({
     skipSave,
 }: ScraperOptions) {
     send({
-        type: "step",
-        message: "MTG Gatherer detected. Fetching sets...",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
+        message: `Step 1: ${franchise}. Fetching sets...`,
     });
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
         send({ type: "workers", count: activeWorkers });
     };
+
+    // Get base URL from franchises configuration
+    const franchiseData = FRANCHISES.find((f) => f.value === franchise);
+    const langData = franchiseData?.languages.find((l) => l.value === language);
+    const baseUrl = langData?.url;
 
     updateWorkers(1);
     const workerPage = await context.newPage();
@@ -40,18 +48,18 @@ export async function scrapeMTGCollections({
                         : `${url}?page=${p}`;
             send({
                 type: "step",
-                message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
+                message: `Step 2: Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
             });
 
             await workerPage.goto(pageUrl, {
                 waitUntil: "domcontentloaded",
-                timeout: 60000,
+                timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
             });
 
             try {
                 await workerPage.waitForSelector(
                     'a[href*="/sets/"], a[href*="set="]',
-                    { timeout: 5000 },
+                    { timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT },
                 );
             } catch (e: any) {
                 // No sets on this page
@@ -59,7 +67,7 @@ export async function scrapeMTGCollections({
 
             send({
                 type: "step",
-                message: `Searching for set links on page ${p}...`,
+                message: `Step 3: Searching for set links on page ${p}...`,
             });
             const pageResults = await workerPage.evaluate(() => {
                 const rows = document.querySelectorAll("tr");
@@ -114,9 +122,7 @@ export async function scrapeMTGCollections({
                         name: item.name,
                         collectionCode,
                         imageUrl: "",
-                        collectionUrl: collectionCode
-                            ? `https://gatherer.wizards.com/sets/${collectionCode}`
-                            : "",
+                        collectionUrl: collectionCode ? `${baseUrl}/${collectionCode}` : "",
                         releaseYear: item.releaseYear,
                     };
                 })
@@ -142,11 +148,11 @@ export async function scrapeMTGCollections({
 
             send({
                 type: "step",
-                message: `Page ${p}: Discovered ${newSets.length} new sets.`,
+                message: `Step 4: Page ${p}: Discovered ${newSets.length} new sets.`,
             });
 
             send({
-                type: "chunk",
+                type: SCRAPER_MESSAGE_TYPE.CHUNK,
                 items: newSets,
                 startIndex: allDiscoveredSets.length,
             });
@@ -159,25 +165,23 @@ export async function scrapeMTGCollections({
                         language,
                     });
                     if (result) {
-                        const { saved, added, matched, addedItems, matchedItems } = result;
-                        totalAdded += added;
-                        totalMatched += matched;
+                        const { saved, addedItems, matchedItems } = result;
+                        totalAdded += addedItems.length;
+                        totalMatched += matchedItems.length;
                         send({
-                            type: "savedCollections",
+                            type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
                             items: saved,
                         });
                         send({
-                            type: "step",
-                            message: `Page ${p}: Saved ${newSets.length} sets — ✅ ${added} new, 🔁 ${matched} matched.`,
+                            type: SCRAPER_MESSAGE_TYPE.STEP,
+                            message: `Step 5: Page ${p}: Saved ${newSets.length} sets — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                         });
                         send({
-                            type: "stats",
+                            type: SCRAPER_MESSAGE_TYPE.STATS,
                             category: "collections",
-                            added,
-                            matched,
-                            missed: 0,
                             addedItems,
                             matchedItems,
+                            missed: 0,
                         });
                     }
                 } catch (error) {
@@ -186,7 +190,7 @@ export async function scrapeMTGCollections({
                         error,
                     );
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Warning: Failed to persist collections for page ${p}.`,
                     });
                 }
@@ -196,8 +200,8 @@ export async function scrapeMTGCollections({
             if (p > 50) break;
         }
         send({
-            type: "step",
-            message: `Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
+            type: SCRAPER_MESSAGE_TYPE.STEP,
+            message: `Step 6: Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
         });
         if (!skipSave && franchise && language) {
             const allCollectionUrls = new Set(
@@ -211,12 +215,12 @@ export async function scrapeMTGCollections({
             });
             if (missedResult.count > 0) {
                 send({
-                    type: "step",
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
                     message: `⚠️ ${missedResult.count} collections are in DB but were not found in this scrape.`,
                 });
             }
             send({
-                type: "stats",
+                type: SCRAPER_MESSAGE_TYPE.STATS,
                 category: "collections",
                 added: 0,
                 matched: 0,

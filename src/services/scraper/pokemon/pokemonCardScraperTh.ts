@@ -1,6 +1,7 @@
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
+import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 
 // ==========================================
 // THAI (TH) CARD SCRAPER LOGIC
@@ -30,14 +31,14 @@ export async function scrapePokemonCardsTh({
     const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
 
     send({
-        type: "step",
+        type: SCRAPER_MESSAGE_TYPE.STEP,
         message: `Initializing ${concurrency} parallel pagination workers for Thai site...`,
     });
 
     let activeWorkers = 0;
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
-        send({ type: "workers", count: activeWorkers });
+        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
     };
 
     const paginationWorker = async (workerId: number) => {
@@ -111,14 +112,14 @@ export async function scrapePokemonCardsTh({
                             shouldAbort = true;
                             totalPages = 0;
                             send({
-                                type: "meta",
+                                type: SCRAPER_MESSAGE_TYPE.META,
                                 totalPages: 0,
                                 totalCards: 0,
                             });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
                             send({
-                                type: "meta",
+                                type: SCRAPER_MESSAGE_TYPE.META,
                                 totalPages,
                             });
                         }
@@ -130,7 +131,7 @@ export async function scrapePokemonCardsTh({
                         totalPages === Infinity
                     ) {
                         totalPages = pageData.discoveredTotal;
-                        send({ type: "meta", totalPages });
+                        send({ type: SCRAPER_MESSAGE_TYPE.META, totalPages });
                     }
 
                     const beforeCount = sharedCardList.length;
@@ -147,13 +148,13 @@ export async function scrapePokemonCardsTh({
 
                     if (sharedCardList.length >= limit) {
                         send({
-                            type: "step",
+                            type: SCRAPER_MESSAGE_TYPE.STEP,
                             message: `Reached card limit (${limit}). Stopping all workers...`,
                         });
                         shouldAbort = true;
                     }
                     send({
-                        type: "chunk",
+                        type: SCRAPER_MESSAGE_TYPE.CHUNK,
                         items: cardsToAdd,
                         startIndex,
                     });
@@ -163,7 +164,7 @@ export async function scrapePokemonCardsTh({
                         pageErr,
                     );
                     send({
-                        type: "step",
+                        type: SCRAPER_MESSAGE_TYPE.STEP,
                         message: `Worker ${workerId} failed at page ${p}. Retrying...`,
                     });
                 }
@@ -189,7 +190,7 @@ export async function scrapePokemonCardsTh({
     if (deepScrape && sharedCardList.length > 0) {
         const totalCards = sharedCardList.length;
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: `Starting deep scrape for ${totalCards} cards...`,
         });
 
@@ -260,7 +261,7 @@ export async function scrapePokemonCardsTh({
                         Object.assign(card, details);
                         card.isBeingScraped = false;
                         send({
-                            type: "cardUpdate",
+                            type: SCRAPER_MESSAGE_TYPE.CARD_UPDATE,
                             index: cardIndex,
                             details,
                         });
@@ -293,29 +294,29 @@ export async function scrapePokemonCardsTh({
 
     if (collectionId && sharedCardList.length > 0) {
         send({
-            type: "step",
+            type: SCRAPER_MESSAGE_TYPE.STEP,
             message: "Saving Thai cards to database...",
         });
         try {
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
-                const { added, matched } = result;
+                const { addedItems, matchedItems } = result;
                 send({
-                    type: "stats",
+                    type: SCRAPER_MESSAGE_TYPE.STATS,
                     category: "cards",
-                    added,
-                    matched,
+                    addedItems,
+                    matchedItems,
                     missed: 0,
                 });
                 send({
-                    type: "step",
-                    message: `Successfully saved ${sharedCardList.length} Thai cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    type: SCRAPER_MESSAGE_TYPE.STEP,
+                    message: `Successfully saved ${sharedCardList.length} Thai cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
                 });
             }
         } catch (error) {
             console.error("Failed to save Thai cards:", error);
             send({
-                type: "step",
+                type: SCRAPER_MESSAGE_TYPE.STEP,
                 message: "Warning: Failed to persist cards to database.",
             });
         }
