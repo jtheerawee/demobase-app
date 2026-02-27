@@ -1,4 +1,12 @@
 export const CARD_SCRAPER_CONFIG = {
+    CONTAINER_SIZE: "2xl" as const,
+    PANEL_SPANS: {
+        INPUTS: 3,
+        COLLECTIONS: 4,
+        CARDS: 5,
+    },
+    CARDS_PER_ROW: 4,
+
     // Scraper
     COLLECTION_CONCURRENCY_LIMIT: 4,
     CARD_CONCURRENCY_LIMIT: 10,

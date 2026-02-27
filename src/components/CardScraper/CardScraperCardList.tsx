@@ -4,6 +4,7 @@ import {
     ActionIcon,
     Badge,
     Card,
+    Flex,
     Group,
     Image,
     ScrollArea,
@@ -17,6 +18,7 @@ import {
 } from "@tabler/icons-react";
 import JSZip from "jszip";
 import { useMemo, useState } from "react";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { WidgetHeader } from "../WidgetHeader";
 import { ScrapedCardIcons } from "./ScrapedCardIcons";
 import { ScrapedCardSummary } from "./ScrapedCardSummary";
@@ -175,15 +177,18 @@ export function CardScraperCardList({
                 <ScrapedCardSummary cards={cards} />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} pt="xs">
-                    <SimpleGrid cols={1} spacing="xs">
+                    <SimpleGrid cols={CARD_SCRAPER_CONFIG.CARDS_PER_ROW} spacing="xs">
                         {filteredCards.map((card, index) => (
                             <Card
                                 key={card.id || index}
                                 withBorder
-                                padding={4}
-                                radius="xs"
+                                padding={6}
+                                radius="md"
                                 style={{
                                     position: "relative",
+                                    height: "100%",
+                                    display: "flex",
+                                    flexDirection: "column",
                                 }}
                             >
                                 <ActionIcon
@@ -226,13 +231,13 @@ export function CardScraperCardList({
                                     </ActionIcon>
                                 )}
 
-                                <Group gap="xs" wrap="nowrap" align="center">
+                                <Stack gap={6} align="center" style={{ flex: 1 }}>
                                     <Image
                                         src={card.imageUrl}
                                         fallbackSrc="https://placehold.co/100x140?text=No+Image"
                                         alt={card.name}
                                         radius="xs"
-                                        w={44}
+                                        w="100%"
                                         style={{
                                             aspectRatio: "2.5 / 3.5",
                                             objectFit: "contain",
@@ -240,38 +245,39 @@ export function CardScraperCardList({
                                     />
                                     <Stack
                                         gap={2}
+                                        align="center"
                                         style={{
-                                            flex: 1,
+                                            width: "100%",
                                             minWidth: 0,
                                         }}
                                     >
-                                        <Text size="xs" fw={700} lineClamp={1}>
+                                        <Text size="10px" fw={700} lineClamp={1} ta="center">
                                             {card.name}
                                         </Text>
-                                        <Group gap={4}>
+                                        <Flex gap={2} wrap="wrap" justify="center">
                                             <Badge
-                                                size="9px"
+                                                size="8px"
                                                 variant="light"
                                                 color="blue"
                                                 radius="xs"
-                                                px={4}
-                                                h={14}
+                                                px={2}
+                                                h={12}
                                             >
-                                                No: {card.cardNo || "---"}
+                                                {card.cardNo || "---"}
                                             </Badge>
                                             <Badge
-                                                size="9px"
+                                                size="8px"
                                                 variant="outline"
                                                 color="gray"
                                                 radius="xs"
-                                                px={4}
-                                                h={14}
+                                                px={2}
+                                                h={12}
                                             >
                                                 {card.rarity || "---"}
                                             </Badge>
-                                        </Group>
+                                        </Flex>
                                     </Stack>
-                                </Group>
+                                </Stack>
                             </Card>
                         ))}
                     </SimpleGrid>

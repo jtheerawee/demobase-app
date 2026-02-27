@@ -3,13 +3,14 @@
 import {
     ActionIcon,
     Alert,
+    Box,
     Button,
     Card,
     Container,
+    Flex,
     Group,
     Modal,
     NumberInput,
-    SimpleGrid,
     Stack,
     Text,
     Tooltip,
@@ -703,7 +704,7 @@ export default function CardScraperPage() {
     };
 
     return (
-        <Container size="xl" py="md">
+        <Container size={CARD_SCRAPER_CONFIG.CONTAINER_SIZE} py="md">
             <Modal
                 opened={confirmOpened}
                 onClose={closeConfirm}
@@ -814,42 +815,78 @@ export default function CardScraperPage() {
                     </Alert>
                 )}
 
-                <div style={{ height: "calc(100vh - 180px)", display: "flex", flexDirection: "column" }}>
-                    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" style={{ flex: 1, minHeight: 0 }}>
-                        <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
-                            <CardScraperInputs
-                                franchise={selectedFranchise}
-                                language={selectedLanguage}
-                                onFranchiseChange={(val) => {
-                                    setSelectedFranchise(val);
-                                    setSelectedLanguage("en");
-                                    setCollections([]);
-                                    setSteps([]);
-                                    setCards([]);
-                                    setSelectedCollection(null);
-                                }}
-                                onLanguageChange={(val) => {
-                                    setSelectedLanguage(val);
-                                    setCollections([]);
-                                    setCards([]);
-                                    setSelectedCollection(null);
-                                }}
-                            />
-                            <CardScraperRunningSteps
-                                steps={steps}
-                                workerCount={workerCount}
-                                onStop={() => {
-                                    if (abortControllerRef.current) {
-                                        abortControllerRef.current.abort();
-                                        setCardLoading(false);
-                                        setCollectionLoading(false);
-                                    }
-                                }}
-                            />
-                            <CardScraperStats stats={scraperStats} />
-                        </Stack>
+                <div
+                    style={{
+                        height: "calc(100vh - 180px)",
+                        display: "flex",
+                        flexDirection: "column",
+                        minHeight: 0,
+                    }}
+                >
+                    <Flex
+                        gap="md"
+                        style={{ flex: 1, minHeight: 0 }}
+                        direction={{ base: "column", sm: "row" }}
+                        align="stretch"
+                    >
+                        <Box
+                            w={{
+                                base: "100%",
+                                sm: `${(CARD_SCRAPER_CONFIG.PANEL_SPANS.INPUTS / 12) * 100}%`,
+                            }}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                height: "100%",
+                                minHeight: 0,
+                            }}
+                        >
+                            <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
+                                <CardScraperInputs
+                                    franchise={selectedFranchise}
+                                    language={selectedLanguage}
+                                    onFranchiseChange={(val) => {
+                                        setSelectedFranchise(val);
+                                        setSelectedLanguage("en");
+                                        setCollections([]);
+                                        setSteps([]);
+                                        setCards([]);
+                                        setSelectedCollection(null);
+                                    }}
+                                    onLanguageChange={(val) => {
+                                        setSelectedLanguage(val);
+                                        setCollections([]);
+                                        setCards([]);
+                                        setSelectedCollection(null);
+                                    }}
+                                />
+                                <CardScraperRunningSteps
+                                    steps={steps}
+                                    workerCount={workerCount}
+                                    onStop={() => {
+                                        if (abortControllerRef.current) {
+                                            abortControllerRef.current.abort();
+                                            setCardLoading(false);
+                                            setCollectionLoading(false);
+                                        }
+                                    }}
+                                />
+                                <CardScraperStats stats={scraperStats} />
+                            </Stack>
+                        </Box>
 
-                        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, height: "100%" }}>
+                        <Box
+                            w={{
+                                base: "100%",
+                                sm: `${(CARD_SCRAPER_CONFIG.PANEL_SPANS.COLLECTIONS / 12) * 100}%`,
+                            }}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                height: "100%",
+                                minHeight: 0,
+                            }}
+                        >
                             <CardScraperCollectionList
                                 franchise={selectedFranchise}
                                 language={selectedLanguage}
@@ -865,7 +902,9 @@ export default function CardScraperPage() {
                                         selectedLanguage ?? "en",
                                     )
                                 }
-                                onDownloadAllCollections={handleDownloadCollections}
+                                onDownloadAllCollections={
+                                    handleDownloadCollections
+                                }
                                 onDownloadAllCards={handleDownloadAllCards}
                                 onSelect={async (id) => {
                                     const col = collections.find(
@@ -876,12 +915,25 @@ export default function CardScraperPage() {
                                     if (id) fetchCards(id);
                                 }}
                             />
-                        </div>
+                        </Box>
 
-                        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, height: "100%" }}>
+                        <Box
+                            w={{
+                                base: "100%",
+                                sm: `${(CARD_SCRAPER_CONFIG.PANEL_SPANS.CARDS / 12) * 100}%`,
+                            }}
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                height: "100%",
+                                minHeight: 0,
+                            }}
+                        >
                             <CardScraperCardList
                                 cards={cards}
-                                collectionCode={selectedCollection?.collectionCode}
+                                collectionCode={
+                                    selectedCollection?.collectionCode
+                                }
                                 loading={cardLoading}
                                 onDeleteCard={handleDeleteCard}
                                 onDeleteAllCards={handleDeleteAllCards}
@@ -892,8 +944,8 @@ export default function CardScraperPage() {
                                 }
                                 canDownload={!!selectedCollection}
                             />
-                        </div>
-                    </SimpleGrid>
+                        </Box>
+                    </Flex>
                 </div>
             </Stack>
         </Container>
