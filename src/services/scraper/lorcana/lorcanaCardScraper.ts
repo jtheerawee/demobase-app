@@ -196,6 +196,81 @@ export async function scrapeLorcanaCards({
     const workers = Array.from({ length: concurrency }, (_, i) => paginationWorker(i + 1));
     await Promise.all(workers);
 
+    // Deep Scrape Pass for high quality images
+    // Note: Temporarily disabled (false) as requested by user
+    if (false && deepScrape && sharedCardList.length > 0) {
+        send({
+            type: "step",
+            message: `Deep scraping ${sharedCardList.length} Lorcana cards for high-quality images...`,
+        });
+
+        const deepWorker = async (workerId: number) => {
+            const workerPage = await context.newPage();
+            try {
+                while (true) {
+                    if (shouldAbort) break;
+                    const cardIndex = sharedCardList.findIndex(c => !c.isBeingScraped && !c.isDeepScraped);
+                    if (cardIndex === -1) break; // Done
+
+                    const card = sharedCardList[cardIndex];
+                    card.isBeingScraped = true;
+
+                    try {
+                        send({
+                            type: "step",
+                            message: `Deep scraping card ${cardIndex + 1}/${sharedCardList.length}: ${card.name}`,
+                        });
+
+                        await workerPage.goto(card.cardUrl, {
+                            waitUntil: "domcontentloaded",
+                            timeout: 60000,
+                        });
+
+                        await workerPage.waitForSelector('.product-details__product-image img');
+
+                        // Extract main image from product details
+                        const details = await workerPage.evaluate(() => {
+                            const imgElements = document.querySelectorAll('.product-details__product-image img');
+                            let bestImageUrl = "";
+
+                            // Look for the largest tcgplayer-cdn image we can find
+                            imgElements.forEach(img => {
+                                const src = (img as HTMLImageElement).src;
+                                if (src && src.includes('tcgplayer-cdn.tcgplayer.com')) {
+                                    // Detail pages usually load _400w.jpg or similar which is higher quality than the grid.
+                                    bestImageUrl = src;
+                                }
+                            });
+
+                            return { imageUrl: bestImageUrl, isDeepScraped: true };
+                        });
+
+                        if (details.imageUrl) {
+                            card.imageUrl = details.imageUrl;
+                        }
+                        card.isDeepScraped = true;
+                        card.isBeingScraped = false;
+
+                        send({
+                            type: "cardUpdate",
+                            index: cardIndex,
+                            details: card,
+                        });
+
+                    } catch (e) {
+                        card.isBeingScraped = false;
+                        console.error(`Failed to deep scrape Lorcana card ${cardIndex}:`, e);
+                    }
+                }
+            } finally {
+                await workerPage.close();
+            }
+        };
+
+        const deepWorkers = Array.from({ length: concurrency }, (_, i) => deepWorker(i + 1));
+        await Promise.all(deepWorkers);
+    }
+
     if (collectionId && sharedCardList.length > 0) {
         send({
             type: "step",
