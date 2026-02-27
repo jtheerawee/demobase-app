@@ -89,7 +89,7 @@ export async function scrapeMTGCards({
                             : `${url}?page=${p}`;
                 send({
                     type: "step",
-                    message: `Modern set page: Loading page ${p}...`,
+                    message: `Loading page ${p}...`,
                 });
 
                 await workerPage.goto(pageUrl, {

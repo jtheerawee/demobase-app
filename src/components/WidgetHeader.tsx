@@ -4,7 +4,7 @@ import { Badge, Divider, Group, Loader, Stack, Text } from "@mantine/core";
 import type { ReactNode } from "react";
 
 interface WidgetHeaderProps {
-    title: string;
+    title: ReactNode;
     count?: number;
     loading?: boolean;
     badgeColor?: string;

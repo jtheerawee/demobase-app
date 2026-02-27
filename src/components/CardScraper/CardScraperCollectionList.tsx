@@ -14,11 +14,11 @@ import {
     IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import { WidgetHeader } from "../WidgetHeader";
 import {
     CardScraperCollectionItem,
     type CollectionItem,
 } from "./CardScraperCollectionItem";
-import { CardScraperCount } from "./CardScraperCount";
 import { CollectionIcons } from "./CollectionIcons";
 
 interface CardScraperCollectionListProps {
@@ -89,29 +89,35 @@ export function CardScraperCollectionList({
         });
 
     return (
-        <Card withBorder radius="sm" padding="sm" shadow="sm" h="100%" style={{ display: "flex", flexDirection: "column" }}>
-            <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
-                <Group justify="space-between">
-                    <CardScraperCount
-                        label="Collections"
-                        count={totalCount}
-                        subLabel="Cols"
-                        color="blue"
+        <Card
+            withBorder
+            radius="sm"
+            shadow="sm"
+            padding={0}
+            h="100%"
+            style={{ display: "flex", flexDirection: "column" }}
+        >
+            <WidgetHeader
+                title="Collections"
+                count={totalCount}
+                badgeColor="blue"
+                actions={
+                    <CollectionIcons
+                        onRefresh={onRefresh}
+                        onDownloadAllCollections={onDownloadAllCollections}
+                        onDeleteAllCollections={onDeleteAllCollections}
+                        onSortChange={handleSort}
+                        onDownloadAllCards={onDownloadAllCards}
+                        sortBy={sortBy}
+                        sortAsc={sortAsc}
+                        loading={loading}
+                        totalCount={totalCount}
+                        franchise={franchise}
+                        language={language}
                     />
-                </Group>
-                <CollectionIcons
-                    onRefresh={onRefresh}
-                    onDownloadAllCollections={onDownloadAllCollections}
-                    onDeleteAllCollections={onDeleteAllCollections}
-                    onSortChange={handleSort}
-                    onDownloadAllCards={onDownloadAllCards}
-                    sortBy={sortBy}
-                    sortAsc={sortAsc}
-                    loading={loading}
-                    totalCount={totalCount}
-                    franchise={franchise}
-                    language={language}
-                />
+                }
+            />
+            <Stack gap="md" style={{ flex: 1, minHeight: 0 }} p="sm">
 
                 <TextInput
                     placeholder="Search by name or code..."

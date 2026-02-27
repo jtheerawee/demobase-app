@@ -28,6 +28,9 @@ import {
     type ScraperStepStatus,
 } from "@/constants/card_scraper";
 import { RunningStepIcons } from "./RunningStepIcons";
+import { CopyStepsButton } from "./CopyStepsButton";
+import { WidgetHeader } from "../WidgetHeader";
+import { StopScraperButton } from "./StopScraperButton";
 
 interface Step {
     id: string | number;
@@ -72,29 +75,52 @@ export function CardScraperRunningSteps({
         })
         .slice(-CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT);
 
+    const isRunning = filteredSteps.some(
+        (s) => s.status === SCRAPER_STEP_STATUS.RUNNING,
+    );
+
     return (
-        <Card withBorder radius="sm" padding="sm" shadow="sm" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-            <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
-                <Group justify="space-between">
-                    <Text fw={600} size="sm">
+        <Card
+            withBorder
+            radius="sm"
+            shadow="sm"
+            padding={0}
+            style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                minHeight: 0,
+            }}
+        >
+            <WidgetHeader
+                title={
+                    <>
                         Running Steps{" "}
-                        <Text component="span" fw={400} c="dimmed">
+                        <Text component="span" fw={400} c="dimmed" size="xs">
                             (Limit to {CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT})
                         </Text>
-                    </Text>
+                    </>
+                }
+                actions={
+                    <Group gap="xs">
+                        {isRunning && <StopScraperButton onStop={onStop} />}
+                        <CopyStepsButton
+                            hasSteps={filteredSteps.length > 0}
+                            value={[...filteredSteps]
+                                .reverse()
+                                .map((s) => `[${s.timestamp}] ${s.message}`)
+                                .join("\n")}
+                        />
+                    </Group>
+                }
+            />
+            <Stack gap="xs" style={{ flex: 1, minHeight: 0 }} p="sm">
+                <Group justify="flex-end">
+                    <RunningStepIcons
+                        isActive={isRunning}
+                        workerCount={workerCount}
+                    />
                 </Group>
-                <RunningStepIcons
-                    isActive={filteredSteps.some(
-                        (s) => s.status === SCRAPER_STEP_STATUS.RUNNING,
-                    )}
-                    workerCount={workerCount}
-                    onStop={onStop}
-                    hasSteps={filteredSteps.length > 0}
-                    copyValue={[...filteredSteps]
-                        .reverse()
-                        .map((s) => `[${s.timestamp}] ${s.message}`)
-                        .join("\n")}
-                />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} offsetScrollbars>
                     <Stack gap="xs">

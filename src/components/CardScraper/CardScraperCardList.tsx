@@ -17,7 +17,7 @@ import {
 } from "@tabler/icons-react";
 import JSZip from "jszip";
 import { useMemo, useState } from "react";
-import { CardScraperCount } from "./CardScraperCount";
+import { WidgetHeader } from "../WidgetHeader";
 import { ScrapedCardIcons } from "./ScrapedCardIcons";
 import { ScrapedCardSummary } from "./ScrapedCardSummary";
 
@@ -139,30 +139,38 @@ export function CardScraperCardList({
     };
 
     return (
-        <Card withBorder radius="sm" padding="sm" shadow="sm" h="100%" style={{ display: "flex", flexDirection: "column" }}>
-            <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
-                <Group justify="space-between">
-                    <CardScraperCount
-                        label={`Scraped Cards ${collectionCode ? `(${collectionCode})` : ""}`}
-                        count={filteredCards.length}
-                        subLabel={filterInvalid ? "Invalid" : "Cards"}
-                        color={filterInvalid ? "orange" : "blue"}
+        <Card
+            withBorder
+            radius="sm"
+            shadow="sm"
+            padding={0}
+            h="100%"
+            style={{ display: "flex", flexDirection: "column" }}
+        >
+            <WidgetHeader
+                title={`Scraped Cards ${collectionCode ? `(${collectionCode})` : ""}`}
+                count={filteredCards.length}
+                badgeColor={filterInvalid ? "orange" : "blue"}
+                actions={
+                    <ScrapedCardIcons
+                        onDownloadCards={onDownloadCards}
+                        onDownloadAllImages={handleDownloadAll}
+                        onRefresh={onRefresh}
+                        onDeleteAllCards={onDeleteAllCards}
+                        filterInvalid={filterInvalid}
+                        onFilterInvalidToggle={() =>
+                            setFilterInvalid(!filterInvalid)
+                        }
+                        loading={loading}
+                        bulkDownloading={bulkDownloading}
+                        downloadProgress={downloadProgress}
+                        canDownload={canDownload}
+                        cardsCount={cards.length}
+                        invalidCount={invalidCount}
                     />
-                </Group>
-                <ScrapedCardIcons
-                    onDownloadCards={onDownloadCards}
-                    onDownloadAllImages={handleDownloadAll}
-                    onRefresh={onRefresh}
-                    onDeleteAllCards={onDeleteAllCards}
-                    filterInvalid={filterInvalid}
-                    onFilterInvalidToggle={() => setFilterInvalid(!filterInvalid)}
-                    loading={loading}
-                    bulkDownloading={bulkDownloading}
-                    downloadProgress={downloadProgress}
-                    canDownload={canDownload}
-                    cardsCount={cards.length}
-                    invalidCount={invalidCount}
-                />
+                }
+            />
+            <Stack gap="md" style={{ flex: 1, minHeight: 0 }} p="sm">
 
                 <ScrapedCardSummary cards={cards} />
 
