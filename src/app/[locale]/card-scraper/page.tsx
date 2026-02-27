@@ -77,6 +77,7 @@ export default function CardScraperPage() {
     const [selectedCollection, setSelectedCollection] = useState<any | null>(
         null,
     );
+    const [workerCount, setWorkerCount] = useState(0);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const pendingActionRef = useRef<(() => void) | null>(null);
@@ -627,6 +628,8 @@ export default function CardScraperPage() {
                                     },
                                 };
                             });
+                        } else if (msg.type === "workers") {
+                            setWorkerCount(msg.count ?? 0);
                         } else if (msg.type === "step") {
                             setSteps((prev) => {
                                 const newSteps = prev.map((s) => ({
@@ -662,6 +665,7 @@ export default function CardScraperPage() {
                                     },
                                 ];
                             });
+                            setWorkerCount(0);
                         }
                     } catch (e) {
                         console.error("Failed to parse stream line:", line, e);
@@ -679,6 +683,7 @@ export default function CardScraperPage() {
                         timestamp: new Date().toLocaleTimeString(),
                     },
                 ]);
+                setWorkerCount(0);
                 return true;
             }
             const errorMessage = err.message || "An unexpected error occurred";
@@ -692,6 +697,7 @@ export default function CardScraperPage() {
             return false;
         } finally {
             abortControllerRef.current = null;
+            setWorkerCount(0);
         }
         return false;
     };
@@ -831,6 +837,7 @@ export default function CardScraperPage() {
                             />
                             <CardScraperRunningSteps
                                 steps={steps}
+                                workerCount={workerCount}
                                 onStop={() => {
                                     if (abortControllerRef.current) {
                                         abortControllerRef.current.abort();

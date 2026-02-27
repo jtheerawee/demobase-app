@@ -19,7 +19,6 @@ import {
     IconCircleDashed,
     IconCopy,
     IconLoader2,
-    IconPlayerStop,
 } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -28,6 +27,7 @@ import {
     SCRAPER_STEP_STATUS,
     type ScraperStepStatus,
 } from "@/constants/card_scraper";
+import { RunningStepIcons } from "./RunningStepIcons";
 
 interface Step {
     id: string | number;
@@ -38,11 +38,13 @@ interface Step {
 
 interface CardScraperRunningStepsProps {
     steps?: Step[];
+    workerCount?: number;
     onStop?: () => void;
 }
 
 export function CardScraperRunningSteps({
     steps = [],
+    workerCount = 0,
     onStop,
 }: CardScraperRunningStepsProps) {
     const [copiedId, setCopiedId] = useState<string | number | null>(null);
@@ -80,74 +82,19 @@ export function CardScraperRunningSteps({
                             (Limit to {CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT})
                         </Text>
                     </Text>
-                    <Group gap="xs">
-                        {filteredSteps.some((s) => s.status === SCRAPER_STEP_STATUS.RUNNING) && (
-                            <Group gap="xs">
-                                <Badge
-                                    variant="light"
-                                    color="blue"
-                                    size="sm"
-                                    leftSection={
-                                        <Box
-                                            className="animate-pulse-blink"
-                                            style={{
-                                                width: 6,
-                                                height: 6,
-                                                borderRadius: "50%",
-                                                backgroundColor: "var(--mantine-color-blue-6)"
-                                            }}
-                                        />
-                                    }
-                                >
-                                    Active
-                                </Badge>
-                                {onStop && (
-                                    <Tooltip label="Stop Scraping">
-                                        <ActionIcon
-                                            color="red"
-                                            variant="light"
-                                            size="sm"
-                                            onClick={onStop}
-                                        >
-                                            <IconPlayerStop size={14} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                )}
-                            </Group>
-                        )}
-                        {filteredSteps.length > 0 && (
-                            <CopyButton
-                                value={[...filteredSteps]
-                                    .reverse()
-                                    .map((s) => `[${s.timestamp}] ${s.message}`)
-                                    .join("\n")}
-                            >
-                                {({ copied, copy }) => (
-                                    <Tooltip
-                                        label={
-                                            copied
-                                                ? "Copied all!"
-                                                : "Copy all steps"
-                                        }
-                                    >
-                                        <ActionIcon
-                                            variant="subtle"
-                                            color={copied ? "green" : "gray"}
-                                            size="sm"
-                                            onClick={copy}
-                                        >
-                                            {copied ? (
-                                                <IconCheck size={14} />
-                                            ) : (
-                                                <IconCopy size={14} />
-                                            )}
-                                        </ActionIcon>
-                                    </Tooltip>
-                                )}
-                            </CopyButton>
-                        )}
-                    </Group>
                 </Group>
+                <RunningStepIcons
+                    isActive={filteredSteps.some(
+                        (s) => s.status === SCRAPER_STEP_STATUS.RUNNING,
+                    )}
+                    workerCount={workerCount}
+                    onStop={onStop}
+                    hasSteps={filteredSteps.length > 0}
+                    copyValue={[...filteredSteps]
+                        .reverse()
+                        .map((s) => `[${s.timestamp}] ${s.message}`)
+                        .join("\n")}
+                />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} offsetScrollbars>
                     <Stack gap="xs">
@@ -256,16 +203,8 @@ export function CardScraperRunningSteps({
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
                 }
-                @keyframes pulse-blink {
-                    0% { opacity: 1; transform: scale(1); }
-                    50% { opacity: 0.4; transform: scale(0.8); }
-                    100% { opacity: 1; transform: scale(1); }
-                }
                 .animate-spin {
                     animation: spin 2s linear infinite;
-                }
-                .animate-pulse-blink {
-                    animation: pulse-blink 1.5s ease-in-out infinite;
                 }
             `}</style>
         </Card>
