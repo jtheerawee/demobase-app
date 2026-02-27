@@ -364,14 +364,22 @@ function parseOcrText(text: string) {
         text.match(/\b([A-Z0-9]{2,4})(?:EN|JP|CN|KR|TW|FR|DE|IT|ES|PT)\b/i) ||
         text.match(/\b([A-Z0-9]{2,4})\b/i);
 
-    const pokemonNoMatch =
+    const pokemonCardNoMatch =
         text.match(/\b(\d{1,3})\/\d{2,3}\b/) ||
         text.match(/\b(\d{1,3})\b/);
 
-    if (pokemonSetMatch && pokemonNoMatch) {
+    if (pokemonSetMatch && pokemonCardNoMatch) {
+        let sc = pokemonSetMatch[1].toUpperCase();
+
+        // Apply manual mapping if exists (case-insensitive check)
+        const mappedCode = APP_CONFIG.POKEMON_SET_MAP[pokemonSetMatch[1]];
+        if (mappedCode) {
+            sc = mappedCode.toUpperCase();
+        }
+
         return {
-            setCode: pokemonSetMatch[1].toUpperCase(),
-            cardNo: pokemonNoMatch[1],
+            setCode: sc,
+            cardNo: pokemonCardNoMatch[1],
             name: lines[0] || "Unknown"
         };
     }

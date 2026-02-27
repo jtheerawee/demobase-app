@@ -24,6 +24,32 @@ export const APP_CONFIG = {
     Land: "L",
   } as Record<string, string>,
 
+  POKEMON_RARITY_MAP: {
+    Common: "C",
+    "Common Holo": "C",
+    Uncommon: "U",
+    "Uncommon Holo": "U",
+    Rare: "R",
+    "Rare Holo": "R",
+    "Rare Holo V": "RV",
+    "Rare Holo VMAX": "RVX",
+    "Rare Holo VSTAR": "RVS",
+    "Rare Holo EX": "REX",
+    "Rare Holo GX": "RGX",
+    "Rare Ultra": "RU",
+    "Rare Secret": "RS",
+    "Rare Rainbow": "RR",
+    "Illustration Rare": "IR",
+    "Special Illustration Rare": "SIR",
+    "Double Rare": "DR",
+    "Hyper Rare": "HR",
+    Promo: "P",
+  } as Record<string, string>,
+
+  POKEMON_SET_MAP: {
+    MEW: "sv3pt5",
+  } as Record<string, string>,
+
   // Pokemon
   POKEMON_URL_EN:
     "https://www.pokemon.com/us/pokemon-tcg/pokemon-cards",

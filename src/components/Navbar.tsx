@@ -38,6 +38,8 @@ function getLocalIp() {
     return null;
 }
 
+import { BugReportButton } from "./BugReport/BugReportButton";
+
 export async function Navbar() {
     const headerList = await headers();
     const forwarded = headerList.get("x-forwarded-for");
@@ -114,6 +116,8 @@ export async function Navbar() {
 
                     <Group gap="sm">
                         {/* {accessToken && <DevTokenBadge token={accessToken} />} */}
+
+                        <BugReportButton />
 
                         {user && (
                             <Avatar

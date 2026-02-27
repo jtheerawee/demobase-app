@@ -97,6 +97,7 @@ export async function GET(request: Request) {
         } else if (query) {
             // Normal text search logic
             const terms = query
+                .toLowerCase()
                 .trim()
                 .split(/\s+/)
                 .filter((t) => t.length > 0);

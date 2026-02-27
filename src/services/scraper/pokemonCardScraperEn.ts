@@ -374,6 +374,11 @@ export async function scrapePokemonCardsEn({
                             };
                         });
 
+                        // Map rarity to code
+                        if (details.rarity) {
+                            details.rarity = APP_CONFIG.POKEMON_RARITY_MAP[details.rarity] || details.rarity;
+                        }
+
                         Object.assign(card, details);
                         card.isBeingScraped = false;
                         send({ type: "cardUpdate", index: cardIndex, details });
