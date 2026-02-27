@@ -13,6 +13,7 @@ export async function scrapeTCGPlayerCards({
     deepScrape,
     collectionId,
     cardLimit,
+    franchise,
 }: ScraperOptions) {
     const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
@@ -32,7 +33,7 @@ export async function scrapeTCGPlayerCards({
         // Implementation if needed for worker tracking in UI
     };
 
-    const rarityMap = APP_CONFIG.LORCANA_RARITY_MAP;
+    const rarityMap = franchise === "pokemon" ? APP_CONFIG.POKEMON_RARITY_MAP : APP_CONFIG.LORCANA_RARITY_MAP;
     const paginationWorker = async (workerId: number) => {
         const workerPage = await context.newPage();
         try {
@@ -45,7 +46,7 @@ export async function scrapeTCGPlayerCards({
                 try {
                     send({
                         type: "step",
-                        message: `Worker ${workerId} scraping page ${p}`,
+                        message: `Worker ${workerId} scraping page ${p} - ${targetPageUrl}`,
                     });
 
                     await workerPage.goto(targetPageUrl, {
@@ -57,13 +58,16 @@ export async function scrapeTCGPlayerCards({
 
                     // 1. Redirect Check: If TCGPlayer redirects to a generic search, stop.
                     const currentUrl = workerPage.url();
-                    const isLorcana = currentUrl.includes("lorcana-tcg") || currentUrl.includes("productLineName=lorcana-tcg");
+
+                    const expectedProductLine = url.match(/productLineName=([^&]+)/)?.[1] || "tcg-player";
+                    const isExpectedProductLine = currentUrl.includes(expectedProductLine) || currentUrl.includes(`productLineName=${expectedProductLine}`);
+
                     // If we expected a set but the URL no longer has setName, we likely hit a redirect
                     const expectedSetSlug = url.match(/setName=([^&]+)/)?.[1];
                     const stillHasSet = expectedSetSlug ? currentUrl.includes(`setName=${expectedSetSlug}`) : true;
 
-                    if (!isLorcana || !stillHasSet) {
-                        console.warn(`[Lorcana Scraper] Worker ${workerId} detected redirect or set loss on page ${p}. Stopping.`);
+                    if (!isExpectedProductLine || !stillHasSet) {
+                        console.warn(`[TCGPlayer Scraper] Worker ${workerId} detected redirect or set/product loss on page ${p}. Stopping.`);
                         if (totalPages === Infinity) totalPages = p - 1;
                         break;
                     }
@@ -85,7 +89,7 @@ export async function scrapeTCGPlayerCards({
                         const currentTotalPages = Math.ceil(currentTotalResults / 24);
                         // Allow a small margin for TCGPlayer weirdness, but if it jumps significantly, stop
                         if (currentTotalPages > totalPages + 10) {
-                            console.warn(`[Lorcana Scraper] Result count jump detected on page ${p}. Stopping.`);
+                            console.warn(`[${franchise} Scraper] Result count jump detected on page ${p}. Stopping.`);
                             break;
                         }
                     }
@@ -290,11 +294,11 @@ export async function scrapeTCGPlayerCards({
                 });
                 send({
                     type: "step",
-                    message: `Successfully registered ${sharedCardList.length} Lorcana cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    message: `Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${added} new, 🔁 ${matched} matched.`,
                 });
             }
         } catch (error) {
-            console.error("Failed to save Lorcana cards:", error);
+            console.error(`Failed to save ${franchise} cards:`, error);
             send({
                 type: "step",
                 message: "Error: Could not register cards.",

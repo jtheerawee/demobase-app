@@ -15,7 +15,7 @@ export async function scrapeTCGPlayerCollections({
 }: ScraperOptions) {
     send({
         type: "step",
-        message: "Fetching Lorcana collections from TCGPlayer...",
+        message: `Fetching ${franchise} collections from TCGPlayer...`,
     });
 
     const sharedCollectionList: any[] = [];
@@ -54,7 +54,7 @@ export async function scrapeTCGPlayerCollections({
                 try {
                     await page.waitForSelector('.hfb-popover .search-filter__facets, .hfb-popover .search-filter__facet', { timeout: 10000 });
                 } catch (e) {
-                    console.warn("[Lorcana Scraper] Specific facet container not found, trying general popover content...");
+                    console.warn(`[${franchise} Scraper] Specific facet container not found, trying general popover content...`);
                     await page.waitForSelector('.hfb-popover', { timeout: 5000 });
                 }
 
@@ -114,13 +114,20 @@ export async function scrapeTCGPlayerCollections({
 
         for (const col of collections) {
             // Map the slug to a set number if available, otherwise fallback to slug
-            const setCode = APP_CONFIG.LORCANA_SET_MAP[col.slug] || col.slug.toUpperCase();
+            const setMap = franchise === "pokemon" ? APP_CONFIG.POKEMON_SET_MAP : APP_CONFIG.LORCANA_SET_MAP;
+            const setCode = setMap[col.slug] || col.slug.toUpperCase();
+
+            // Construct URL dynamically from the base url
+            let targetUrl = url;
+            if (!targetUrl.includes('setName=')) {
+                targetUrl = targetUrl.includes('?') ? `${targetUrl}&setName=${col.slug}` : `${targetUrl}?setName=${col.slug}`;
+            }
 
             sharedCollectionList.push({
                 name: col.name,
                 collectionCode: setCode,
                 imageUrl: "", // Icons are not available in the dropdown
-                collectionUrl: `https://www.tcgplayer.com/search/lorcana-tcg/product?productLineName=lorcana-tcg&setName=${col.slug}&ProductTypeName=Cards&view=grid`,
+                collectionUrl: targetUrl,
             });
         }
 
@@ -131,7 +138,7 @@ export async function scrapeTCGPlayerCollections({
 
         await page.close();
     } catch (err) {
-        console.error("Failed to fetch Lorcana collections:", err);
+        console.error(`Failed to fetch ${franchise} collections:`, err);
         send({
             type: "step",
             message: "Error: Could not fetch set list from TCGPlayer. " + (err instanceof Error ? err.message : String(err)),
@@ -172,11 +179,11 @@ export async function scrapeTCGPlayerCollections({
                 });
                 send({
                     type: "step",
-                    message: `Successfully registered ${sharedCollectionList.length} Lorcana collections — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    message: `Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${added} new, 🔁 ${matched} matched.`,
                 });
             }
         } catch (error) {
-            console.error("Failed to save Lorcana sets:", error);
+            console.error(`Failed to save ${franchise} sets:`, error);
             send({
                 type: "step",
                 message: "Error: Could not register collections.",
