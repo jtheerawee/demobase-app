@@ -18,8 +18,9 @@ export const LORCANA_CONFIG = {
         "ursulas-return": "4",
         "shimmering-skies": "5",
         "azurite-sea": "6",
-        "eye-of-the-fates": "7",
-        "deck-boxes": "8",
+        "archazias-island": "7",
+        "reign-of-jafar": "8",
         "fabled": "9",
+        "whispers-in-the-well": "10",
     } as Record<string, string>,
 };

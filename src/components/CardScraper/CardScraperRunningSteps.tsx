@@ -19,6 +19,7 @@ import {
     IconCircleDashed,
     IconCopy,
     IconLoader2,
+    IconPlayerStop,
 } from "@tabler/icons-react";
 import { useState } from "react";
 
@@ -33,10 +34,12 @@ interface Step {
 
 interface CardScraperRunningStepsProps {
     steps?: Step[];
+    onStop?: () => void;
 }
 
 export function CardScraperRunningSteps({
     steps = [],
+    onStop,
 }: CardScraperRunningStepsProps) {
     const [copiedId, setCopiedId] = useState<
         string | number | null
@@ -94,14 +97,28 @@ export function CardScraperRunningSteps({
                         {filteredSteps.some(
                             (s) => s.status === "running",
                         ) && (
-                            <Badge
-                                variant="dot"
-                                color="blue"
-                                size="sm"
-                            >
-                                Active
-                            </Badge>
-                        )}
+                                <Group gap="xs">
+                                    <Badge
+                                        variant="dot"
+                                        color="blue"
+                                        size="sm"
+                                    >
+                                        Active
+                                    </Badge>
+                                    {onStop && (
+                                        <Tooltip label="Stop Scraping">
+                                            <ActionIcon
+                                                color="red"
+                                                variant="light"
+                                                size="sm"
+                                                onClick={onStop}
+                                            >
+                                                <IconPlayerStop size={14} />
+                                            </ActionIcon>
+                                        </Tooltip>
+                                    )}
+                                </Group>
+                            )}
                         {filteredSteps.length > 0 && (
                             <CopyButton
                                 value={[...filteredSteps]
@@ -166,45 +183,45 @@ export function CardScraperRunningSteps({
                                         <Box mt={2}>
                                             {step.status ===
                                                 "completed" && (
-                                                <IconCircleCheck
-                                                    size={
-                                                        16
-                                                    }
-                                                    color="var(--mantine-color-green-6)"
-                                                />
-                                            )}
+                                                    <IconCircleCheck
+                                                        size={
+                                                            16
+                                                        }
+                                                        color="var(--mantine-color-green-6)"
+                                                    />
+                                                )}
                                             {step.status ===
                                                 "running" && (
-                                                <IconLoader2
-                                                    size={
-                                                        16
-                                                    }
-                                                    color="var(--mantine-color-blue-6)"
-                                                    className="animate-spin"
-                                                    style={{
-                                                        animation:
-                                                            "spin 2s linear infinite",
-                                                    }}
-                                                />
-                                            )}
+                                                    <IconLoader2
+                                                        size={
+                                                            16
+                                                        }
+                                                        color="var(--mantine-color-blue-6)"
+                                                        className="animate-spin"
+                                                        style={{
+                                                            animation:
+                                                                "spin 2s linear infinite",
+                                                        }}
+                                                    />
+                                                )}
                                             {step.status ===
                                                 "pending" && (
-                                                <IconCircleDashed
-                                                    size={
-                                                        16
-                                                    }
-                                                    color="var(--mantine-color-gray-4)"
-                                                />
-                                            )}
+                                                    <IconCircleDashed
+                                                        size={
+                                                            16
+                                                        }
+                                                        color="var(--mantine-color-gray-4)"
+                                                    />
+                                                )}
                                             {step.status ===
                                                 "error" && (
-                                                <IconAlertCircle
-                                                    size={
-                                                        16
-                                                    }
-                                                    color="var(--mantine-color-red-6)"
-                                                />
-                                            )}
+                                                    <IconAlertCircle
+                                                        size={
+                                                            16
+                                                        }
+                                                        color="var(--mantine-color-red-6)"
+                                                    />
+                                                )}
                                         </Box>
                                         <Stack
                                             gap={0}
@@ -232,7 +249,7 @@ export function CardScraperRunningSteps({
                                         <Tooltip
                                             label={
                                                 copiedId ===
-                                                step.id
+                                                    step.id
                                                     ? "Copied!"
                                                     : "Copy"
                                             }
@@ -242,7 +259,7 @@ export function CardScraperRunningSteps({
                                                 variant="subtle"
                                                 color={
                                                     copiedId ===
-                                                    step.id
+                                                        step.id
                                                         ? "green"
                                                         : "gray"
                                                 }
@@ -259,18 +276,18 @@ export function CardScraperRunningSteps({
                                                 onMouseEnter={(
                                                     e,
                                                 ) =>
-                                                    (e.currentTarget.style.opacity =
-                                                        "1")
+                                                (e.currentTarget.style.opacity =
+                                                    "1")
                                                 }
                                                 onMouseLeave={(
                                                     e,
                                                 ) =>
-                                                    (e.currentTarget.style.opacity =
-                                                        "0.5")
+                                                (e.currentTarget.style.opacity =
+                                                    "0.5")
                                                 }
                                             >
                                                 {copiedId ===
-                                                step.id ? (
+                                                    step.id ? (
                                                     <IconCheck
                                                         size={
                                                             12

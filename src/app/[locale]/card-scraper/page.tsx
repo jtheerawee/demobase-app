@@ -218,13 +218,13 @@ export default function CardScraperPage() {
                     } else {
                         setError(
                             data.error ||
-                                "Failed to delete collections",
+                            "Failed to delete collections",
                         );
                     }
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during deletion",
+                        "An unexpected error occurred during deletion",
                     );
                 } finally {
                     setCollectionLoading(false);
@@ -265,13 +265,13 @@ export default function CardScraperPage() {
                     } else {
                         setError(
                             data.error ||
-                                "Failed to delete collection",
+                            "Failed to delete collection",
                         );
                     }
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during deletion",
+                        "An unexpected error occurred during deletion",
                     );
                 } finally {
                     setCollectionLoading(false);
@@ -314,10 +314,12 @@ export default function CardScraperPage() {
                 cardLimit: cardScraperLimit,
             };
 
-            await runScraperStream(requestData, (items) => {
+            const aborted = await runScraperStream(requestData, (items) => {
                 // Now streaming items into the UI so user can see progress
                 setCards((prev) => [...prev, ...items]);
             });
+
+            if (aborted) break;
 
             // Fresh pull from database to ensure metadata and details are correct
             if (col.id) await fetchCards(col.id);
@@ -484,7 +486,7 @@ export default function CardScraperPage() {
         } catch (err: any) {
             setError(
                 err.message ||
-                    "An unexpected error occurred during card deletion",
+                "An unexpected error occurred during card deletion",
             );
         }
     };
@@ -513,13 +515,13 @@ export default function CardScraperPage() {
                     } else {
                         setError(
                             data.error ||
-                                "Failed to delete cards",
+                            "Failed to delete cards",
                         );
                     }
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during bulk card deletion",
+                        "An unexpected error occurred during bulk card deletion",
                     );
                 }
             },
@@ -577,7 +579,7 @@ export default function CardScraperPage() {
                         if (msg.success === false) {
                             setError(
                                 msg.error ||
-                                    "Scraping failed",
+                                "Scraping failed",
                             );
                             continue;
                         }
@@ -723,18 +725,15 @@ export default function CardScraperPage() {
                     ...prev,
                     {
                         id: "abort",
-                        message:
-                            "Scraping stopped by user.",
+                        message: "Scraping stopped by user.",
                         status: "error",
-                        timestamp:
-                            new Date().toLocaleTimeString(),
+                        timestamp: new Date().toLocaleTimeString(),
                     },
                 ]);
-                return;
+                return true;
             }
             const errorMessage =
-                err.message ||
-                "An unexpected error occurred";
+                err.message || "An unexpected error occurred";
             setError(errorMessage);
             notifications.show({
                 title: "Scraping Failed",
@@ -742,9 +741,11 @@ export default function CardScraperPage() {
                 color: "red",
                 icon: <IconAlertCircle size={18} />,
             });
+            return false;
         } finally {
             abortControllerRef.current = null;
         }
+        return false;
     };
 
     return (
@@ -879,6 +880,13 @@ export default function CardScraperPage() {
                         />
                         <CardScraperRunningSteps
                             steps={steps}
+                            onStop={() => {
+                                if (abortControllerRef.current) {
+                                    abortControllerRef.current.abort();
+                                    setCardLoading(false);
+                                    setCollectionLoading(false);
+                                }
+                            }}
                         />
                         <CardScraperStats
                             stats={scraperStats}
@@ -903,7 +911,7 @@ export default function CardScraperPage() {
                                 fetchExistingCollections(
                                     selectedFranchise,
                                     selectedLanguage ??
-                                        "en",
+                                    "en",
                                 )
                             }
                             onDownloadAllCollections={
