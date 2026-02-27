@@ -43,14 +43,6 @@ export const APP_CONFIG = {
     SEARCH_RESULTS_PER_ROW: 1,
     PREVIEW_IMAGE_WIDTH: 400,
 
-    // Layout Spans (Mantine Grid 12-cols)
-    CARD_MANAGER_LAYOUT: {
-        COLLECTION_SPAN: 3, // 1/4
-        RESULTS_SPAN: 3, // 1/4
-        CONTROLS_SPAN: 6, // 2/4
-    },
-    CAMERA_DEVICES_WIDTH: "calc(33.33% - 15px)",
-
     // Card Kingdom
     // CKD_URL: "https://www.cardkingdom.com/mtg/lorwyn-eclipsed/formidable-speaker",
     // TCGPlayer

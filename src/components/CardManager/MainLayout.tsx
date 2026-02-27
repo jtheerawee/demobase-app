@@ -2,7 +2,7 @@
 
 import { Card, Grid } from "@mantine/core";
 import type { ReactNode } from "react";
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 
 interface MainLayoutProps {
     collection: ReactNode;
@@ -24,7 +24,7 @@ export function MainLayout({
             <Grid.Col
                 span={{
                     base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT
+                    md: CARD_MANAGER_CONFIG.LAYOUT
                         .COLLECTION_SPAN,
                 }}
                 h="100%"
@@ -43,7 +43,7 @@ export function MainLayout({
             <Grid.Col
                 span={{
                     base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT
+                    md: CARD_MANAGER_CONFIG.LAYOUT
                         .RESULTS_SPAN,
                 }}
                 h="100%"
@@ -62,7 +62,7 @@ export function MainLayout({
             <Grid.Col
                 span={{
                     base: 12,
-                    md: APP_CONFIG.CARD_MANAGER_LAYOUT
+                    md: CARD_MANAGER_CONFIG.LAYOUT
                         .CONTROLS_SPAN,
                 }}
                 h="100%"

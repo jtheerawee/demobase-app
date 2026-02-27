@@ -1,7 +1,7 @@
 import { Box, Select } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { useState } from "react";
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 
 interface CameraDevicesProps {
     devices: { value: string; label: string }[];
@@ -21,7 +21,7 @@ export function CameraDevices({
             pos="absolute"
             top={10}
             left={10}
-            w={APP_CONFIG.CAMERA_DEVICES_WIDTH}
+            w={CARD_MANAGER_CONFIG.CAMERA_DEVICES_WIDTH}
             style={{ zIndex: 10 }}
         >
             <Select
