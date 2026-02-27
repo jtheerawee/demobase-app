@@ -3,7 +3,6 @@
 import {
     ActionIcon,
     Badge,
-    Box,
     Card,
     Group,
     Image,
@@ -13,16 +12,13 @@ import {
     Text,
 } from "@mantine/core";
 import {
-    IconAlertTriangle,
-    IconDownload,
     IconExternalLink,
-    IconFilter,
-    IconFilterOff,
-    IconRefresh,
     IconTrash,
 } from "@tabler/icons-react";
 import JSZip from "jszip";
 import { useMemo, useState } from "react";
+import { CardScraperCount } from "./CardScraperCount";
+import { ScrapedCardIcons } from "./ScrapedCardIcons";
 
 interface CardItem {
     id: string | number;
@@ -145,87 +141,27 @@ export function CardScraperCardList({
         <Card withBorder radius="sm" padding="sm" shadow="sm" h="100%" style={{ display: "flex", flexDirection: "column" }}>
             <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
                 <Group justify="space-between">
-                    <Group gap="xs" align="center">
-                        <Text fw={600}>
-                            Scraped Cards{" "}
-                            {collectionCode ? `(${collectionCode})` : ""}
-                        </Text>
-                        <Badge
-                            variant="light"
-                            color={filterInvalid ? "orange" : "gray"}
-                        >
-                            {filteredCards.length}{" "}
-                            {filterInvalid ? "Invalid" : "Cards"}
-                        </Badge>
-                    </Group>
-                    <Group gap="xs">
-                        <ActionIcon
-                            variant="light"
-                            color="green"
-                            size="sm"
-                            onClick={() => onDownloadCards?.()}
-                            title="Scrape cards for this collection"
-                            loading={loading}
-                            disabled={!canDownload}
-                        >
-                            <IconDownload size={14} />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="filled"
-                            color="green"
-                            size="sm"
-                            onClick={handleDownloadAll}
-                            title={
-                                bulkDownloading
-                                    ? `Downloading ${downloadProgress.current}/${downloadProgress.total}...`
-                                    : "Download all images as zip"
-                            }
-                            loading={bulkDownloading}
-                            disabled={filteredCards.length === 0}
-                        >
-                            <IconDownload size={14} />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="light"
-                            color="blue"
-                            size="sm"
-                            onClick={onRefresh}
-                            title="Refresh from database"
-                            loading={loading}
-                            disabled={!canDownload}
-                        >
-                            <IconRefresh size={14} />
-                        </ActionIcon>
-                        <ActionIcon
-                            variant={filterInvalid ? "filled" : "light"}
-                            color={filterInvalid ? "orange" : "gray"}
-                            size="sm"
-                            onClick={() => setFilterInvalid(!filterInvalid)}
-                            title={
-                                filterInvalid
-                                    ? "Show all cards"
-                                    : "Filter invalid cards (no rarity)"
-                            }
-                            disabled={invalidCount === 0 && !filterInvalid}
-                        >
-                            {filterInvalid ? (
-                                <IconFilterOff size={14} />
-                            ) : (
-                                <IconFilter size={14} />
-                            )}
-                        </ActionIcon>
-                        <ActionIcon
-                            variant="light"
-                            color="red"
-                            size="sm"
-                            onClick={onDeleteAllCards}
-                            title="Delete all cards in this collection"
-                            disabled={cards.length === 0}
-                        >
-                            <IconTrash size={14} />
-                        </ActionIcon>
-                    </Group>
+                    <CardScraperCount
+                        label={`Scraped Cards ${collectionCode ? `(${collectionCode})` : ""}`}
+                        count={filteredCards.length}
+                        subLabel={filterInvalid ? "Invalid" : "Cards"}
+                        color={filterInvalid ? "orange" : "blue"}
+                    />
                 </Group>
+                <ScrapedCardIcons
+                    onDownloadCards={onDownloadCards}
+                    onDownloadAllImages={handleDownloadAll}
+                    onRefresh={onRefresh}
+                    onDeleteAllCards={onDeleteAllCards}
+                    filterInvalid={filterInvalid}
+                    onFilterInvalidToggle={() => setFilterInvalid(!filterInvalid)}
+                    loading={loading}
+                    bulkDownloading={bulkDownloading}
+                    downloadProgress={downloadProgress}
+                    canDownload={canDownload}
+                    cardsCount={cards.length}
+                    invalidCount={invalidCount}
+                />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} pt="xs">
                     <SimpleGrid cols={1} spacing="xs">

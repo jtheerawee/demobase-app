@@ -2,26 +2,15 @@
 
 import {
     ActionIcon,
-    Badge,
     Card,
     Group,
     ScrollArea,
     Stack,
     Text,
     TextInput,
-    Tooltip,
 } from "@mantine/core";
 import {
-    IconCalendar,
-    IconDatabaseImport,
-    IconDownload,
-    IconRefresh,
     IconSearch,
-    IconSortAscendingNumbers,
-    IconSortAZ,
-    IconSortDescendingNumbers,
-    IconSortZA,
-    IconTrash,
     IconX,
 } from "@tabler/icons-react";
 import { useState } from "react";
@@ -29,6 +18,8 @@ import {
     CardScraperCollectionItem,
     type CollectionItem,
 } from "./CardScraperCollectionItem";
+import { CardScraperCount } from "./CardScraperCount";
+import { CollectionIcons } from "./CollectionIcons";
 
 interface CardScraperCollectionListProps {
     collections?: CollectionItem[];
@@ -101,116 +92,26 @@ export function CardScraperCollectionList({
         <Card withBorder radius="sm" padding="sm" shadow="sm" h="100%" style={{ display: "flex", flexDirection: "column" }}>
             <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
                 <Group justify="space-between">
-                    <Group gap="xs" align="center">
-                        <Text fw={700}>Collections</Text>
-                        <Badge variant="light" color="blue">
-                            {totalCount} Cols
-                        </Badge>
-                    </Group>
-                    <Group gap="xs">
-                        <Tooltip label="Refresh from database" withArrow>
-                            <ActionIcon
-                                variant="light"
-                                color="blue"
-                                size="sm"
-                                onClick={onRefresh}
-                                loading={loading}
-                            >
-                                <IconRefresh size={16} />
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip
-                            label="Fetch collections from source"
-                            withArrow
-                        >
-                            <ActionIcon
-                                variant="light"
-                                color="violet"
-                                size="sm"
-                                onClick={onDownloadAllCollections}
-                                loading={loading}
-                            >
-                                <IconDatabaseImport size={16} />
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label={`Delete all ${franchise ? franchise.toUpperCase() + " " : ""}${language ? language.toUpperCase() + " " : ""}collections`} withArrow>
-                            <ActionIcon
-                                variant="light"
-                                color="red"
-                                size="sm"
-                                onClick={onDeleteAllCollections}
-                                loading={loading}
-                                disabled={totalCount === 0}
-                            >
-                                <IconTrash size={16} />
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip
-                            label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`}
-                            withArrow
-                        >
-                            <ActionIcon
-                                variant={sortBy === "name" ? "light" : "subtle"}
-                                color={sortBy === "name" ? "blue" : "gray"}
-                                size="sm"
-                                onClick={() => handleSort("name")}
-                                disabled={totalCount === 0}
-                            >
-                                {sortBy === "name" && !sortAsc ? (
-                                    <IconSortZA size={14} />
-                                ) : (
-                                    <IconSortAZ size={14} />
-                                )}
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip
-                            label={`Sort by year (${sortBy === "year" ? (sortAsc ? "old→new" : "new→old") : "new→old"})`}
-                            withArrow
-                        >
-                            <ActionIcon
-                                variant={sortBy === "year" ? "light" : "subtle"}
-                                color={sortBy === "year" ? "blue" : "gray"}
-                                size="sm"
-                                onClick={() => handleSort("year")}
-                                disabled={totalCount === 0}
-                            >
-                                <IconCalendar size={14} />
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip
-                            label={`Sort by cards (${sortBy === "cards" ? (sortAsc ? "low→high" : "high→low") : "high→low"})`}
-                            withArrow
-                        >
-                            <ActionIcon
-                                variant={
-                                    sortBy === "cards" ? "light" : "subtle"
-                                }
-                                color={sortBy === "cards" ? "blue" : "gray"}
-                                size="sm"
-                                onClick={() => handleSort("cards")}
-                                disabled={totalCount === 0}
-                            >
-                                {sortBy === "cards" && sortAsc ? (
-                                    <IconSortAscendingNumbers size={14} />
-                                ) : (
-                                    <IconSortDescendingNumbers size={14} />
-                                )}
-                            </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label={`Download cards for all ${franchise ? franchise.toUpperCase() + " " : ""}${language ? language.toUpperCase() + " " : ""}collections`} withArrow>
-                            <ActionIcon
-                                variant="light"
-                                color="green"
-                                size="sm"
-                                onClick={onDownloadAllCards}
-                                loading={loading}
-                                disabled={totalCount === 0}
-                            >
-                                <IconDownload size={16} />
-                            </ActionIcon>
-                        </Tooltip>
-                    </Group>
+                    <CardScraperCount
+                        label="Collections"
+                        count={totalCount}
+                        subLabel="Cols"
+                        color="blue"
+                    />
                 </Group>
+                <CollectionIcons
+                    onRefresh={onRefresh}
+                    onDownloadAllCollections={onDownloadAllCollections}
+                    onDeleteAllCollections={onDeleteAllCollections}
+                    onSortChange={handleSort}
+                    onDownloadAllCards={onDownloadAllCards}
+                    sortBy={sortBy}
+                    sortAsc={sortAsc}
+                    loading={loading}
+                    totalCount={totalCount}
+                    franchise={franchise}
+                    language={language}
+                />
 
                 <TextInput
                     placeholder="Search by name or code..."

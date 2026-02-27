@@ -94,7 +94,7 @@ export async function scrapeMTGCards({
 
                 await workerPage.goto(pageUrl, {
                     waitUntil: "domcontentloaded",
-                    timeout: 60000,
+                    timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
                 });
 
                 // Extract the set code from the URL for matching card links
@@ -192,11 +192,12 @@ export async function scrapeMTGCards({
                 const pageCards = rawPageCards.filter((c: any) => {
                     const mismatched = isMismatchedSlug(c.name, c.cardUrl);
                     if (mismatched) {
-                        discardedCount++;
                         pageDiscardedItems.push(c);
                     }
                     return !mismatched;
                 });
+                const pageDiscardedCount = pageDiscardedItems.length;
+                discardedCount += pageDiscardedCount;
 
                 const releaseYear = pageResults.releaseYear;
 
@@ -240,7 +241,7 @@ export async function scrapeMTGCards({
 
                 send({
                     type: "step",
-                    message: `Found ${cardsToAdd.length} new cards on page ${p}${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}.`,
+                    message: `Found ${cardsToAdd.length} new cards on page ${p}${pageDiscardedCount > 0 ? ` (${pageDiscardedCount} discarded)` : ""}.`,
                 });
 
                 // Save this page's cards immediately to get real-time stats
@@ -268,7 +269,7 @@ export async function scrapeMTGCards({
                                 added,
                                 matched,
                                 missed: 0,
-                                discarded: discardedCount,
+                                discarded: pageDiscardedCount,
                                 discardedItems: pageDiscardedItems,
                             });
                         }
@@ -554,7 +555,7 @@ export async function scrapeMTGCards({
                             try {
                                 await wp.goto(card.cardUrl, {
                                     waitUntil: "domcontentloaded",
-                                    timeout: 30000,
+                                    timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
                                 });
 
                                 const details = await wp.evaluate(
@@ -715,7 +716,7 @@ export async function scrapeMTGCards({
                                 added: 0,
                                 matched: 0,
                                 missed,
-                                discarded: discardedCount,
+                                discarded: 0, // already reported incrementally
                             });
                         }
                     } catch (error) {
