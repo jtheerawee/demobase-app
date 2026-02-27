@@ -8,11 +8,15 @@ import {
 import {
     scrapeOnepieceCards,
     scrapeOnepieceCollections,
-} from "@/services/scraper/onepieceScraper";
+} from "@/services/scraper/onepiece/onepieceScraper";
 import {
     scrapePokemonCards,
     scrapePokemonCollections,
 } from "@/services/scraper/pokemon/pokemonScraper";
+import {
+    scrapeLorcanaCardsEntry as scrapeLorcanaCards,
+    scrapeLorcanaCollectionsEntry as scrapeLorcanaCollections,
+} from "@/services/scraper/lorcana/lorcanaScraper";
 
 export async function POST(request: Request) {
     let url: string = "";
@@ -57,6 +61,8 @@ export async function POST(request: Request) {
                 } else {
                     url = APP_CONFIG.ONEPIECE_URL_EN;
                 }
+            } else if (franchise === "lorcana") {
+                url = APP_CONFIG.LORCANA_URL_EN;
             } else {
                 url = APP_CONFIG.MTG_COLLECTION_URL;
             }
@@ -83,7 +89,7 @@ export async function POST(request: Request) {
                                     `${JSON.stringify(data)}\n`,
                                 ),
                             );
-                        } catch (_err) {}
+                        } catch (_err) { }
                     };
 
                     try {
@@ -183,6 +189,18 @@ export async function POST(request: Request) {
                                     scraperOptions,
                                 );
                             }
+                        } else if (
+                            franchise === "lorcana"
+                        ) {
+                            if (type === "cards") {
+                                await scrapeLorcanaCards(
+                                    scraperOptions,
+                                );
+                            } else {
+                                await scrapeLorcanaCollections(
+                                    scraperOptions,
+                                );
+                            }
                         } else {
                             send({
                                 type: "step",
@@ -216,7 +234,7 @@ export async function POST(request: Request) {
                         }
                         try {
                             controller.close();
-                        } catch (_e) {}
+                        } catch (_e) { }
                     }
                 },
             }),
