@@ -50,4 +50,9 @@ export const APP_CONFIG = {
         CONTROLS_SPAN: 6, // 2/4
     },
     CAMERA_DEVICES_WIDTH: "calc(33.33% - 15px)",
+
+    // Card Kingdom
+    // CKD_URL: "https://www.cardkingdom.com/mtg/lorwyn-eclipsed/formidable-speaker",
+    // TCGPlayer
+    // TCG_URL: "https://www.tcgplayer.com/product/619740/lorcana-tcg-archazias-island-tramp-enterprising-dog-enchanted?page=1&Language=all",
 } as const;
