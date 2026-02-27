@@ -8,8 +8,8 @@ import {
     Title,
 } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { Link } from "@/i18n/navigation";
 import type { ReactNode } from "react";
+import { Link } from "@/i18n/navigation";
 
 interface PageHeaderProps {
     title: string;

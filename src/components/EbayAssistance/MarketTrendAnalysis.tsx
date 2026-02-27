@@ -13,6 +13,7 @@ import {
     Title,
 } from "@mantine/core";
 import { IconTrendingUp } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import {
     CartesianGrid,
@@ -24,9 +25,8 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { useTranslations } from "next-intl";
-import { MarketTrendAnalysisHeader } from "./MarketTrendAnalysisHeader";
 import type { EbayItem } from "@/services/ebayService";
+import { MarketTrendAnalysisHeader } from "./MarketTrendAnalysisHeader";
 
 function calculateMedian(values: number[]): number {
     if (values.length === 0) return 0;

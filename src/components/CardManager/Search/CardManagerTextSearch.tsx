@@ -1,9 +1,9 @@
 "use client";
 
 import {
-    TextInput,
-    Loader,
     CloseButton,
+    Loader,
+    TextInput,
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 import { APP_CONFIG } from "@/constants/app";

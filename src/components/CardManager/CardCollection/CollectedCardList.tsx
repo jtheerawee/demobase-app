@@ -1,11 +1,11 @@
 "use client";
 
 import {
-    ScrollArea,
     Box,
-    Text,
-    Stack,
     Divider,
+    ScrollArea,
+    Stack,
+    Text,
 } from "@mantine/core";
 import { CollectedCard } from "./CollectedCard";
 

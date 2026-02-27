@@ -1,6 +1,5 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
 import {
     Button,
     Container,
@@ -8,6 +7,7 @@ import {
     Title,
 } from "@mantine/core";
 import { useTranslations } from "next-intl";
+import { createClient } from "@/utils/supabase/client";
 
 export default function SignInPage() {
     const t = useTranslations("SignInPage");

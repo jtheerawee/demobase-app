@@ -1,31 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
-    Group,
-    Text,
-    Stack,
-    Image,
-    Button,
     Box,
-    LoadingOverlay,
+    Button,
     Center,
+    Group,
+    Image,
+    LoadingOverlay,
+    Stack,
+    Text,
 } from "@mantine/core";
 import {
     Dropzone,
+    type FileWithPath,
     IMAGE_MIME_TYPE,
-    FileWithPath,
 } from "@mantine/dropzone";
+import { notifications } from "@mantine/notifications";
 import {
     IconPhoto,
-    IconX,
-    IconScan,
     IconRefresh,
+    IconScan,
+    IconX,
 } from "@tabler/icons-react";
-import { notifications } from "@mantine/notifications";
-import { OCR_CONFIG } from "@/constants/ocr";
+import { useEffect, useState } from "react";
 import { APP_CONFIG } from "@/constants/app";
 import { APP_MESSAGES } from "@/constants/messages";
+import { OCR_CONFIG } from "@/constants/ocr";
 import { CameraView } from "./CameraView";
 
 interface CardManagerOCRProps {

@@ -1,31 +1,31 @@
 "use client";
 
 import {
-    useState,
-    useRef,
-    useEffect,
-    useCallback,
-} from "react";
-import {
-    Text,
-    Stack,
-    Loader,
     Box,
-    LoadingOverlay,
     Center,
+    Loader,
+    LoadingOverlay,
+    Stack,
+    Text,
 } from "@mantine/core";
-import { FileWithPath } from "@mantine/dropzone";
+import type { FileWithPath } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
+import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { APP_CONFIG } from "@/constants/app";
 import { OCR_CONFIG } from "@/constants/ocr";
-import { ImageThumbnail } from "./ImageThumbnail";
-import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { AutoOptions } from "./AutoOptions";
-import { CameraShutter } from "./CameraShutter";
 import {
     CameraDevices,
     useCameraDevices,
 } from "./CameraDevices";
+import { CameraShutter } from "./CameraShutter";
+import { ImageThumbnail } from "./ImageThumbnail";
 
 interface CameraViewProps {
     onCapture: (file: FileWithPath) => void;

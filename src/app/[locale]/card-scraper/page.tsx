@@ -1,36 +1,36 @@
 "use client";
 
 import {
+    ActionIcon,
+    Alert,
+    Button,
     Container,
+    Group,
+    Modal,
+    NumberInput,
     SimpleGrid,
     Stack,
-    Alert,
-    Modal,
-    Button,
     Text,
-    Group,
-    NumberInput,
-    ActionIcon,
     Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { PageHeader } from "@/components/PageHeader";
+import { notifications } from "@mantine/notifications";
+import {
+    IconAlertCircle,
+    IconCheck,
+    IconDatabaseExport,
+    IconSettings,
+} from "@tabler/icons-react";
+import { useEffect, useRef, useState } from "react";
+import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardList";
 import { CardScraperCollectionList } from "@/components/CardScraper/CardScraperCollectionList";
 import { CardScraperInputs } from "@/components/CardScraper/CardScraperInputs";
 import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRunningSteps";
-import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardList";
 import {
     CardScraperStats,
     type ScraperStats,
 } from "@/components/CardScraper/CardScraperStats";
-import {
-    IconDatabaseExport,
-    IconAlertCircle,
-    IconCheck,
-    IconSettings,
-} from "@tabler/icons-react";
-import { notifications } from "@mantine/notifications";
-import { useState, useRef, useEffect } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { APP_CONFIG } from "@/constants/app";
 
 const DEFAULT_STATS: ScraperStats = {

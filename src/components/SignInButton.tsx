@@ -1,7 +1,7 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
 import { Button } from "@mantine/core";
+import { createClient } from "@/utils/supabase/client";
 
 export function SignInButton({ label }: { label: string }) {
     async function handleSignIn() {

@@ -1,17 +1,17 @@
 "use client";
 
 import {
-    Modal,
-    Stack,
+    Button,
     Group,
     Image,
-    Text,
+    Modal,
     Select,
-    Button,
+    Stack,
+    Text,
 } from "@mantine/core";
-import { CollectedCard } from "./CollectedCard";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
+import type { CollectedCard } from "./CollectedCard";
 
 interface AddNewCardModalProps {
     card: CollectedCard | null;

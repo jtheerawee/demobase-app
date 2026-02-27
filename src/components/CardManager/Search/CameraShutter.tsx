@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
 import {
-    Tooltip,
     Button,
     Center,
     Group,
+    Tooltip,
 } from "@mantine/core";
 import {
     IconCamera,
     IconPlayerStop,
 } from "@tabler/icons-react";
+import { useEffect } from "react";
 
 interface CameraShutterProps {
     loading: boolean;

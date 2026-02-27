@@ -75,7 +75,7 @@ export async function scrapeOnepieceCollections({
 
                         // Extract pack code from brackets e.g. "BOOSTER PACK -ROYAL BLOOD- [OP-10]" → "OP-10"
                         const codeMatch = name.match(
-                            /\[([A-Z0-9\-]+)\]\s*$/,
+                            /\[([A-Z0-9-]+)\]\s*$/,
                         );
                         const collectionCode = codeMatch
                             ? codeMatch[1]

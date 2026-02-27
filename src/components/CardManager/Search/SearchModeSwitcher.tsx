@@ -1,8 +1,8 @@
 import {
-    SegmentedControl,
-    Center,
-    Box,
     ActionIcon,
+    Box,
+    Center,
+    SegmentedControl,
 } from "@mantine/core";
 import {
     IconAlphabetLatin,

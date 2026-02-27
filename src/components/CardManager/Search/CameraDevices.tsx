@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Box, Select } from "@mantine/core";
-import { APP_CONFIG } from "@/constants/app";
 import { useLocalStorage } from "@mantine/hooks";
+import { useState } from "react";
+import { APP_CONFIG } from "@/constants/app";
 
 interface CameraDevicesProps {
     devices: { value: string; label: string }[];

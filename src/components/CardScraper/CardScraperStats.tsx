@@ -1,12 +1,12 @@
 "use client";
 
 import {
+    Badge,
     Card,
     Group,
+    SimpleGrid,
     Stack,
     Text,
-    SimpleGrid,
-    Badge,
     Tooltip,
 } from "@mantine/core";
 

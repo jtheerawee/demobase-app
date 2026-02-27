@@ -12,16 +12,12 @@ import {
     Switch,
     Text,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
     IconBolt,
     IconShoppingCart,
 } from "@tabler/icons-react";
-import { PageHeader } from "@/components/PageHeader";
-import { EbayActiveFilters } from "@/components/EbayAssistance/EbayActiveFilters";
-import { EbayActiveResults } from "@/components/EbayAssistance/EbayActiveResults";
-import { EbaySearchList } from "@/components/EbayAssistance/EbaySearchList";
-import { EbayApiInspector } from "@/components/EbayAssistance/EbayApiInspector";
-import { MarketTrendAnalysis } from "@/components/EbayAssistance/MarketTrendAnalysis";
+import { useTranslations } from "next-intl";
 import {
     useCallback,
     useEffect,
@@ -29,11 +25,15 @@ import {
     useRef,
     useState,
 } from "react";
+import { EbayActiveFilters } from "@/components/EbayAssistance/EbayActiveFilters";
+import { EbayActiveResults } from "@/components/EbayAssistance/EbayActiveResults";
+import { EbayApiInspector } from "@/components/EbayAssistance/EbayApiInspector";
+import { EbaySearchList } from "@/components/EbayAssistance/EbaySearchList";
+import { MarketTrendAnalysis } from "@/components/EbayAssistance/MarketTrendAnalysis";
+import { PageHeader } from "@/components/PageHeader";
+import { EBAY_CONFIG } from "@/constants/ebay";
 import type { EbayItem } from "@/services/ebayService";
 import { createClient } from "@/utils/supabase/client";
-import { notifications } from "@mantine/notifications";
-import { useTranslations } from "next-intl";
-import { EBAY_CONFIG } from "@/constants/ebay";
 
 const EBAY_ITEMS_PER_PAGE = EBAY_CONFIG.ITEMS_PER_PAGE;
 const EBAY_OUTLIER_THRESHOLD =

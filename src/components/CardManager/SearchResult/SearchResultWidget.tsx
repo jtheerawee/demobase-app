@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import {
-    ScrollArea,
-    Box,
     ActionIcon,
+    Box,
+    ScrollArea,
     Stack,
 } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
-import { WidgetHeader } from "@/components/WidgetHeader";
-import { SearchResultInfo } from "./SearchResultInfo";
-import { SearchCardList } from "./SearchCardList";
+import { useState } from "react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
+import { WidgetHeader } from "@/components/WidgetHeader";
+import { SearchCardList } from "./SearchCardList";
+import { SearchResultInfo } from "./SearchResultInfo";
 
 export interface SearchedCard {
     id: number;

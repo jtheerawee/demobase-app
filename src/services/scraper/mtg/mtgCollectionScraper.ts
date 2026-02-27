@@ -1,6 +1,6 @@
 import {
-    saveScrapedCollections,
     computeMissedCollections,
+    saveScrapedCollections,
 } from "../persistence";
 import type { ScraperOptions } from "../types";
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { Stack, Divider, Box } from "@mantine/core";
+import { Box, Divider, Stack } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 import { SearchCard } from "./SearchCard";
-import { SearchedCard } from "./SearchResultWidget";
+import type { SearchedCard } from "./SearchResultWidget";
 
 interface SearchCardListProps {
     results: SearchedCard[];

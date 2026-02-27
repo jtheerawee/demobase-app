@@ -1,26 +1,25 @@
-import { createClient } from "@/utils/supabase/server";
-import { Link } from "@/i18n/navigation";
 import {
+    Avatar,
+    Badge,
     Box,
     Button,
     Container,
     Group,
     Text,
-    Avatar,
-    Badge,
     Tooltip,
 } from "@mantine/core";
 import {
     IconNetwork,
     IconWorld,
 } from "@tabler/icons-react";
-import { getTranslations } from "next-intl/server";
-import { redirect } from "next/navigation";
-import { SignInButton } from "./SignInButton";
-import { DevTokenBadge } from "./DevTokenBadge";
 import { headers } from "next/headers";
-
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import os from "os";
+import { Link } from "@/i18n/navigation";
+import { createClient } from "@/utils/supabase/server";
+import { DevTokenBadge } from "./DevTokenBadge";
+import { SignInButton } from "./SignInButton";
 
 async function signOut() {
     "use server";

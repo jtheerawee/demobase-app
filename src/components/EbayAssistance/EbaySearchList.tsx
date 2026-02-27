@@ -14,9 +14,9 @@ import {
     IconRefresh,
     IconTrash,
 } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useTranslations } from "next-intl";
 
 interface EbaySearch {
     id: number;

@@ -6,13 +6,13 @@ import {
     scrapeMTGCollections,
 } from "@/services/scraper/mtg/mtgScraper";
 import {
-    scrapePokemonCards,
-    scrapePokemonCollections,
-} from "@/services/scraper/pokemon/pokemonScraper";
-import {
     scrapeOnepieceCards,
     scrapeOnepieceCollections,
 } from "@/services/scraper/onepieceScraper";
+import {
+    scrapePokemonCards,
+    scrapePokemonCollections,
+} from "@/services/scraper/pokemon/pokemonScraper";
 
 export async function POST(request: Request) {
     let url: string = "";

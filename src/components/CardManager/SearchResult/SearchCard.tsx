@@ -1,12 +1,12 @@
 "use client";
 
-import { Tooltip, ActionIcon } from "@mantine/core";
+import { ActionIcon, Tooltip } from "@mantine/core";
 import {
     IconExternalLink,
     IconPlus,
 } from "@tabler/icons-react";
-import { SearchedCard } from "./SearchResultWidget";
 import { BaseCard } from "../BaseCard";
+import type { SearchedCard } from "./SearchResultWidget";
 
 interface SearchCardProps {
     card: SearchedCard;

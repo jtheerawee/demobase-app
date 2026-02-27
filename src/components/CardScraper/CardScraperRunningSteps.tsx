@@ -1,26 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import {
+    ActionIcon,
+    Badge,
+    Box,
     Card,
+    CopyButton,
+    Group,
+    ScrollArea,
     Stack,
     Text,
-    Group,
-    Badge,
-    ScrollArea,
-    Box,
-    ActionIcon,
     Tooltip,
-    CopyButton,
 } from "@mantine/core";
 import {
+    IconAlertCircle,
+    IconCheck,
     IconCircleCheck,
     IconCircleDashed,
-    IconLoader2,
-    IconAlertCircle,
     IconCopy,
-    IconCheck,
+    IconLoader2,
 } from "@tabler/icons-react";
+import { useState } from "react";
 
 import { APP_CONFIG } from "@/constants/app";
 

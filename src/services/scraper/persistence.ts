@@ -131,14 +131,12 @@ export async function saveScrapedCards(
         .eq("collection_id", colId);
 
     const existingKeys = new Set(
-        (allExisting || [])
-            .map((e: any) => {
-                // Multi-layered uniqueness: URL OR Name+No
-                const urlKey = e.card_url;
-                const compositeKey = `${e.name}|${e.card_no}`;
-                return [urlKey, compositeKey];
-            })
-            .flat(),
+        (allExisting || []).flatMap((e: any) => {
+            // Multi-layered uniqueness: URL OR Name+No
+            const urlKey = e.card_url;
+            const compositeKey = `${e.name}|${e.card_no}`;
+            return [urlKey, compositeKey];
+        }),
     );
 
     // addedCards: the subset that needs deep scraping

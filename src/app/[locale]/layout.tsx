@@ -7,9 +7,9 @@ import {
     mantineHtmlProps,
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
+import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import type { Metadata } from "next";
 import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {

@@ -1,8 +1,8 @@
-import { scrapePokemonCardsEn } from "./pokemonCardScraperEn";
-import { scrapePokemonCollectionsEn } from "./pokemonCollectionScraperEn";
-import { scrapePokemonCardsTh } from "./pokemonCardScraperTh";
-import { scrapePokemonCollectionsTh } from "./pokemonCollectionScraperTh";
 import type { ScraperOptions } from "../types";
+import { scrapePokemonCardsEn } from "./pokemonCardScraperEn";
+import { scrapePokemonCardsTh } from "./pokemonCardScraperTh";
+import { scrapePokemonCollectionsEn } from "./pokemonCollectionScraperEn";
+import { scrapePokemonCollectionsTh } from "./pokemonCollectionScraperTh";
 
 /**
  * ENTRY POINT: Scrape Pokemon Cards

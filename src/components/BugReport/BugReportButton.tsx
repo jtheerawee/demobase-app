@@ -1,11 +1,11 @@
 "use client";
 
 import { ActionIcon, Tooltip } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { IconBug } from "@tabler/icons-react";
+import html2canvas from "html2canvas";
 import { useState } from "react";
 import { BugReportModal } from "./BugReportModal";
-import html2canvas from "html2canvas";
-import { notifications } from "@mantine/notifications";
 
 export function BugReportButton() {
     const [opened, setOpened] = useState(false);

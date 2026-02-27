@@ -1,20 +1,20 @@
 "use client";
 
 import {
-    Modal,
-    TextInput,
-    Textarea,
+    Box,
     Button,
     Group,
-    Stack,
     Image,
-    Text,
     LoadingOverlay,
-    Box,
+    Modal,
+    Stack,
+    Text,
+    Textarea,
+    TextInput,
 } from "@mantine/core";
-import { useState, useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 import { IconBug, IconCheck } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 interface BugReportModalProps {

@@ -1,6 +1,6 @@
-import { Link } from "@/i18n/navigation";
 import { Card, CardSection, Text } from "@mantine/core";
 import type { ReactNode } from "react";
+import { Link } from "@/i18n/navigation";
 
 interface WidgetCardProps {
     title: string;

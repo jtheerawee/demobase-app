@@ -1,6 +1,5 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
 import {
     Anchor,
     Badge,
@@ -18,6 +17,7 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 import { ApiDebugPanel } from "@/components/EbayAssistance/ApiDebugPanel";
+import { createClient } from "@/utils/supabase/client";
 
 interface EbayItem {
     itemId: string;

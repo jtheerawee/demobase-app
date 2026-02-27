@@ -1,14 +1,14 @@
 "use client";
 
 import {
+    Box,
     Card,
     Group,
     Image,
     Stack,
     Text,
-    Box,
 } from "@mantine/core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface BaseCardData {
     name: string;

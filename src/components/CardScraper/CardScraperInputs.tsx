@@ -2,8 +2,8 @@
 
 import { Select, Stack } from "@mantine/core";
 import { useMemo } from "react";
-import { LANGUAGE_OPTIONS } from "@/constants/languages";
 import { FRANCHISE_OPTIONS } from "@/constants/franchises";
+import { LANGUAGE_OPTIONS } from "@/constants/languages";
 
 interface CardScraperInputsProps {
     franchise?: string | null;

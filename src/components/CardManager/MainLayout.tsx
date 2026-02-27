@@ -1,8 +1,8 @@
 "use client";
 
-import { Grid, Card } from "@mantine/core";
+import { Card, Grid } from "@mantine/core";
+import type { ReactNode } from "react";
 import { APP_CONFIG } from "@/constants/app";
-import { ReactNode } from "react";
 
 interface MainLayoutProps {
     collection: ReactNode;

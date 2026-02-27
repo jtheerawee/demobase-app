@@ -1,7 +1,7 @@
 import { APP_CONFIG } from "@/constants/app";
 import {
-    saveScrapedCards,
     computeMissedCards,
+    saveScrapedCards,
     updateScrapedCollectionYear,
 } from "../persistence";
 import type { ScraperOptions } from "../types";
@@ -223,7 +223,7 @@ export async function scrapeMTGCards({
                                 );
                             let releaseYear:
                                 | number
-                                | undefined = undefined;
+                                | undefined;
                             if (releaseDateEl) {
                                 const dateMatch =
                                     releaseDateEl.textContent?.match(

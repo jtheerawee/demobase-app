@@ -1,20 +1,20 @@
 "use client";
 
 import { ActionIcon, Divider, Stack } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { IconDownload } from "@tabler/icons-react";
 import {
-    useState,
-    useEffect,
     forwardRef,
+    useEffect,
     useImperativeHandle,
+    useState,
 } from "react";
-import { notifications } from "@mantine/notifications";
-import { CollectedCard } from "./CollectedCard";
-import { CollectedCardList } from "./CollectedCardList";
-import { AddNewCardModal } from "./AddNewCardModal";
+import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { WidgetHeader } from "@/components/WidgetHeader";
 import { APP_CONFIG } from "@/constants/app";
-import { ImagePreviewModal } from "@/components/ImagePreviewModal";
+import { AddNewCardModal } from "./AddNewCardModal";
+import type { CollectedCard } from "./CollectedCard";
+import { CollectedCardList } from "./CollectedCardList";
 
 export const CollectedCardWidget = forwardRef(
     (

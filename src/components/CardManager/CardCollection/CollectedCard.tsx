@@ -1,22 +1,22 @@
 "use client";
 
 import {
-    Group,
-    Text,
     ActionIcon,
     Badge,
+    Group,
     Menu,
+    Text,
     Tooltip,
 } from "@mantine/core";
-import { BaseCard } from "../BaseCard";
 import {
-    IconTrash,
-    IconPlus,
-    IconMinus,
     IconExternalLink,
+    IconMinus,
+    IconPlus,
+    IconTrash,
 } from "@tabler/icons-react";
 import { CONDITIONS } from "@/constants/conditions";
 import { VARIANTS } from "@/constants/variants";
+import { BaseCard } from "../BaseCard";
 
 export interface CollectedCard {
     id: number;

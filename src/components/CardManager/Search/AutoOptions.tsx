@@ -1,12 +1,12 @@
 "use client";
 
 import {
+    ActionIcon,
+    Checkbox,
     Group,
     Stack,
-    Checkbox,
-    Tooltip,
-    ActionIcon,
     Text,
+    Tooltip,
 } from "@mantine/core";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { OCR_CONFIG } from "@/constants/ocr";

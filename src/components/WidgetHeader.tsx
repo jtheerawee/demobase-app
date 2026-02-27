@@ -1,14 +1,14 @@
 "use client";
 
 import {
-    Group,
-    Text,
     Badge,
+    Divider,
+    Group,
     Loader,
     Stack,
-    Divider,
+    Text,
 } from "@mantine/core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface WidgetHeaderProps {
     title: string;

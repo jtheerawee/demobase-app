@@ -1,13 +1,13 @@
+import { ScrollArea, Select, Stack } from "@mantine/core";
 import { useState } from "react";
-import { Stack, Select, ScrollArea } from "@mantine/core";
+import { WidgetHeader } from "@/components/WidgetHeader";
 import { CardManagerOCR } from "./CardManagerOCR";
 import { CardManagerTextSearch } from "./CardManagerTextSearch";
-import { WidgetHeader } from "@/components/WidgetHeader";
-import {
-    SearchModeSwitcher,
-    type SearchMode,
-} from "./SearchModeSwitcher";
 import { SearchInstructionModal } from "./SearchInstructionModal";
+import {
+    type SearchMode,
+    SearchModeSwitcher,
+} from "./SearchModeSwitcher";
 
 interface SearchWidgetProps {
     query: string;

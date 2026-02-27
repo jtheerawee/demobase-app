@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Stack, Loader, Text } from "@mantine/core";
+import { Box, Loader, Stack, Text } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 
 interface SearchResultInfoProps {

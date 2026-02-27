@@ -1,7 +1,7 @@
 "use client";
 
+import { Badge, Image, Modal, Stack } from "@mantine/core";
 import { useState } from "react";
-import { Modal, Stack, Image, Badge } from "@mantine/core";
 import { APP_CONFIG } from "@/constants/app";
 
 interface ImagePreviewModalProps {

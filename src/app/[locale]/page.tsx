@@ -3,12 +3,12 @@ import {
     SimpleGrid,
     Stack,
 } from "@mantine/core";
-import { WidgetCard } from "@/components/WidgetCard";
 import {
     IconDatabaseExport,
     IconLayoutDashboard,
     IconShoppingCart,
 } from "@tabler/icons-react";
+import { WidgetCard } from "@/components/WidgetCard";
 import { isAdmin as checkIsAdmin } from "@/utils/auth";
 
 export default async function HomePage() {

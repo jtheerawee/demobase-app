@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Tooltip, Image } from "@mantine/core";
+import { Box, Image, Tooltip } from "@mantine/core";
 import { IconMaximize } from "@tabler/icons-react";
 
 interface ImageThumbnailProps {

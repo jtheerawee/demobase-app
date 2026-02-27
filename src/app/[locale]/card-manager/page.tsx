@@ -1,30 +1,30 @@
 "use client";
 
 import { Container, Stack } from "@mantine/core";
+import { useDebouncedValue } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { PageHeader } from "@/components/PageHeader";
 import { IconLayoutDashboard } from "@tabler/icons-react";
 import {
-    useState,
     useEffect,
-    useRef,
     useMemo,
+    useRef,
+    useState,
 } from "react";
-import { MainLayout } from "@/components/CardManager/MainLayout";
-import { useDebouncedValue } from "@mantine/hooks";
-import { APP_CONFIG } from "@/constants/app";
-import { OCR_CONFIG } from "@/constants/ocr";
 import { CollectedCardWidget } from "@/components/CardManager/CardCollection";
+import { MainLayout } from "@/components/CardManager/MainLayout";
 import {
-    SearchWidget,
     type SearchMode,
+    SearchWidget,
 } from "@/components/CardManager/Search";
 import {
+    type SearchedCard,
     SearchResultWidget,
-    SearchedCard,
 } from "@/components/CardManager/SearchResult";
-import { LANGUAGE_OPTIONS } from "@/constants/languages";
+import { PageHeader } from "@/components/PageHeader";
+import { APP_CONFIG } from "@/constants/app";
 import { FRANCHISE_OPTIONS } from "@/constants/franchises";
+import { LANGUAGE_OPTIONS } from "@/constants/languages";
+import { OCR_CONFIG } from "@/constants/ocr";
 
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
@@ -77,7 +77,7 @@ export default function CardManagerPage() {
             localStorage.getItem(
                 "manager_selected_language",
             ) || "all";
-        let savedMode =
+        const savedMode =
             (localStorage.getItem(
                 "manager_search_mode",
             ) as SearchMode) || "text";
