@@ -366,7 +366,7 @@ export default function CardScraperPage() {
 
         const targetUrl =
             selectedFranchise === "mtg"
-                ? APP_CONFIG.MTG_COLLECTION_URL
+                ? APP_CONFIG.MTG_URL_EN
                 : "";
 
         const requestData = {
