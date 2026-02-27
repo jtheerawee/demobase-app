@@ -9,8 +9,8 @@ import {
     Stack,
     Text,
 } from "@mantine/core";
-import { CONDITIONS } from "@/constants/conditions";
-import { VARIANTS } from "@/constants/variants";
+import { CONDITIONS, DEFAULT_CONDITION } from "@/constants/conditions";
+import { VARIANTS, DEFAULT_VARIANT } from "@/constants/variants";
 import type { CollectedCard } from "./CollectedCard";
 
 interface AddNewCardModalProps {
@@ -100,14 +100,14 @@ export function AddNewCardModal({
                     <Select
                         label="Variant"
                         value={variant}
-                        onChange={(v) => onVariantChange(v || "nf")}
+                        onChange={(v) => onVariantChange(v || DEFAULT_VARIANT)}
                         data={VARIANTS}
                         size="sm"
                     />
                     <Select
                         label="Condition"
                         value={condition}
-                        onChange={(v) => onConditionChange(v || "nm")}
+                        onChange={(v) => onConditionChange(v || DEFAULT_CONDITION)}
                         data={CONDITIONS}
                         size="sm"
                     />

@@ -7,6 +7,8 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { ImagePreviewModal } from "@/components/ImagePreviewModal";
 import { WidgetHeader } from "@/components/WidgetHeader";
 import { APP_CONFIG } from "@/constants/app";
+import { DEFAULT_CONDITION } from "@/constants/conditions";
+import { DEFAULT_VARIANT } from "@/constants/variants";
 import { AddNewCardModal } from "./AddNewCardModal";
 import type { CollectedCard } from "./CollectedCard";
 import { CollectedCardList } from "./CollectedCardList";
@@ -29,8 +31,8 @@ export const CollectedCardWidget = forwardRef(
         const [addEntryCard, setAddEntryCard] = useState<CollectedCard | null>(
             null,
         );
-        const [addVariant, setAddVariant] = useState<string>("nf");
-        const [addCondition, setAddCondition] = useState<string>("nm");
+        const [addVariant, setAddVariant] = useState<string>(DEFAULT_VARIANT);
+        const [addCondition, setAddCondition] = useState<string>(DEFAULT_CONDITION);
         const [addingEntry, setAddingEntry] = useState(false);
         const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -174,8 +176,8 @@ export const CollectedCardWidget = forwardRef(
                 c.cardNo,
                 c.rarity,
                 c.quantity,
-                c.variant || "nf",
-                c.condition || "nm",
+                c.variant || DEFAULT_VARIANT,
+                c.condition || DEFAULT_CONDITION,
             ]);
 
             const csvContent = [headers, ...rows]
@@ -289,8 +291,8 @@ export const CollectedCardWidget = forwardRef(
                     onDelete={handleDelete}
                     onAddEntry={(c) => {
                         setAddEntryCard(c);
-                        setAddVariant("nf");
-                        setAddCondition("nm");
+                        setAddVariant(DEFAULT_VARIANT);
+                        setAddCondition(DEFAULT_CONDITION);
                     }}
                 />
 

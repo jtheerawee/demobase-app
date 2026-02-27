@@ -17,6 +17,8 @@ import { APP_CONFIG } from "@/constants/app";
 import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 import { FRANCHISE_OPTIONS, getLanguagesForFranchise } from "@/constants/franchises";
 import { OCR_CONFIG } from "@/constants/ocr";
+import { DEFAULT_CONDITION } from "@/constants/conditions";
+import { DEFAULT_VARIANT } from "@/constants/variants";
 
 export default function CardManagerPage() {
     const listRef = useRef<{ refresh: () => void }>(null);
@@ -279,8 +281,8 @@ export default function CardManagerPage() {
                 },
                 body: JSON.stringify({
                     cardId: card.id,
-                    variant: "nf",
-                    condition: "nm",
+                    variant: DEFAULT_VARIANT,
+                    condition: DEFAULT_CONDITION,
                     checkVariantCondition: false,
                 }),
             });

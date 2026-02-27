@@ -7,8 +7,8 @@ import {
     IconPlus,
     IconTrash,
 } from "@tabler/icons-react";
-import { CONDITIONS } from "@/constants/conditions";
-import { VARIANTS } from "@/constants/variants";
+import { CONDITIONS, getConditionAbbr } from "@/constants/conditions";
+import { VARIANTS, getVariantAbbr } from "@/constants/variants";
 import { BaseCard } from "../BaseCard";
 
 export interface CollectedCard {
@@ -107,7 +107,7 @@ export function CollectedCard({
                                     cursor: "pointer",
                                 }}
                             >
-                                {(card.variant || "nf").toUpperCase()}
+                                {getVariantAbbr(card.variant)}
                             </Badge>
                         </Menu.Target>
                         <Menu.Dropdown>
@@ -140,7 +140,7 @@ export function CollectedCard({
                                     cursor: "pointer",
                                 }}
                             >
-                                {(card.condition || "nm").toUpperCase()}
+                                {getConditionAbbr(card.condition)}
                             </Badge>
                         </Menu.Target>
                         <Menu.Dropdown>
