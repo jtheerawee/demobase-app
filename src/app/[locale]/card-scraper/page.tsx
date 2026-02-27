@@ -650,21 +650,10 @@ export default function CardScraperPage() {
                             });
                         } else if (msg.type === "complete") {
                             setSteps((prev) => {
-                                const newSteps = prev.map((s) => ({
+                                return prev.map((s) => ({
                                     ...s,
                                     status: "completed" as const,
                                 }));
-                                return [
-                                    ...newSteps,
-                                    {
-                                        id: "complete",
-                                        message:
-                                            "Scraping session finished successfully.",
-                                        status: "completed" as const,
-                                        timestamp:
-                                            new Date().toLocaleTimeString(),
-                                    },
-                                ];
                             });
                             setWorkerCount(0);
                         }
