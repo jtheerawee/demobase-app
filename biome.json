@@ -7,12 +7,24 @@
     },
     "files": {
         "ignoreUnknown": true,
-        "includes": ["**", "!node_modules", "!.next", "!dist", "!build"]
+        "includes": [
+            "**",
+            "!node_modules",
+            "!.next",
+            "!dist",
+            "!build"
+        ]
     },
     "formatter": {
         "enabled": true,
         "indentStyle": "space",
-        "indentWidth": 4
+        "indentWidth": 4,
+        "lineWidth": 60
+    },
+    "javascript": {
+        "formatter": {
+            "trailingCommas": "all"
+        }
     },
     "linter": {
         "enabled": true,

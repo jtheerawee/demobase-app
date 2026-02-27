@@ -1,10 +1,30 @@
 "use client";
 
-import { Card, Group, Stack, Text, SimpleGrid, Badge } from "@mantine/core";
+import {
+    Card,
+    Group,
+    Stack,
+    Text,
+    SimpleGrid,
+    Badge,
+    Tooltip,
+} from "@mantine/core";
 
 export interface ScraperStats {
-    collections: { added: number; matched: number; missed: number };
-    cards: { added: number; matched: number; missed: number };
+    collections: {
+        added: number;
+        matched: number;
+        missed: number;
+        discarded: number;
+        discardedItems?: any[];
+    };
+    cards: {
+        added: number;
+        matched: number;
+        missed: number;
+        discarded: number;
+        discardedItems?: any[];
+    };
 }
 
 interface StatWidgetProps {
@@ -12,16 +32,31 @@ interface StatWidgetProps {
     color: string;
     collections: number;
     cards: number;
+    tooltipContent?: React.ReactNode;
 }
 
-function StatWidget({ label, color, collections, cards }: StatWidgetProps) {
-    return (
+function StatWidget({
+    label,
+    color,
+    collections,
+    cards,
+    tooltipContent,
+}: StatWidgetProps) {
+    const card = (
         <Card withBorder radius="sm" padding="sm">
             <Stack gap={4}>
-                <Badge variant="light" color={color} size="xs" radius="sm">
+                <Badge
+                    variant="light"
+                    color={color}
+                    size="xs"
+                    radius="sm"
+                >
                     {label}
                 </Badge>
-                <Group justify="space-between" align="baseline">
+                <Group
+                    justify="space-between"
+                    align="baseline"
+                >
                     <Text size="xs" c="dimmed">
                         Collections
                     </Text>
@@ -29,7 +64,10 @@ function StatWidget({ label, color, collections, cards }: StatWidgetProps) {
                         {collections}
                     </Text>
                 </Group>
-                <Group justify="space-between" align="baseline">
+                <Group
+                    justify="space-between"
+                    align="baseline"
+                >
                     <Text size="xs" c="dimmed">
                         Cards
                     </Text>
@@ -40,15 +78,56 @@ function StatWidget({ label, color, collections, cards }: StatWidgetProps) {
             </Stack>
         </Card>
     );
+
+    if (tooltipContent) {
+        return (
+            <Tooltip
+                label={tooltipContent}
+                position="bottom"
+                withArrow
+                multiline
+                w={300}
+            >
+                <div>{card}</div>
+            </Tooltip>
+        );
+    }
+
+    return card;
 }
 
 interface CardScraperStatsProps {
     stats: ScraperStats;
 }
 
-export function CardScraperStats({ stats }: CardScraperStatsProps) {
+export function CardScraperStats({
+    stats,
+}: CardScraperStatsProps) {
+    const discardedCards = stats.cards.discardedItems ?? [];
+    const discardedTooltip =
+        discardedCards.length > 0 ? (
+            <Stack gap={4}>
+                <Text size="xs" fw={700}>
+                    Last{" "}
+                    {Math.min(10, discardedCards.length)}{" "}
+                    Discarded Cards:
+                </Text>
+                {discardedCards.slice(-10).map((c, i) => (
+                    <Text key={i} size="xs">
+                        #{c.cardNo} {c.name}
+                    </Text>
+                ))}
+                {discardedCards.length > 10 && (
+                    <Text size="xs" c="dimmed">
+                        ... and {discardedCards.length - 10}{" "}
+                        more
+                    </Text>
+                )}
+            </Stack>
+        ) : null;
+
     return (
-        <SimpleGrid cols={3} spacing="xs">
+        <SimpleGrid cols={2} spacing="xs">
             <StatWidget
                 label="Added"
                 color="green"
@@ -66,6 +145,13 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
                 color="orange"
                 collections={stats.collections.missed}
                 cards={stats.cards.missed}
+            />
+            <StatWidget
+                label="Discarded"
+                color="red"
+                collections={stats.collections.discarded}
+                cards={stats.cards.discarded}
+                tooltipContent={discardedTooltip}
             />
         </SimpleGrid>
     );

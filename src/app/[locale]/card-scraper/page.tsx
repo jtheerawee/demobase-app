@@ -34,8 +34,8 @@ import { useState, useRef, useEffect } from "react";
 import { APP_CONFIG } from "@/constants/app";
 
 const DEFAULT_STATS: ScraperStats = {
-    collections: { added: 0, matched: 0, missed: 0 },
-    cards: { added: 0, matched: 0, missed: 0 },
+    collections: { added: 0, matched: 0, missed: 0, discarded: 0, discardedItems: [] },
+    cards: { added: 0, matched: 0, missed: 0, discarded: 0, discardedItems: [] },
 };
 
 export default function CardScraperPage() {
@@ -525,23 +525,24 @@ export default function CardScraperPage() {
                             });
                         } else if (msg.type === "stats") {
                             console.log(`[Frontend] Received stats:`, msg);
-                            setScraperStats((prev) => ({
-                                ...prev,
-                                [msg.category]: {
-                                    added:
-                                        (prev[
-                                            msg.category as keyof ScraperStats
-                                        ]?.added ?? 0) + msg.added,
-                                    matched:
-                                        (prev[
-                                            msg.category as keyof ScraperStats
-                                        ]?.matched ?? 0) + msg.matched,
-                                    missed:
-                                        (prev[
-                                            msg.category as keyof ScraperStats
-                                        ]?.missed ?? 0) + msg.missed,
-                                },
-                            }));
+                            setScraperStats((prev) => {
+                                const category = msg.category as keyof ScraperStats;
+                                const current = prev[category];
+
+                                return {
+                                    ...prev,
+                                    [category]: {
+                                        added: (current?.added ?? 0) + (msg.added ?? 0),
+                                        matched: (current?.matched ?? 0) + (msg.matched ?? 0),
+                                        missed: (current?.missed ?? 0) + (msg.missed ?? 0),
+                                        discarded: (current?.discarded ?? 0) + (msg.discarded ?? 0),
+                                        discardedItems: [
+                                            ...(current?.discardedItems ?? []),
+                                            ...(msg.discardedItems ?? [])
+                                        ]
+                                    },
+                                };
+                            });
                         } else if (msg.type === "step") {
                             setSteps((prev) => {
                                 const newSteps = prev.map((s) => ({

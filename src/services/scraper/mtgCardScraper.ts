@@ -21,6 +21,42 @@ export async function scrapeMTGCards({
         message: "MTG Gatherer detected. Starting card extraction...",
     });
     let activeWorkers = 0;
+    let discardedCount = 0;
+
+    const isMismatchedSlug = (name: string, url: string) => {
+        try {
+            const parts = url.split("/");
+            const slug = parts[parts.length - 1];
+            if (!slug || !isNaN(Number(slug))) return false;
+
+            const cleanedName = name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/(^-+|-+$)/g, "");
+            const cleanedSlug = slug
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/(^-+|-+$)/g, "");
+
+            // If name is a split card "A // B", check if slug matches either side
+            if (name.includes(" // ")) {
+                const sides = name
+                    .split(" // ")
+                    .map((s) =>
+                        s
+                            .toLowerCase()
+                            .replace(/[^a-z0-9]+/g, "-")
+                            .replace(/(^-+|-+$)/g, ""),
+                    );
+                return !sides.includes(cleanedSlug);
+            }
+
+            return cleanedSlug !== cleanedName;
+        } catch {
+            return false;
+        }
+    };
+
     const updateWorkers = (delta: number) => {
         activeWorkers += delta;
         send({ type: "workers", count: activeWorkers });
@@ -144,7 +180,17 @@ export async function scrapeMTGCards({
                     { sc: setCode, langCode: language || "en" },
                 );
 
-                const pageCards = pageResults.items;
+                const rawPageCards = pageResults.items;
+                const pageDiscardedItems: any[] = [];
+                const pageCards = rawPageCards.filter((c: any) => {
+                    const mismatched = isMismatchedSlug(c.name, c.cardUrl);
+                    if (mismatched) {
+                        discardedCount++;
+                        pageDiscardedItems.push(c);
+                    }
+                    return !mismatched;
+                });
+
                 const releaseYear = pageResults.releaseYear;
 
                 if (p === 1 && releaseYear && collectionId) {
@@ -155,7 +201,7 @@ export async function scrapeMTGCards({
                     });
                 }
 
-                if (pageCards.length === 0) {
+                if (pageCards.length === 0 && rawPageCards.length === 0) {
                     send({
                         type: "step",
                         message: `No more cards found for set ${setCode} at page ${p + 1}.`,
@@ -167,7 +213,7 @@ export async function scrapeMTGCards({
                 const newCards = pageCards.filter(
                     (c: any) => !uniqueCardUrls.has(c.cardUrl),
                 );
-                if (newCards.length === 0) {
+                if (newCards.length === 0 && pageCards.length > 0) {
                     send({
                         type: "step",
                         message: `Page ${p + 1} returned only duplicate cards. Evolution complete.`,
@@ -184,7 +230,7 @@ export async function scrapeMTGCards({
 
                 send({
                     type: "step",
-                    message: `Found ${cardsToAdd.length} new cards on page ${p}.`,
+                    message: `Found ${cardsToAdd.length} new cards on page ${p}${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}.`,
                 });
 
                 // Save this page's cards immediately to get real-time stats
@@ -200,7 +246,7 @@ export async function scrapeMTGCards({
                                 cardsToDeepScrape.push(...addedCards);
                             console.log(
                                 `[Scraper] Sending incremental card stats for page ${p}:`,
-                                { added, matched },
+                                { added, matched, discarded: discardedCount },
                             );
                             send({
                                 type: "stats",
@@ -208,6 +254,8 @@ export async function scrapeMTGCards({
                                 added,
                                 matched,
                                 missed: 0,
+                                discarded: discardedCount,
+                                discardedItems: pageDiscardedItems,
                             });
                         }
                     } catch (error) {
@@ -226,223 +274,238 @@ export async function scrapeMTGCards({
                 p++;
                 if (p > 50) break; // Safety cap
             }
-        } else {
-            // ── Legacy checklist view: paginated table ──
-            let p = 1;
-            while (true) {
-                const pageUrl =
-                    p === 1
-                        ? url.includes("output=checklist")
-                            ? url
-                            : url.includes("?")
-                                ? `${url}&output=checklist`
-                                : `${url}?output=checklist`
-                        : url.includes("output=checklist")
-                            ? url.includes("?")
-                                ? `${url}&page=${p}`
-                                : `${url}?page=${p}`
-                            : url.includes("?")
-                                ? `${url}&output=checklist&page=${p}`
-                                : `${url}?output=checklist&page=${p}`;
-
-                send({
-                    type: "step",
-                    message: `Navigating to cards page ${p}: ${pageUrl}`,
-                });
-                await workerPage.goto(pageUrl, {
-                    waitUntil: "domcontentloaded",
-                    timeout: 60000,
-                });
-
-                try {
-                    await workerPage.waitForSelector("tr.cardItem", {
-                        timeout: 5000,
-                    });
-                } catch (e: any) {
-                    // Empty page at the end of collection
-                }
-
-                const pageCardsRaw = await workerPage.evaluate(
-                    ({ langCode, mtgRarityMap }: { langCode: string; mtgRarityMap: Record<string, string> }) => {
-                        const rows = document.querySelectorAll("tr.cardItem");
-                        if (rows.length === 0) return [];
-
-                        const headers = Array.from(
-                            document.querySelectorAll("tr.header th"),
-                        ).map((th) => th.textContent?.trim().toLowerCase());
-
-                        const noIdx = headers.indexOf("no.");
-                        const nameIdx = headers.indexOf("name");
-                        const manaIdx = headers.indexOf("mana cost");
-                        const cmcIdx = headers.indexOf("cmc");
-                        const typeIdx = headers.indexOf("type");
-                        const artistIdx = headers.indexOf("artist");
-                        const setIdx = headers.indexOf("set");
-
-                        return Array.from(rows).map((row) => {
-                            const cells = row.querySelectorAll("td");
-
-                            const nameLink = (
-                                nameIdx !== -1
-                                    ? cells[nameIdx].querySelector("a")
-                                    : row.querySelector("td.name a")
-                            ) as HTMLAnchorElement;
-                            const name =
-                                nameLink?.textContent?.trim() || "Unknown Card";
-                            const href = nameLink?.href || "";
-
-                            const midMatch = href.match(/multiverseid=(\d+)/);
-                            const mid = midMatch ? midMatch[1] : "";
-
-                            const cardNo =
-                                noIdx !== -1
-                                    ? cells[noIdx].textContent?.trim()
-                                    : "";
-                            const manaValueExtracted =
-                                cmcIdx !== -1
-                                    ? cells[cmcIdx].textContent?.trim()
-                                    : "";
-                            const typeLine =
-                                typeIdx !== -1
-                                    ? cells[typeIdx].textContent?.trim()
-                                    : "";
-                            const artist =
-                                artistIdx !== -1
-                                    ? cells[artistIdx].textContent?.trim()
-                                    : "";
-
-                            const setIcon =
-                                setIdx !== -1
-                                    ? cells[setIdx].querySelector("img")
-                                    : row.querySelector("td.set img");
-                            const rawRarity =
-                                setIcon
-                                    ?.getAttribute("title")
-                                    ?.split("(")[1]
-                                    ?.replace(")", "") || "";
-
-                            const rarity = mtgRarityMap[rawRarity] || rawRarity;
-
-                            const manaCostCells =
-                                manaIdx !== -1
-                                    ? cells[manaIdx]
-                                    : row.querySelector("td.manaCost");
-                            const manaCost = Array.from(
-                                manaCostCells?.querySelectorAll("img") || [],
-                            )
-                                .map((img) => img.getAttribute("alt")?.trim())
-                                .filter(Boolean)
-                                .join("");
-
-                            let finalCardUrl = mid
-                                ? `https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=${mid}`
-                                : href;
-                            let finalImageUrl = mid
-                                ? `https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${mid}&type=card`
-                                : `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&name=${encodeURIComponent(name)}`;
-
-                            if (langCode === "jp") {
-                                if (mid) {
-                                    finalCardUrl += "&language=Japanese";
-                                    finalImageUrl += "&language=Japanese";
-                                } else {
-                                    finalCardUrl = finalCardUrl.replace(
-                                        "/en-us/",
-                                        "/ja-jp/",
-                                    );
-                                }
-                            }
-
-                            return {
-                                name,
-                                imageUrl: finalImageUrl,
-                                cardUrl: finalCardUrl,
-                                rarity,
-                                manaCost,
-                                manaValue: manaValueExtracted
-                                    ? parseInt(manaValueExtracted)
-                                    : undefined,
-                                typeLine,
-                                artist,
-                                cardNo,
-                                alt: name,
-                            };
-                        });
-                    },
-                    { langCode: language || "en", mtgRarityMap: APP_CONFIG.MTG_RARITY_MAP },
-                );
-
-                if (pageCardsRaw.length === 0) {
-                    send({
-                        type: "step",
-                        message: `No more cards found at page ${p}.`,
-                    });
-                    break;
-                }
-
-                const newCards = pageCardsRaw.filter(
-                    (c: any) => !uniqueCardUrls.has(c.cardUrl),
-                );
-                if (newCards.length === 0) {
-                    send({
-                        type: "step",
-                        message: `Page ${p} returned only duplicate cards. Evolution complete.`,
-                    });
-                    break;
-                }
-                newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
-
-                const beforeCount = allCards.length;
-                const canAdd = limit - beforeCount;
-                const cardsToAdd = newCards.slice(0, canAdd);
-
-                allCards.push(...cardsToAdd);
-
-                send({
-                    type: "step",
-                    message: `Found ${cardsToAdd.length} new cards on page ${p}.`,
-                });
-
-                // Save this page's cards immediately to get real-time stats
-                if (collectionId !== undefined && collectionId !== null) {
-                    try {
-                        const result = (await saveScrapedCards(
-                            cardsToAdd,
-                            collectionId,
-                        )) as any;
-                        if (result) {
-                            const { added, matched, addedCards } = result;
-                            if (addedCards)
-                                cardsToDeepScrape.push(...addedCards);
-                            console.log(
-                                `[Scraper] Sending incremental card stats for page ${p}:`,
-                                { added, matched },
-                            );
-                            send({
-                                type: "stats",
-                                category: "cards",
-                                added,
-                                matched,
-                                missed: 0,
-                            });
-                        }
-                    } catch (error) {
-                        console.error(`Failed to save page ${p} cards:`, error);
-                    }
-                }
-
-                if (allCards.length >= limit) {
-                    send({
-                        type: "step",
-                        message: `Reached card limit (${limit}). Stopping pagination...`,
-                    });
-                    break;
-                }
-
-                p++;
-                if (p > 50) break;
-            }
         }
+        // } else {
+        //     // ── Legacy checklist view: paginated table ──
+        //     let p = 1;
+        //     while (true) {
+        //         const pageUrl =
+        //             p === 1
+        //                 ? url.includes("output=checklist")
+        //                     ? url
+        //                     : url.includes("?")
+        //                         ? `${url}&output=checklist`
+        //                         : `${url}?output=checklist`
+        //                 : url.includes("output=checklist")
+        //                     ? url.includes("?")
+        //                         ? `${url}&page=${p}`
+        //                         : `${url}?page=${p}`
+        //                     : url.includes("?")
+        //                         ? `${url}&output=checklist&page=${p}`
+        //                         : `${url}?output=checklist&page=${p}`;
+
+        //         send({
+        //             type: "step",
+        //             message: `Navigating to cards page ${p}: ${pageUrl}`,
+        //         });
+        //         await workerPage.goto(pageUrl, {
+        //             waitUntil: "domcontentloaded",
+        //             timeout: 60000,
+        //         });
+
+        //         try {
+        //             await workerPage.waitForSelector("tr.cardItem", {
+        //                 timeout: 5000,
+        //             });
+        //         } catch (e: any) {
+        //             // Empty page at the end of collection
+        //         }
+
+        //         const pageCardsRaw = await workerPage.evaluate(
+        //             ({ langCode, mtgRarityMap }: { langCode: string; mtgRarityMap: Record<string, string> }) => {
+        //                 const rows = document.querySelectorAll("tr.cardItem");
+        //                 if (rows.length === 0) return [];
+
+        //                 const headers = Array.from(
+        //                     document.querySelectorAll("tr.header th"),
+        //                 ).map((th) => th.textContent?.trim().toLowerCase());
+
+        //                 const noIdx = headers.indexOf("no.");
+        //                 const nameIdx = headers.indexOf("name");
+        //                 const manaIdx = headers.indexOf("mana cost");
+        //                 const cmcIdx = headers.indexOf("cmc");
+        //                 const typeIdx = headers.indexOf("type");
+        //                 const artistIdx = headers.indexOf("artist");
+        //                 const setIdx = headers.indexOf("set");
+
+        //                 return Array.from(rows).map((row) => {
+        //                     const cells = row.querySelectorAll("td");
+
+        //                     const nameLink = (
+        //                         nameIdx !== -1
+        //                             ? cells[nameIdx].querySelector("a")
+        //                             : row.querySelector("td.name a")
+        //                     ) as HTMLAnchorElement;
+        //                     const name =
+        //                         nameLink?.textContent?.trim() || "Unknown Card";
+        //                     const href = nameLink?.href || "";
+
+        //                     const midMatch = href.match(/multiverseid=(\d+)/);
+        //                     const mid = midMatch ? midMatch[1] : "";
+
+        //                     const cardNo =
+        //                         noIdx !== -1
+        //                             ? cells[noIdx].textContent?.trim()
+        //                             : "";
+        //                     const manaValueExtracted =
+        //                         cmcIdx !== -1
+        //                             ? cells[cmcIdx].textContent?.trim()
+        //                             : "";
+        //                     const typeLine =
+        //                         typeIdx !== -1
+        //                             ? cells[typeIdx].textContent?.trim()
+        //                             : "";
+        //                     const artist =
+        //                         artistIdx !== -1
+        //                             ? cells[artistIdx].textContent?.trim()
+        //                             : "";
+
+        //                     const setIcon =
+        //                         setIdx !== -1
+        //                             ? cells[setIdx].querySelector("img")
+        //                             : row.querySelector("td.set img");
+        //                     const rawRarity =
+        //                         setIcon
+        //                             ?.getAttribute("title")
+        //                             ?.split("(")[1]
+        //                             ?.replace(")", "") || "";
+
+        //                     const rarity = mtgRarityMap[rawRarity] || rawRarity;
+
+        //                     const manaCostCells =
+        //                         manaIdx !== -1
+        //                             ? cells[manaIdx]
+        //                             : row.querySelector("td.manaCost");
+        //                     const manaCost = Array.from(
+        //                         manaCostCells?.querySelectorAll("img") || [],
+        //                     )
+        //                         .map((img) => img.getAttribute("alt")?.trim())
+        //                         .filter(Boolean)
+        //                         .join("");
+
+        //                     let finalCardUrl = mid
+        //                         ? `https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=${mid}`
+        //                         : href;
+        //                     let finalImageUrl = mid
+        //                         ? `https://gatherer.wizards.com/Handlers/Image.ashx?multiverseid=${mid}&type=card`
+        //                         : `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&name=${encodeURIComponent(name)}`;
+
+        //                     if (langCode === "jp") {
+        //                         if (mid) {
+        //                             finalCardUrl += "&language=Japanese";
+        //                             finalImageUrl += "&language=Japanese";
+        //                         } else {
+        //                             finalCardUrl = finalCardUrl.replace(
+        //                                 "/en-us/",
+        //                                 "/ja-jp/",
+        //                             );
+        //                         }
+        //                     }
+
+        //                     return {
+        //                         name,
+        //                         imageUrl: finalImageUrl,
+        //                         cardUrl: finalCardUrl,
+        //                         rarity,
+        //                         manaCost,
+        //                         manaValue: manaValueExtracted
+        //                             ? parseInt(manaValueExtracted)
+        //                             : undefined,
+        //                         typeLine,
+        //                         artist,
+        //                         cardNo,
+        //                         alt: name,
+        //                     };
+        //                 });
+        //             },
+        //             { langCode: language || "en", mtgRarityMap: APP_CONFIG.MTG_RARITY_MAP },
+        //         );
+
+        //         const pageDiscardedItems: any[] = [];
+        //         const pageCards = pageCardsRaw.filter((c: any) => {
+        //             const mismatched = isMismatchedSlug(c.name, c.cardUrl);
+        //             if (mismatched) {
+        //                 discardedCount++;
+        //                 pageDiscardedItems.push(c);
+        //             }
+        //             return !mismatched;
+        //         });
+
+        //         if (pageCards.length === 0 && pageCardsRaw.length === 0) {
+        //             send({
+        //                 type: "step",
+        //                 message: `No more cards found at page ${p}.`,
+        //             });
+        //             break;
+        //         }
+
+        //         const newCards = pageCards.filter(
+        //             (c: any) => !uniqueCardUrls.has(c.cardUrl),
+        //         );
+        //         if (newCards.length === 0 && pageCards.length > 0) {
+        //             send({
+        //                 type: "step",
+        //                 message: `Page ${p} returned only duplicate cards. Evolution complete.`,
+        //             });
+        //             break;
+        //         }
+        //         newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
+
+        //         const beforeCount = allCards.length;
+        //         const canAdd = limit - beforeCount;
+        //         const cardsToAdd = newCards.slice(0, canAdd);
+
+        //         allCards.push(...cardsToAdd);
+
+        //         send({
+        //             type: "step",
+        //             message: `Found ${cardsToAdd.length} new cards on page ${p}${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}.`,
+        //         });
+
+        //         // Save this page's cards immediately to get real-time stats
+        //         if (collectionId !== undefined && collectionId !== null) {
+        //             try {
+        //                 const result = (await saveScrapedCards(
+        //                     cardsToAdd,
+        //                     collectionId,
+        //                 )) as any;
+        //                 if (result) {
+        //                     const { added, matched, addedCards } = result;
+        //                     if (addedCards)
+        //                         cardsToDeepScrape.push(...addedCards);
+        //                     console.log(
+        //                         `[Scraper] Sending incremental card stats for page ${p}:`,
+        //                         { added, matched, discarded: discardedCount },
+        //                     );
+        //                     send({
+        //                         type: "stats",
+        //                         category: "cards",
+        //                         added,
+        //                         matched,
+        //                         missed: 0,
+        //                         discarded: discardedCount,
+        //                         discardedItems: pageDiscardedItems,
+        //                     });
+        //                 }
+        //             } catch (error) {
+        //                 console.error(`Failed to save page ${p} cards:`, error);
+        //             }
+        //         }
+
+        //         if (allCards.length >= limit) {
+        //             send({
+        //                 type: "step",
+        //                 message: `Reached card limit (${limit}). Stopping pagination...`,
+        //             });
+        //             break;
+        //         }
+
+        //         p++;
+        //         if (p > 50) break;
+        //     }
+        // }
+
+        // here
 
         if (deepScrape && allCards.length > 0) {
             const skipCount = allCards.length - cardsToDeepScrape.length;
@@ -625,6 +688,7 @@ export async function scrapeMTGCards({
                                 added: 0,
                                 matched: 0,
                                 missed,
+                                discarded: discardedCount,
                             });
                         }
                     } catch (error) {
@@ -636,7 +700,7 @@ export async function scrapeMTGCards({
 
         send({
             type: "step",
-            message: `Total extracted: ${allCards.length} cards.`,
+            message: `Total extracted: ${allCards.length} cards.${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}`,
         });
         send({ type: "meta", totalItems: allCards.length, totalPages: 1 });
     } finally {
