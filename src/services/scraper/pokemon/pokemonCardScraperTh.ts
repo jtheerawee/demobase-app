@@ -1,4 +1,4 @@
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
@@ -14,7 +14,7 @@ export async function scrapePokemonCardsTh({
     collectionId,
     cardLimit,
 }: ScraperOptions) {
-    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
+    const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
@@ -23,11 +23,11 @@ export async function scrapePokemonCardsTh({
         url.includes("pageNo=")
             ? url.replace(/pageNo=\d+/, `pageNo=${p}`)
             : url.includes("?")
-              ? `${url}&pageNo=${p}`
-              : `${url}?pageNo=${p}`;
+                ? `${url}&pageNo=${p}`
+                : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
-    const concurrency = APP_CONFIG.CARD_CONCURRENCY_LIMIT;
+    const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
 
     send({
         type: "step",
@@ -77,14 +77,14 @@ export async function scrapePokemonCardsTh({
                             const absoluteImageUrl = imageUrl.startsWith("http")
                                 ? imageUrl
                                 : window.location.origin +
-                                  (imageUrl.startsWith("/") ? "" : "/") +
-                                  imageUrl;
+                                (imageUrl.startsWith("/") ? "" : "/") +
+                                imageUrl;
                             const link = anchor?.getAttribute("href") || "";
                             const absoluteLink = link.startsWith("http")
                                 ? link
                                 : window.location.origin +
-                                  (link.startsWith("/") ? "" : "/") +
-                                  link;
+                                (link.startsWith("/") ? "" : "/") +
+                                link;
                             return {
                                 imageUrl: absoluteImageUrl,
                                 alt: img?.alt || "Pokemon Card",

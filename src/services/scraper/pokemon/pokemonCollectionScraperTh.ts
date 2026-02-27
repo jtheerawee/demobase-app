@@ -1,4 +1,4 @@
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
@@ -21,11 +21,11 @@ export async function scrapePokemonCollectionsTh({
         url.includes("pageNo=")
             ? url.replace(/pageNo=\d+/, `pageNo=${p}`)
             : url.includes("?")
-              ? `${url}&pageNo=${p}`
-              : `${url}?pageNo=${p}`;
+                ? `${url}&pageNo=${p}`
+                : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
-    const concurrency = APP_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
+    const concurrency = CARD_SCRAPER_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
     send({
         type: "step",
         message: `Initializing ${concurrency} parallel workers for Thai collections...`,
@@ -78,10 +78,10 @@ export async function scrapePokemonCollectionsTh({
                                 )
                                     ? relativeLink
                                     : window.location.origin +
-                                      (relativeLink.startsWith("/")
-                                          ? ""
-                                          : "/") +
-                                      relativeLink;
+                                    (relativeLink.startsWith("/")
+                                        ? ""
+                                        : "/") +
+                                    relativeLink;
 
                                 // Extract code from URL (e.g., /series/4578/ -> 4578)
                                 const codeMatch =

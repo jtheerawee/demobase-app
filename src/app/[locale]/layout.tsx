@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { Navbar } from "@/components/Navbar";
+import { APP_CONFIG } from "@/constants/app";
 
 export const metadata: Metadata = {
     title: "demobase-app",
@@ -26,7 +27,7 @@ export default async function LocaleLayout({
 }) {
     const { locale } = await params;
     const messages = await getMessages();
-    const fontFamily = process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit";
+    const fontFamily = APP_CONFIG.FONT_FAMILY;
     const fontUrl = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;700;900&display=swap`;
 
     return (

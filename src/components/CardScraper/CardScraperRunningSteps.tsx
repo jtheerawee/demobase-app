@@ -23,7 +23,7 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 
 interface Step {
     id: string | number;
@@ -64,7 +64,7 @@ export function CardScraperRunningSteps({
             }
             return true;
         })
-        .slice(-APP_CONFIG.SCRAPER_RUNNING_STEPS_LIMIT);
+        .slice(-CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT);
 
     return (
         <Card withBorder radius="md" padding="md" shadow="sm">
@@ -203,12 +203,12 @@ export function CardScraperRunningSteps({
                                                 flexShrink: 0,
                                             }}
                                             onMouseEnter={(e) =>
-                                                (e.currentTarget.style.opacity =
-                                                    "1")
+                                            (e.currentTarget.style.opacity =
+                                                "1")
                                             }
                                             onMouseLeave={(e) =>
-                                                (e.currentTarget.style.opacity =
-                                                    "0.5")
+                                            (e.currentTarget.style.opacity =
+                                                "0.5")
                                             }
                                         >
                                             {copiedId === step.id ? (

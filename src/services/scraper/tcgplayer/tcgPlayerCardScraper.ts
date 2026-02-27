@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import {
     saveScrapedCards,
     updateTcgUrls,
@@ -19,7 +20,7 @@ export async function scrapeTCGPlayerCards({
     franchise,
     tcgUrlOnly,
 }: ScraperOptions) {
-    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
+    const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
@@ -95,7 +96,7 @@ export async function scrapeTCGPlayerCards({
                             ".product-card, .search-results__no-results, .search-results-count",
                             { timeout: 15000 },
                         )
-                        .catch(() => {});
+                        .catch(() => { });
 
                     // 2. Total Results Consistency Check
                     const currentTotalResults = await workerPage.evaluate(

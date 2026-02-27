@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { DevTokenBadge } from "./DevTokenBadge";
 import { SignInButton } from "./SignInButton";
+import { APP_CONFIG } from "@/constants/app";
 
 async function signOut() {
     "use server";
@@ -82,7 +83,7 @@ export async function Navbar() {
                                 c="orange"
                                 style={{
                                     fontSize: "1.875rem",
-                                    fontFamily: `'${process.env.NEXT_PUBLIC_FONT_FAMILY ?? "Kanit"}', sans-serif`,
+                                    fontFamily: `'${APP_CONFIG.FONT_FAMILY ?? "Kanit"}', sans-serif`,
                                 }}
                             >
                                 {process.env.NEXT_PUBLIC_APP_NAME ?? "DemoBase"}

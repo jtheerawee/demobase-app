@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 import { createClient } from "@/utils/supabase/server";
 
 export async function GET(request: Request) {
@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const franchise = searchParams.get("franchise");
     const language = searchParams.get("language");
 
-    if ((!query || query.length < APP_CONFIG.SEARCH_MIN_CHARS) && !scanIds) {
+    if ((!query || query.length < CARD_MANAGER_CONFIG.SEARCH.MIN_CHARS) && !scanIds) {
         return NextResponse.json({
             success: true,
             cards: [],

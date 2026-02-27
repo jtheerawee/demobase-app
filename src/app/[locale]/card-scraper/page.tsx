@@ -32,6 +32,7 @@ import {
 } from "@/components/CardScraper/CardScraperStats";
 import { PageHeader } from "@/components/PageHeader";
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 
 const DEFAULT_STATS: ScraperStats = {
     collections: {
@@ -84,7 +85,7 @@ export default function CardScraperPage() {
     const [settingsOpened, { open: openSettings, close: closeSettings }] =
         useDisclosure(false);
     const [cardScraperLimit, setCardScraperLimit] = useState<number>(
-        APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION,
+        CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION,
     );
 
     const askConfirm = (title: string, message: string, action: () => void) => {
@@ -198,7 +199,7 @@ export default function CardScraperPage() {
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during deletion",
+                        "An unexpected error occurred during deletion",
                     );
                 } finally {
                     setCollectionLoading(false);
@@ -238,7 +239,7 @@ export default function CardScraperPage() {
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during deletion",
+                        "An unexpected error occurred during deletion",
                     );
                 } finally {
                     setCollectionLoading(false);
@@ -429,7 +430,7 @@ export default function CardScraperPage() {
         } catch (err: any) {
             setError(
                 err.message ||
-                    "An unexpected error occurred during card deletion",
+                "An unexpected error occurred during card deletion",
             );
         }
     };
@@ -461,7 +462,7 @@ export default function CardScraperPage() {
                 } catch (err: any) {
                     setError(
                         err.message ||
-                            "An unexpected error occurred during bulk card deletion",
+                        "An unexpected error occurred during bulk card deletion",
                     );
                 }
             },

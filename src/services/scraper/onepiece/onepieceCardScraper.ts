@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
@@ -16,7 +17,7 @@ export async function scrapeOnepieceCards({
     send,
     cardLimit,
 }: ScraperOptions) {
-    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
+    const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const cards: any[] = [];
     const baseUrl = url.split("#")[0];
 
@@ -127,7 +128,7 @@ export async function scrapeOnepieceCards({
                     () => {
                         const info = document.querySelector(
                             ".fancybox-slide--current .infoCol, .fancybox-slide--current .info_col," +
-                                ".fancybox-content .infoCol, .fancybox-content .info_col",
+                            ".fancybox-content .infoCol, .fancybox-content .info_col",
                         );
                         return !!info?.textContent?.includes("|");
                     },
@@ -242,7 +243,7 @@ export async function scrapeOnepieceCards({
                 return false;
             });
             if (!closed) await page.keyboard.press("Escape");
-            await page.waitForTimeout(APP_CONFIG.SCRAPER_PAGE_LOAD_DELAY_MS);
+            await page.waitForTimeout(CARD_SCRAPER_CONFIG.PAGE_LOAD_DELAY_MS);
         }
 
         // Dedup by cardNo — variants share the same cardNo as the base card

@@ -2,7 +2,7 @@
 
 import { Badge, Image, Modal, Stack } from "@mantine/core";
 import { useState } from "react";
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 
 interface ImagePreviewModalProps {
     opened: boolean;
@@ -48,7 +48,7 @@ export function ImagePreviewModal({
                     src={src}
                     alt="Image Preview"
                     style={{
-                        width: APP_CONFIG.PREVIEW_IMAGE_WIDTH,
+                        width: CARD_MANAGER_CONFIG.SEARCH.PREVIEW_IMAGE_WIDTH,
                         height: "auto",
                         cursor: "pointer",
                     }}

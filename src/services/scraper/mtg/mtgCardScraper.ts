@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import {
     computeMissedCards,
     saveScrapedCards,
@@ -15,7 +16,7 @@ export async function scrapeMTGCards({
     language,
     cardLimit,
 }: ScraperOptions) {
-    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
+    const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     console.log(
         `[Scraper] Starting MTG card scrape. collectionId:`,
         collectionId,
@@ -84,8 +85,8 @@ export async function scrapeMTGCards({
                     p === 1
                         ? url
                         : url.includes("?")
-                          ? `${url}&page=${p}`
-                          : `${url}?page=${p}`;
+                            ? `${url}&page=${p}`
+                            : `${url}?page=${p}`;
                 send({
                     type: "step",
                     message: `Modern set page: Loading page ${p}...`,
@@ -536,7 +537,7 @@ export async function scrapeMTGCards({
                     message: `Launching workers to deep scrape ${cardsToDeepScrape.length} new cards...`,
                 });
                 const concurrency = Math.min(
-                    APP_CONFIG.CARD_CONCURRENCY_LIMIT || 10,
+                    CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT,
                     cardsToDeepScrape.length,
                 );
                 let nextCardIndex = 0;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Loader, Stack, Text } from "@mantine/core";
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 
 interface SearchResultInfoProps {
     loading: boolean;
@@ -27,7 +27,7 @@ export function SearchResultInfo({
                 </Stack>
             ) : (
                 <>
-                    {info.length >= APP_CONFIG.SEARCH_MIN_CHARS ? (
+                    {info.length >= CARD_MANAGER_CONFIG.SEARCH.MIN_CHARS ? (
                         <Text c="dimmed" size="xs">
                             No cards found matching "{info}"
                         </Text>

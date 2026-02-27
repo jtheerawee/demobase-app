@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
@@ -14,7 +15,7 @@ export async function scrapePokemonCardsEn({
     collectionId,
     cardLimit,
 }: ScraperOptions) {
-    const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
+    const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
@@ -25,7 +26,7 @@ export async function scrapePokemonCardsEn({
     };
 
     let shouldAbort = false;
-    const concurrency = APP_CONFIG.CARD_CONCURRENCY_LIMIT;
+    const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
 
     send({
         type: "step",
@@ -103,14 +104,14 @@ export async function scrapePokemonCardsEn({
                             const absoluteImageUrl = imageUrl.startsWith("http")
                                 ? imageUrl
                                 : window.location.origin +
-                                  (imageUrl.startsWith("/") ? "" : "/") +
-                                  imageUrl;
+                                (imageUrl.startsWith("/") ? "" : "/") +
+                                imageUrl;
                             const link = anchor?.getAttribute("href") || "";
                             const absoluteLink = link.startsWith("http")
                                 ? link
                                 : window.location.origin +
-                                  (link.startsWith("/") ? "" : "/") +
-                                  link;
+                                (link.startsWith("/") ? "" : "/") +
+                                link;
 
                             // Extract set/number from URL: .../series/ex1/13/
                             let cardNo = "";

@@ -2,7 +2,7 @@
 
 import { CloseButton, Loader, TextInput } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
-import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 
 interface CardManagerTextSearchProps {
     query: string;
@@ -17,7 +17,7 @@ export function CardManagerTextSearch({
 }: CardManagerTextSearchProps) {
     return (
         <TextInput
-            placeholder={`Type card name (min ${APP_CONFIG.SEARCH_MIN_CHARS} chars)...`}
+            placeholder={`Type card name (min ${CARD_MANAGER_CONFIG.SEARCH.MIN_CHARS} chars)...`}
             size="md"
             w="100%"
             leftSection={<IconSearch size={18} />}

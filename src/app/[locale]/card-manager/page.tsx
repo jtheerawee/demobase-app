@@ -14,6 +14,7 @@ import {
 } from "@/components/CardManager/SearchResult";
 import { PageHeader } from "@/components/PageHeader";
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_MANAGER_CONFIG } from "@/constants/card_manager";
 import { FRANCHISE_OPTIONS } from "@/constants/franchises";
 import { LANGUAGE_OPTIONS } from "@/constants/languages";
 import { OCR_CONFIG } from "@/constants/ocr";
@@ -68,11 +69,11 @@ export default function CardManagerPage() {
             localStorage.getItem("manager_auto_capture") === "true";
         const savedManualDelay = parseInt(
             localStorage.getItem("manager_manual_capture_delay") ||
-                String(OCR_CONFIG.MANUAL_CAPTURE_DELAY),
+            String(OCR_CONFIG.MANUAL_CAPTURE_DELAY),
         );
         const savedAutoDelay = parseInt(
             localStorage.getItem("manager_auto_capture_delay") ||
-                String(OCR_CONFIG.AUTO_CAPTURE_DELAY),
+            String(OCR_CONFIG.AUTO_CAPTURE_DELAY),
         );
         setSelectedFranchise(savedFranchise);
         setSelectedLanguage(savedLanguage);
@@ -127,7 +128,7 @@ export default function CardManagerPage() {
     }, [selectedFranchise]);
 
     useEffect(() => {
-        if (debouncedQuery.length >= APP_CONFIG.SEARCH_MIN_CHARS) {
+        if (debouncedQuery.length >= CARD_MANAGER_CONFIG.SEARCH.MIN_CHARS) {
             handleSearch(debouncedQuery);
         } else {
             setResults([]);
@@ -216,7 +217,7 @@ export default function CardManagerPage() {
                 if (
                     autoCapture &&
                     consecutiveNoCard.current >=
-                        OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
+                    OCR_CONFIG.AUTO_CAPTURE_MAX_NO_CARD
                 ) {
                     consecutiveNoCard.current = 0;
                     setAutoCaptureActive(false);
@@ -232,7 +233,7 @@ export default function CardManagerPage() {
                 if (
                     autoCapture &&
                     consecutiveSameCard.current >=
-                        OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD
+                    OCR_CONFIG.AUTO_CAPTURE_MAX_SAME_CARD
                 ) {
                     consecutiveSameCard.current = 0;
                     lastDetectedCardId.current = null;

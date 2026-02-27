@@ -14,6 +14,7 @@ import {
     Tooltip,
 } from "@mantine/core";
 import { IconExternalLink } from "@tabler/icons-react";
+import { APP_CONFIG } from "@/constants/app";
 import type { EbayItem } from "@/services/ebayService";
 
 const getTimeLeft = (endTime?: string) => {
@@ -55,7 +56,7 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
         ? new Date(dateStr).toISOString().split("T")[0]
         : null;
 
-    const isShowTooltip = process.env.NEXT_PUBLIC_SHOW_TOOLTIP === "true";
+    const isShowTooltip = APP_CONFIG.SHOW_TOOLTIP;
 
     return (
         <Tooltip
@@ -130,7 +131,7 @@ export function EbayItemCard({ item, index, onHover }: EbayItemCardProps) {
                                 <Badge
                                     color={
                                         timeLeft.includes("left") &&
-                                        !timeLeft.includes("d")
+                                            !timeLeft.includes("d")
                                             ? "red"
                                             : "blue"
                                     }
