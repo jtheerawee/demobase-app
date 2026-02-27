@@ -139,6 +139,8 @@ export async function POST(request: Request) {
                             ? Number(body.cardLimit)
                             : undefined;
 
+                        const tcgUrlOnly = body.tcgUrlOnly === true;
+
                         const scraperOptions = {
                             url,
                             type,
@@ -150,6 +152,7 @@ export async function POST(request: Request) {
                             collectionId,
                             skipSave,
                             cardLimit,
+                            tcgUrlOnly,
                         };
 
                         if (

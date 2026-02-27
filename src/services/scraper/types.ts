@@ -9,6 +9,7 @@ export interface ScraperOptions {
     collectionId?: number | string;
     skipSave?: boolean;
     cardLimit?: number;
+    tcgUrlOnly?: boolean;
 }
 
 export interface ScraperResult {

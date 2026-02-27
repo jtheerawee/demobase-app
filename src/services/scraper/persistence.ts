@@ -209,6 +209,55 @@ export async function saveScrapedCards(
     };
 }
 
+/** For tcgUrlOnly mode: Update existing cards with their TCG URL if matched by name/cardNo */
+export async function updateTcgUrls(
+    cards: ScrapedCard[],
+    collectionId: number | string,
+) {
+    if (cards.length === 0) return { matched: 0 };
+
+    const supabase = await createClient();
+    const colId =
+        typeof collectionId === "string"
+            ? parseInt(collectionId, 10)
+            : collectionId;
+
+    const { data: dbCards } = await supabase
+        .from("scraped_cards")
+        .select("id, name, card_no")
+        .eq("collection_id", colId);
+
+    if (!dbCards || dbCards.length === 0) return { matched: 0 };
+
+    let matched = 0;
+
+    for (const card of cards) {
+        if (!card.cardUrl) continue;
+
+        let match = dbCards.find((d: any) => d.card_no === card.cardNo && d.name === card.name);
+
+        if (!match) {
+            match = dbCards.find((d: any) => d.card_no === card.cardNo);
+        }
+
+        if (!match) {
+            match = dbCards.find((d: any) => d.name.toLowerCase() === card.name.toLowerCase());
+        }
+
+        if (match) {
+            const { error } = await supabase
+                .from("scraped_cards")
+                .update({ tcg_url: card.cardUrl })
+                .eq("id", match.id);
+
+            if (!error) matched++;
+        }
+    }
+
+    console.log(`[Persistence] updateTcgUrls: matched ${matched} out of ${cards.length} cards.`);
+    return { matched };
+}
+
 /** Call once after all pages scraped to get real missed count for collections */
 export async function computeMissedCollections(
     allScrapedUrls: Set<string>,

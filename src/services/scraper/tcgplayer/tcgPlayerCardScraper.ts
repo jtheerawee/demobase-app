@@ -1,5 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
-import { saveScrapedCards } from "@/services/scraper/persistence";
+import { saveScrapedCards, updateTcgUrls } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
 // ==========================================
@@ -14,6 +14,7 @@ export async function scrapeTCGPlayerCards({
     collectionId,
     cardLimit,
     franchise,
+    tcgUrlOnly,
 }: ScraperOptions) {
     const limit = cardLimit ?? APP_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
@@ -282,20 +283,35 @@ export async function scrapeTCGPlayerCards({
         });
 
         try {
-            const result = await saveScrapedCards(sharedCardList, collectionId);
-            if (result) {
-                const { added, matched } = result;
+            if (tcgUrlOnly) {
+                const { matched } = await updateTcgUrls(sharedCardList, collectionId);
                 send({
                     type: "stats",
                     category: "cards",
-                    added,
+                    added: 0,
                     matched,
                     missed: 0,
                 });
                 send({
                     type: "step",
-                    message: `Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    message: `Successfully mapped TCGPlayer URLs for ${matched} ${franchise} cards!`,
                 });
+            } else {
+                const result = await saveScrapedCards(sharedCardList, collectionId);
+                if (result) {
+                    const { added, matched } = result;
+                    send({
+                        type: "stats",
+                        category: "cards",
+                        added,
+                        matched,
+                        missed: 0,
+                    });
+                    send({
+                        type: "step",
+                        message: `Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${added} new, 🔁 ${matched} matched.`,
+                    });
+                }
             }
         } catch (error) {
             console.error(`Failed to save ${franchise} cards:`, error);

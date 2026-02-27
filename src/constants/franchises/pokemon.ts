@@ -29,4 +29,8 @@ export const POKEMON_CONFIG = {
         MEW: "sv3pt5",
         ASC: "me2pt5",
     } as Record<string, string>,
+    SET_MAP_TCG_PLAYER: {
+        "sv-scarlet-and-violet-151": "sv3pt5",
+        "me-ascended-heroes": "me2pt5",
+    } as Record<string, string>,
 };
