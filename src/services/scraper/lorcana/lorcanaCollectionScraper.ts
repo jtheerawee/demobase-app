@@ -1,3 +1,4 @@
+import { APP_CONFIG } from "@/constants/app";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 
@@ -44,10 +45,20 @@ export async function scrapeLorcanaCollections({
         const buttons = await page.$$(setToggleSelector);
         let found = false;
         for (const btn of buttons) {
-            const text = await btn.innerText();
-            if (text.includes("Set")) {
+            const text = (await btn.innerText()).trim();
+            // Case-insensitive check and allow partial match if needed, but "Set" is the primary target
+            if (text.toLowerCase() === "set" || text.includes("Set")) {
                 await btn.click();
-                await page.waitForTimeout(1000); // Wait for the popover to appear
+
+                // Wait for ANY search-filter facets or popover content if the specific scrollable one fails
+                try {
+                    await page.waitForSelector('.hfb-popover .search-filter__facets, .hfb-popover .search-filter__facet', { timeout: 10000 });
+                } catch (e) {
+                    console.warn("[Lorcana Scraper] Specific facet container not found, trying general popover content...");
+                    await page.waitForSelector('.hfb-popover', { timeout: 5000 });
+                }
+
+                await page.waitForTimeout(1000); // Animation buffer
                 found = true;
                 break;
             }
@@ -66,48 +77,57 @@ export async function scrapeLorcanaCollections({
         const collections = await page.evaluate(() => {
             const results: { name: string; slug: string }[] = [];
 
-            // Target the specific container for set facets
-            const container = document.querySelector('.search-filter__facets.scrollable');
-            const items = container
-                ? container.querySelectorAll('.search-filter__facet')
-                : document.querySelectorAll('.search-filter__facet'); // Fallback
+            // Try specific container first, then fall back to ANY facets if it's somehow different
+            const container = document.querySelector('.hfb-popover .search-filter__facets.scrollable')
+                || document.querySelector('.hfb-popover')
+                || document;
+
+            const items = container.querySelectorAll('.search-filter__facet, .search-filter__facet__facet-name');
 
             items.forEach(item => {
-                const label = item.querySelector('.tcg-input-checkbox__label');
-                if (label) {
-                    // TCGPlayer structure: the name is often in a downstream span
-                    // We'll take the text content which usually includes the name and sometimes count
-                    // But we'll try to find the last span which usually has the clean name
-                    const spans = label.querySelectorAll('span');
-                    let name = "";
-                    if (spans.length > 0) {
-                        name = spans[spans.length - 1].textContent?.trim() || "";
-                    } else {
-                        name = label.textContent?.trim() || "";
-                    }
+                // Try label first, then just take innerText of the whole facet item
+                const label = item.querySelector('.tcg-input-checkbox__label') || item;
 
-                    if (name) {
-                        // TCGPlayer slugs: kebab-case, remove apostrophes
-                        const slug = name.toLowerCase()
-                            .replace(/['’]/g, '')
-                            .replace(/[^a-z0-9]+/g, '-')
-                            .replace(/^-+|-+$/g, '');
+                // Get name from spans or textContent
+                const spans = label.querySelectorAll('span');
+                let name = "";
+                if (spans.length > 0) {
+                    name = spans[spans.length - 1].textContent?.trim() || "";
+                } else {
+                    name = label.textContent?.trim() || "";
+                }
 
-                        results.push({ name, slug });
-                    }
+                // Remove trailing facet counts like (256)
+                name = name.replace(/\s*\(\d+\)$/, '').trim();
+
+                if (name && name !== "Set") { // Avoid header text
+                    const slug = name.toLowerCase()
+                        .replace(/['’]/g, '')
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+
+                    results.push({ name, slug });
                 }
             });
             return results;
         });
 
         for (const col of collections) {
+            // Map the slug to a set number if available, otherwise fallback to slug
+            const setCode = APP_CONFIG.LORCANA_SET_MAP[col.slug] || col.slug.toUpperCase();
+
             sharedCollectionList.push({
                 name: col.name,
-                collectionCode: col.slug.toUpperCase(),
+                collectionCode: setCode,
                 imageUrl: "", // Icons are not available in the dropdown
-                collectionUrl: `https://www.tcgplayer.com/search/lorcana-tcg/product?productLineName=lorcana-tcg&view=grid&setName=${col.slug}`,
+                collectionUrl: `https://www.tcgplayer.com/search/lorcana-tcg/product?productLineName=lorcana-tcg&setName=${col.slug}&ProductTypeName=Cards&view=grid`,
             });
         }
+
+        send({
+            type: "step",
+            message: `Found ${sharedCollectionList.length} collections: ${sharedCollectionList.map(c => c.name).slice(0, 3).join(", ")}...`,
+        });
 
         await page.close();
     } catch (err) {

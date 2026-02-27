@@ -62,6 +62,7 @@ export async function POST(request: Request) {
                     url = APP_CONFIG.ONEPIECE_URL_EN;
                 }
             } else if (franchise === "lorcana") {
+                console.log("[Scraper API] Routing to Lorcana EN URL:", APP_CONFIG.LORCANA_URL_EN);
                 url = APP_CONFIG.LORCANA_URL_EN;
             } else {
                 url = APP_CONFIG.MTG_COLLECTION_URL;
