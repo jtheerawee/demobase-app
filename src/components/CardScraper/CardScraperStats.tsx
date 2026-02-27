@@ -13,21 +13,15 @@ import {
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useState } from "react";
 
+export type StatCategory = "added" | "matched" | "missed" | "discarded";
+
+export type CategoryStats = Record<StatCategory, number> & {
+    [K in StatCategory as `${K}Items`]?: any[];
+};
+
 export interface ScraperStats {
-    collections: {
-        added: number;
-        matched: number;
-        missed: number;
-        discarded: number;
-        discardedItems?: any[];
-    };
-    cards: {
-        added: number;
-        matched: number;
-        missed: number;
-        discarded: number;
-        discardedItems?: any[];
-    };
+    collections: CategoryStats;
+    cards: CategoryStats;
 }
 
 interface StatWidgetProps {
@@ -35,7 +29,8 @@ interface StatWidgetProps {
     color: string;
     collections: number;
     cards: number;
-    tooltipContent?: React.ReactNode;
+    collectionTooltip?: React.ReactNode;
+    cardTooltip?: React.ReactNode;
     badgeTooltip?: string;
     onCopy?: () => void;
 }
@@ -45,7 +40,8 @@ function StatWidget({
     color,
     collections,
     cards,
-    tooltipContent,
+    collectionTooltip,
+    cardTooltip,
     badgeTooltip,
     onCopy,
 }: StatWidgetProps) {
@@ -57,7 +53,7 @@ function StatWidget({
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const card = (
+    return (
         <Card withBorder radius="sm" padding="sm" style={{ position: "relative" }}>
             <Stack gap={4}>
                 <Group justify="space-between" align="center">
@@ -75,7 +71,7 @@ function StatWidget({
                         </Badge>
                     )}
                     {onCopy && (
-                        <Tooltip label="Copy items for investigation" withArrow>
+                        <Tooltip label={`Copy ${label.toLowerCase()} items for investigation`} withArrow>
                             <ActionIcon
                                 variant="subtle"
                                 color="gray"
@@ -94,37 +90,37 @@ function StatWidget({
                     <Text size="xs" c="dimmed">
                         Collections
                     </Text>
-                    <Text size="sm" fw={700}>
-                        {collections}
-                    </Text>
+                    {collectionTooltip ? (
+                        <Tooltip label={collectionTooltip} position="bottom" withArrow multiline w={300}>
+                            <Text size="sm" fw={700} style={{ cursor: "help", borderBottom: "1px dashed var(--mantine-color-gray-4)" }}>
+                                {collections}
+                            </Text>
+                        </Tooltip>
+                    ) : (
+                        <Text size="sm" fw={700}>
+                            {collections}
+                        </Text>
+                    )}
                 </Group>
                 <Group justify="space-between" align="baseline">
                     <Text size="xs" c="dimmed">
                         Cards
                     </Text>
-                    <Text size="sm" fw={700}>
-                        {cards}
-                    </Text>
+                    {cardTooltip ? (
+                        <Tooltip label={cardTooltip} position="bottom" withArrow multiline w={300}>
+                            <Text size="sm" fw={700} style={{ cursor: "help", borderBottom: "1px dashed var(--mantine-color-gray-4)" }}>
+                                {cards}
+                            </Text>
+                        </Tooltip>
+                    ) : (
+                        <Text size="sm" fw={700}>
+                            {cards}
+                        </Text>
+                    )}
                 </Group>
             </Stack>
         </Card>
     );
-
-    if (tooltipContent) {
-        return (
-            <Tooltip
-                label={tooltipContent}
-                position="bottom"
-                withArrow
-                multiline
-                w={300}
-            >
-                <div>{card}</div>
-            </Tooltip>
-        );
-    }
-
-    return card;
 }
 
 interface CardScraperStatsProps {
@@ -132,66 +128,63 @@ interface CardScraperStatsProps {
 }
 
 export function CardScraperStats({ stats }: CardScraperStatsProps) {
-    const handleCopyDiscarded = () => {
+    const handleCopyItems = (category: StatCategory) => {
+        const itemKey = `${category}Items` as keyof CategoryStats;
         const data = {
-            collections: stats.collections.discardedItems ?? [],
-            cards: stats.cards.discardedItems ?? [],
+            collections: stats.collections[itemKey] ?? [],
+            cards: stats.cards[itemKey] ?? [],
         };
         navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     };
 
-    const discardedCards = stats.cards.discardedItems ?? [];
-    const discardedTooltip =
-        discardedCards.length > 0 ? (
+    const renderTooltip = (items: any[], title: string) => {
+        if (!items || items.length === 0) return null;
+        return (
             <Stack gap={4}>
                 <Text size="xs" fw={700}>
-                    Last {Math.min(10, discardedCards.length)} Discarded Cards:
+                    Last {Math.min(10, items.length)} {title}:
                 </Text>
-                {discardedCards.slice(-10).map((c, i) => (
+                {items.slice(-10).map((c, i) => (
                     <Text key={i} size="xs">
-                        #{c.cardNo} {c.name}
+                        {c.collectionCode || c.cardNo ? `#${c.collectionCode || c.cardNo} ` : ""}{c.name}
                     </Text>
                 ))}
-                {discardedCards.length > 10 && (
+                {items.length > 10 && (
                     <Text size="xs" c="dimmed">
-                        ... and {discardedCards.length - 10} more
+                        ... and {items.length - 10} more
                     </Text>
                 )}
             </Stack>
-        ) : null;
+        );
+    };
+
+    const renderStat = (
+        label: string,
+        category: StatCategory,
+        color: string,
+        badgeTooltip: string
+    ) => {
+        const itemKey = `${category}Items` as keyof CategoryStats;
+        return (
+            <StatWidget
+                label={label}
+                color={color}
+                collections={stats.collections[category]}
+                cards={stats.cards[category]}
+                badgeTooltip={badgeTooltip}
+                collectionTooltip={renderTooltip(stats.collections[itemKey] as any[], `${label} Collections`)}
+                cardTooltip={renderTooltip(stats.cards[itemKey] as any[], `${label} Cards`)}
+                onCopy={() => handleCopyItems(category)}
+            />
+        );
+    };
 
     return (
         <SimpleGrid cols={2} spacing="xs">
-            <StatWidget
-                label="Added"
-                color="green"
-                collections={stats.collections.added}
-                cards={stats.cards.added}
-                badgeTooltip="New items successfully scraped and saved to the database"
-            />
-            <StatWidget
-                label="Matched"
-                color="blue"
-                collections={stats.collections.matched}
-                cards={stats.cards.matched}
-                badgeTooltip="Items that already exist in the database (skipped to prevent duplicates)"
-            />
-            <StatWidget
-                label="Missed"
-                color="orange"
-                collections={stats.collections.missed}
-                cards={stats.cards.missed}
-                badgeTooltip="Items that failed during scraping or were missed due to errors"
-            />
-            <StatWidget
-                label="Discarded"
-                color="red"
-                collections={stats.collections.discarded}
-                cards={stats.cards.discarded}
-                badgeTooltip="Items explicitly skipped based on rules or limits"
-                tooltipContent={discardedTooltip}
-                onCopy={handleCopyDiscarded}
-            />
+            {renderStat("Added", "added", "green", "New items successfully scraped and saved to the database")}
+            {renderStat("Matched", "matched", "blue", "Items that already exist in the database (skipped to prevent duplicates)")}
+            {renderStat("Missed", "missed", "orange", "Items that failed during scraping or were missed due to errors")}
+            {renderStat("Discarded", "discarded", "red", "Items explicitly skipped based on rules or limits")}
         </SimpleGrid>
     );
 }

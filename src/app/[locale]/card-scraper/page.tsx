@@ -42,6 +42,9 @@ const DEFAULT_STATS: ScraperStats = {
         matched: 0,
         missed: 0,
         discarded: 0,
+        addedItems: [],
+        matchedItems: [],
+        missedItems: [],
         discardedItems: [],
     },
     cards: {
@@ -49,6 +52,9 @@ const DEFAULT_STATS: ScraperStats = {
         matched: 0,
         missed: 0,
         discarded: 0,
+        addedItems: [],
+        matchedItems: [],
+        missedItems: [],
         discardedItems: [],
     },
 };
@@ -602,6 +608,18 @@ export default function CardScraperPage() {
                                         discarded:
                                             (current?.discarded ?? 0) +
                                             (msg.discarded ?? 0),
+                                        addedItems: [
+                                            ...(current?.addedItems ?? []),
+                                            ...(msg.addedItems ?? []),
+                                        ],
+                                        matchedItems: [
+                                            ...(current?.matchedItems ?? []),
+                                            ...(msg.matchedItems ?? []),
+                                        ],
+                                        missedItems: [
+                                            ...(current?.missedItems ?? []),
+                                            ...(msg.missedItems ?? []),
+                                        ],
                                         discardedItems: [
                                             ...(current?.discardedItems ?? []),
                                             ...(msg.discardedItems ?? []),

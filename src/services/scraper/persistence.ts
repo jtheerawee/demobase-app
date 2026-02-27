@@ -33,11 +33,17 @@ export async function saveScrapedCollections(
     );
 
     // added: scraped but NOT yet in DB
-    const added = collections.filter(
+    const addedItems = collections.filter(
         (c) => !allExistingUrls.has(c.collectionUrl),
-    ).length;
+    );
+    const added = addedItems.length;
+
     // matched: scraped AND already in DB
-    const matched = collections.length - added;
+    const matchedItems = collections.filter((c) =>
+        allExistingUrls.has(c.collectionUrl),
+    );
+    const matched = matchedItems.length;
+
     // missed is calculated after the full scrape run, not per-page
     const missed = 0;
 
@@ -76,7 +82,14 @@ export async function saveScrapedCollections(
         `[Persistence] Saving ${collections.length} collections for ${context.franchise}...`,
         { added, matched, missed },
     );
-    return { saved, added, matched, missed };
+    return {
+        saved,
+        added,
+        matched,
+        missed,
+        addedItems,
+        matchedItems,
+    };
 }
 
 export async function updateScrapedCollectionYear(
@@ -144,7 +157,13 @@ export async function saveScrapedCards(
     const added = addedCardsList.length;
 
     // matched: scraped AND already in DB
-    const matched = cards.length - added;
+    const matchedCardsList = cards.filter((c) => {
+        const urlExists = existingKeys.has(c.cardUrl);
+        const nameNoExists = existingKeys.has(`${c.name}|${c.cardNo}`);
+        return urlExists || nameNoExists;
+    });
+    const matched = matchedCardsList.length;
+
     // missed is calculated after the full scrape run
     const missed = 0;
 
@@ -182,7 +201,8 @@ export async function saveScrapedCards(
         added,
         matched,
         missed,
-        addedCards: addedCardsList,
+        addedItems: addedCardsList,
+        matchedItems: matchedCardsList,
     };
 }
 
@@ -245,22 +265,37 @@ export async function updateTcgUrls(
 export async function computeMissedCollections(
     allScrapedUrls: Set<string>,
     context: { franchise: string; language: string },
-): Promise<number> {
+) {
     const supabase = await createClient();
     const { data } = await supabase
         .from("scraped_collections")
-        .select("collection_url")
+        .select("*")
         .eq("franchise", context.franchise)
         .eq("language", context.language);
-    const dbUrls = (data || []).map((e: any) => e.collection_url);
-    return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
+
+    const dbItems = data || [];
+    const missedItems = dbItems.filter((item: any) => !allScrapedUrls.has(item.collection_url));
+
+    // Map back to camelCase for frontend consistency
+    const formattedMissed = missedItems.map((d: any) => ({
+        ...d,
+        collectionCode: d.collection_code,
+        collectionUrl: d.collection_url,
+        imageUrl: d.image_url,
+        releaseYear: d.release_year,
+    }));
+
+    return {
+        count: formattedMissed.length,
+        items: formattedMissed
+    };
 }
 
 /** Call once after all cards scraped to get real missed count for a collection */
 export async function computeMissedCards(
     allScrapedUrls: Set<string>,
     collectionId: number | string,
-): Promise<number> {
+) {
     const supabase = await createClient();
     const colId =
         typeof collectionId === "string"
@@ -268,8 +303,23 @@ export async function computeMissedCards(
             : collectionId;
     const { data } = await supabase
         .from("scraped_cards")
-        .select("card_url")
+        .select("*")
         .eq("collection_id", colId);
-    const dbUrls = (data || []).map((e: any) => e.card_url);
-    return dbUrls.filter((u: string) => !allScrapedUrls.has(u)).length;
+
+    const dbItems = data || [];
+    const missedItems = dbItems.filter((item: any) => !allScrapedUrls.has(item.card_url));
+
+    // Map back to camelCase for frontend consistency
+    const formattedMissed = missedItems.map((d: any) => ({
+        ...d,
+        cardNo: d.card_no,
+        cardUrl: d.card_url,
+        imageUrl: d.image_url,
+        tcgUrl: d.tcg_url,
+    }));
+
+    return {
+        count: formattedMissed.length,
+        items: formattedMissed
+    };
 }

@@ -36,8 +36,8 @@ export async function scrapeMTGCollections({
                 p === 1
                     ? url
                     : url.includes("?")
-                      ? `${url}&page=${p}`
-                      : `${url}?page=${p}`;
+                        ? `${url}&page=${p}`
+                        : `${url}?page=${p}`;
             send({
                 type: "step",
                 message: `Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
@@ -159,7 +159,7 @@ export async function scrapeMTGCollections({
                         language,
                     });
                     if (result) {
-                        const { saved, added, matched } = result;
+                        const { saved, added, matched, addedItems, matchedItems } = result;
                         totalAdded += added;
                         totalMatched += matched;
                         send({
@@ -176,6 +176,8 @@ export async function scrapeMTGCollections({
                             added,
                             matched,
                             missed: 0,
+                            addedItems,
+                            matchedItems,
                         });
                     }
                 } catch (error) {
@@ -203,14 +205,14 @@ export async function scrapeMTGCollections({
                     .map((s: any) => s.collectionUrl)
                     .filter(Boolean),
             );
-            const missed = await computeMissedCollections(allCollectionUrls, {
+            const missedResult = await computeMissedCollections(allCollectionUrls, {
                 franchise,
                 language,
             });
-            if (missed > 0) {
+            if (missedResult.count > 0) {
                 send({
                     type: "step",
-                    message: `⚠️ ${missed} collections are in DB but were not found in this scrape.`,
+                    message: `⚠️ ${missedResult.count} collections are in DB but were not found in this scrape.`,
                 });
             }
             send({
@@ -218,7 +220,8 @@ export async function scrapeMTGCollections({
                 category: "collections",
                 added: 0,
                 matched: 0,
-                missed,
+                missed: missedResult.count,
+                missedItems: missedResult.items,
             });
         }
     } finally {

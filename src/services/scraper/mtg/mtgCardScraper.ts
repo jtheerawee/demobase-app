@@ -252,9 +252,9 @@ export async function scrapeMTGCards({
                             collectionId,
                         )) as any;
                         if (result) {
-                            const { added, matched, addedCards } = result;
-                            if (addedCards)
-                                cardsToDeepScrape.push(...addedCards);
+                            const { added, matched, addedItems, matchedItems } = result;
+                            if (addedItems)
+                                cardsToDeepScrape.push(...addedItems);
                             console.log(
                                 `[Scraper] Sending incremental card stats for page ${p}:`,
                                 {
@@ -271,6 +271,8 @@ export async function scrapeMTGCards({
                                 missed: 0,
                                 discarded: pageDiscardedCount,
                                 discardedItems: pageDiscardedItems,
+                                addedItems,
+                                matchedItems,
                             });
                         }
                     } catch (error) {
@@ -457,26 +459,29 @@ export async function scrapeMTGCards({
                             collectionId,
                         );
                         if (result) {
+                            const { added, matched, addedItems, matchedItems } = result;
                             send({
                                 type: "stats",
                                 category: "cards",
-                                added: 0,
+                                added,
                                 matched: 0,
                                 missed: 0,
+                                addedItems,
+                                matchedItems,
                             });
                             const allCardUrls = new Set(
                                 allCards
                                     .map((c: any) => c.cardUrl)
                                     .filter(Boolean),
                             );
-                            const missed = await computeMissedCards(
+                            const missedResult = await computeMissedCards(
                                 allCardUrls,
                                 collectionId,
                             );
-                            if (missed > 0) {
+                            if (missedResult.count > 0) {
                                 send({
                                     type: "step",
-                                    message: `⚠️ ${missed} cards are in DB but were not found in this scrape.`,
+                                    message: `⚠️ ${missedResult.count} cards are in DB but were not found in this scrape.`,
                                 });
                             }
                             send({
@@ -484,7 +489,8 @@ export async function scrapeMTGCards({
                                 category: "cards",
                                 added: 0,
                                 matched: 0,
-                                missed,
+                                missed: missedResult.count,
+                                missedItems: missedResult.items,
                                 discarded: 0, // already reported incrementally
                             });
                         }
