@@ -790,7 +790,7 @@ export default function CardScraperPage() {
                     </Alert>
                 )}
 
-                <Card withBorder radius="md" padding="md" shadow="sm" bg="var(--mantine-color-blue-light)" style={{ height: "calc(100vh - 180px)", display: "flex", flexDirection: "column" }}>
+                <div style={{ height: "calc(100vh - 180px)", display: "flex", flexDirection: "column" }}>
                     <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" style={{ flex: 1, minHeight: 0 }}>
                         <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
                             <CardScraperInputs
@@ -869,7 +869,7 @@ export default function CardScraperPage() {
                             />
                         </div>
                     </SimpleGrid>
-                </Card>
+                </div>
             </Stack>
         </Container>
     );

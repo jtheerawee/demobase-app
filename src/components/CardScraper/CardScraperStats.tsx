@@ -33,6 +33,7 @@ interface StatWidgetProps {
     collections: number;
     cards: number;
     tooltipContent?: React.ReactNode;
+    badgeTooltip?: string;
 }
 
 function StatWidget({
@@ -41,13 +42,24 @@ function StatWidget({
     collections,
     cards,
     tooltipContent,
+    badgeTooltip,
 }: StatWidgetProps) {
     const card = (
         <Card withBorder radius="sm" padding="sm">
             <Stack gap={4}>
-                <Badge variant="light" color={color} size="xs" radius="sm">
-                    {label}
-                </Badge>
+                {badgeTooltip ? (
+                    <Tooltip label={badgeTooltip} withArrow position="top" multiline w={220}>
+                        <div style={{ width: "max-content" }}>
+                            <Badge variant="light" color={color} size="xs" radius="sm">
+                                {label}
+                            </Badge>
+                        </div>
+                    </Tooltip>
+                ) : (
+                    <Badge variant="light" color={color} size="xs" radius="sm">
+                        {label}
+                    </Badge>
+                )}
                 <Group justify="space-between" align="baseline">
                     <Text size="xs" c="dimmed">
                         Collections
@@ -117,24 +129,28 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
                 color="green"
                 collections={stats.collections.added}
                 cards={stats.cards.added}
+                badgeTooltip="New items successfully scraped and saved to the database"
             />
             <StatWidget
                 label="Matched"
                 color="blue"
                 collections={stats.collections.matched}
                 cards={stats.cards.matched}
+                badgeTooltip="Items that already exist in the database (skipped to prevent duplicates)"
             />
             <StatWidget
                 label="Missed"
                 color="orange"
                 collections={stats.collections.missed}
                 cards={stats.cards.missed}
+                badgeTooltip="Items that failed during scraping or were missed due to errors"
             />
             <StatWidget
                 label="Discarded"
                 color="red"
                 collections={stats.collections.discarded}
                 cards={stats.cards.discarded}
+                badgeTooltip="Items explicitly skipped based on rules or limits"
                 tooltipContent={discardedTooltip}
             />
         </SimpleGrid>
