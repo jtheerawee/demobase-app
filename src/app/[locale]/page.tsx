@@ -5,8 +5,11 @@ import {
     IconLayoutDashboard,
     IconShoppingCart,
 } from "@tabler/icons-react";
+import { isAdmin as checkIsAdmin } from "@/utils/auth";
 
 export default async function HomePage() {
+    const isAdmin = await checkIsAdmin();
+
     return (
         <Container size="xl" py="xl">
             <Stack gap="xl">
@@ -14,26 +17,32 @@ export default async function HomePage() {
                     cols={{ base: 1, sm: 2, md: 3, lg: 4 }}
                     spacing="md"
                 >
-                    <WidgetCard
-                        title="eBay Assistance"
-                        href="/ebay/assistance"
-                        icon={
-                            <IconShoppingCart
-                                size={24}
-                                color="var(--mantine-color-orange-6)"
-                            />
-                        }
-                    />
-                    <WidgetCard
-                        title="Card Scraper"
-                        href="/card-scraper"
-                        icon={
-                            <IconDatabaseExport
-                                size={24}
-                                color="var(--mantine-color-blue-6)"
-                            />
-                        }
-                    />
+                    {isAdmin && (
+                        <WidgetCard
+                            title="eBay Assistance"
+                            href="/ebay/assistance"
+                            icon={
+                                <IconShoppingCart
+                                    size={24}
+                                    color="var(--mantine-color-orange-6)"
+                                />
+                            }
+                        />
+                    )}
+
+                    {isAdmin && (
+                        <WidgetCard
+                            title="Card Scraper"
+                            href="/card-scraper"
+                            icon={
+                                <IconDatabaseExport
+                                    size={24}
+                                    color="var(--mantine-color-blue-6)"
+                                />
+                            }
+                        />
+                    )}
+
                     <WidgetCard
                         title="Card Manager"
                         href="/card-manager"

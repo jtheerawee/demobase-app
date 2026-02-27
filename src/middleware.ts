@@ -5,7 +5,7 @@ import { routing } from "./i18n/routing";
 
 const handleI18nRouting = createMiddleware(routing);
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     // Run next-intl routing first
     let response = handleI18nRouting(request);
 
@@ -31,7 +31,34 @@ export async function proxy(request: NextRequest) {
         },
     );
 
-    await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // Restricted routes check
+    const { pathname } = request.nextUrl;
+    const isRestrictedTarget = pathname.includes('/card-scraper') || pathname.includes('/ebay');
+
+    if (isRestrictedTarget) {
+        let isAdmin = false;
+
+        if (user) {
+            const { data: profile } = await supabase
+                .from("users")
+                .select("role")
+                .eq("id", user.id)
+                .single();
+
+            if (profile?.role === 2) {
+                isAdmin = true;
+            }
+        }
+
+        if (!isAdmin) {
+            // Redirect to home if not admin
+            const url = request.nextUrl.clone();
+            url.pathname = "/";
+            return NextResponse.redirect(url);
+        }
+    }
 
     return response;
 }
