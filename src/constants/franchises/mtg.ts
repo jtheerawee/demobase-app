@@ -1,5 +1,5 @@
 export const MTG_CONFIG = {
-    COLLECTION_URL: "https://gatherer.wizards.com/sets",
+    URL_EN: "https://gatherer.wizards.com/sets",
     RARITY_MAP: {
         Common: "C",
         Uncommon: "U",
