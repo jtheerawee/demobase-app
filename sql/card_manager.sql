@@ -1,4 +1,9 @@
 -- ==========================================
+-- DROP EXISTING TABLES (CAUTION: Deletes User Inventory)
+-- ==========================================
+DROP TABLE IF EXISTS public.collected_cards CASCADE;
+
+-- ==========================================
 -- COLLECTED CARDS TABLE (User Inventory)
 -- ==========================================
 

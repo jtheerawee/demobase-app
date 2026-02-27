@@ -1,8 +1,8 @@
 -- ==========================================
 -- DROP EXISTING TABLES (CAUTION: Deletes all scraped data)
 -- ==========================================
-DROP TABLE IF EXISTS public.scraped_cards;
-DROP TABLE IF EXISTS public.scraped_collections;
+DROP TABLE IF EXISTS public.scraped_cards CASCADE;
+DROP TABLE IF EXISTS public.scraped_collections CASCADE;
 
 -- ==========================================
 -- SCRAPED COLLECTIONS TABLE
