@@ -98,8 +98,8 @@ export function CardScraperCollectionList({
         });
 
     return (
-        <Card withBorder radius="sm" padding="sm" shadow="sm">
-            <Stack gap="md">
+        <Card withBorder radius="sm" padding="sm" shadow="sm" h="100%" style={{ display: "flex", flexDirection: "column" }}>
+            <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
                 <Group justify="space-between">
                     <Group gap="xs" align="center">
                         <Text fw={700}>Collections</Text>
@@ -233,7 +233,7 @@ export function CardScraperCollectionList({
                     radius="md"
                 />
 
-                <ScrollArea h={480}>
+                <ScrollArea style={{ flex: 1, minHeight: 0 }}>
                     <Stack gap="xs">
                         {filteredCollections.map((item) => (
                             <CardScraperCollectionItem

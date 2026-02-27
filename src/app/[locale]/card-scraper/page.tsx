@@ -4,6 +4,7 @@ import {
     ActionIcon,
     Alert,
     Button,
+    Card,
     Container,
     Group,
     Modal,
@@ -750,7 +751,7 @@ export default function CardScraperPage() {
                     }
                     actions={
                         <Group gap="xs">
-                            <Tooltip label="Delete All Database Collections" color="red">
+                            <Tooltip label="Delete All Database Collections" color="red" withArrow>
                                 <ActionIcon
                                     variant="subtle"
                                     color="red"
@@ -762,7 +763,7 @@ export default function CardScraperPage() {
                                     <IconTrash size={22} />
                                 </ActionIcon>
                             </Tooltip>
-                            <Tooltip label="Scraper Settings">
+                            <Tooltip label="Scraper Settings" withArrow>
                                 <ActionIcon
                                     variant="subtle"
                                     color="gray"
@@ -789,84 +790,86 @@ export default function CardScraperPage() {
                     </Alert>
                 )}
 
-                <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-                    <Stack gap="md">
-                        <CardScraperInputs
-                            franchise={selectedFranchise}
-                            language={selectedLanguage}
-                            onFranchiseChange={(val) => {
-                                setSelectedFranchise(val);
-                                setSelectedLanguage("en");
-                                setCollections([]);
-                                setSteps([]);
-                                setCards([]);
-                                setSelectedCollection(null);
-                            }}
-                            onLanguageChange={(val) => {
-                                setSelectedLanguage(val);
-                                setCollections([]);
-                                setCards([]);
-                                setSelectedCollection(null);
-                            }}
-                        />
-                        <CardScraperRunningSteps
-                            steps={steps}
-                            onStop={() => {
-                                if (abortControllerRef.current) {
-                                    abortControllerRef.current.abort();
-                                    setCardLoading(false);
-                                    setCollectionLoading(false);
+                <Card withBorder radius="md" padding="md" shadow="sm" bg="var(--mantine-color-blue-light)" style={{ height: "calc(100vh - 180px)", display: "flex", flexDirection: "column" }}>
+                    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" style={{ flex: 1, minHeight: 0 }}>
+                        <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
+                            <CardScraperInputs
+                                franchise={selectedFranchise}
+                                language={selectedLanguage}
+                                onFranchiseChange={(val) => {
+                                    setSelectedFranchise(val);
+                                    setSelectedLanguage("en");
+                                    setCollections([]);
+                                    setSteps([]);
+                                    setCards([]);
+                                    setSelectedCollection(null);
+                                }}
+                                onLanguageChange={(val) => {
+                                    setSelectedLanguage(val);
+                                    setCollections([]);
+                                    setCards([]);
+                                    setSelectedCollection(null);
+                                }}
+                            />
+                            <CardScraperRunningSteps
+                                steps={steps}
+                                onStop={() => {
+                                    if (abortControllerRef.current) {
+                                        abortControllerRef.current.abort();
+                                        setCardLoading(false);
+                                        setCollectionLoading(false);
+                                    }
+                                }}
+                            />
+                            <CardScraperStats stats={scraperStats} />
+                        </Stack>
+
+                        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, height: "100%" }}>
+                            <CardScraperCollectionList
+                                franchise={selectedFranchise}
+                                language={selectedLanguage}
+                                collections={collections}
+                                selectedId={selectedCollection?.id}
+                                loading={collectionLoading}
+                                onDeleteAllCollections={handleDeleteAll}
+                                onDeleteCollection={handleDeleteCollection}
+                                onRefresh={() =>
+                                    selectedFranchise &&
+                                    fetchExistingCollections(
+                                        selectedFranchise,
+                                        selectedLanguage ?? "en",
+                                    )
                                 }
-                            }}
-                        />
-                        <CardScraperStats stats={scraperStats} />
-                    </Stack>
+                                onDownloadAllCollections={handleDownloadCollections}
+                                onDownloadAllCards={handleDownloadAllCards}
+                                onSelect={async (id) => {
+                                    const col = collections.find(
+                                        (c) => c.id === id,
+                                    );
+                                    setSelectedCollection(col);
+                                    setCards([]);
+                                    if (id) fetchCards(id);
+                                }}
+                            />
+                        </div>
 
-                    <div>
-                        <CardScraperCollectionList
-                            franchise={selectedFranchise}
-                            language={selectedLanguage}
-                            collections={collections}
-                            selectedId={selectedCollection?.id}
-                            loading={collectionLoading}
-                            onDeleteAllCollections={handleDeleteAll}
-                            onDeleteCollection={handleDeleteCollection}
-                            onRefresh={() =>
-                                selectedFranchise &&
-                                fetchExistingCollections(
-                                    selectedFranchise,
-                                    selectedLanguage ?? "en",
-                                )
-                            }
-                            onDownloadAllCollections={handleDownloadCollections}
-                            onDownloadAllCards={handleDownloadAllCards}
-                            onSelect={async (id) => {
-                                const col = collections.find(
-                                    (c) => c.id === id,
-                                );
-                                setSelectedCollection(col);
-                                setCards([]);
-                                if (id) fetchCards(id);
-                            }}
-                        />
-                    </div>
-
-                    <div>
-                        <CardScraperCardList
-                            cards={cards}
-                            collectionCode={selectedCollection?.collectionCode}
-                            loading={cardLoading}
-                            onDeleteCard={handleDeleteCard}
-                            onDeleteAllCards={handleDeleteAllCards}
-                            onDownloadCards={handleDownloadCards}
-                            onRefresh={() =>
-                                selectedCollection?.id &&
-                                fetchCards(selectedCollection.id)
-                            }
-                            canDownload={!!selectedCollection}
-                        />
-                    </div>
-                </SimpleGrid>
+                        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, height: "100%" }}>
+                            <CardScraperCardList
+                                cards={cards}
+                                collectionCode={selectedCollection?.collectionCode}
+                                loading={cardLoading}
+                                onDeleteCard={handleDeleteCard}
+                                onDeleteAllCards={handleDeleteAllCards}
+                                onDownloadCards={handleDownloadCards}
+                                onRefresh={() =>
+                                    selectedCollection?.id &&
+                                    fetchCards(selectedCollection.id)
+                                }
+                                canDownload={!!selectedCollection}
+                            />
+                        </div>
+                    </SimpleGrid>
+                </Card>
             </Stack>
         </Container>
     );

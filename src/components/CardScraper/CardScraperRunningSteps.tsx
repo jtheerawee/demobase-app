@@ -71,8 +71,8 @@ export function CardScraperRunningSteps({
         .slice(-CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT);
 
     return (
-        <Card withBorder radius="sm" padding="sm" shadow="sm">
-            <Stack gap="sm">
+        <Card withBorder radius="sm" padding="sm" shadow="sm" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+            <Stack gap="sm" style={{ flex: 1, minHeight: 0 }}>
                 <Group justify="space-between">
                     <Text fw={600} size="sm">
                         Running Steps{" "}
@@ -134,7 +134,7 @@ export function CardScraperRunningSteps({
                     </Group>
                 </Group>
 
-                <ScrollArea h={300} offsetScrollbars>
+                <ScrollArea style={{ flex: 1, minHeight: 0 }} offsetScrollbars>
                     <Stack gap="xs">
                         {filteredSteps.length > 0 ? (
                             [...filteredSteps].reverse().map((step) => (

@@ -142,13 +142,22 @@ export function CardScraperCardList({
     };
 
     return (
-        <Card withBorder radius="sm" padding="sm" shadow="sm">
-            <Stack gap="md">
+        <Card withBorder radius="sm" padding="sm" shadow="sm" h="100%" style={{ display: "flex", flexDirection: "column" }}>
+            <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
                 <Group justify="space-between">
-                    <Text fw={600}>
-                        Scraped Cards{" "}
-                        {collectionCode ? `(${collectionCode})` : ""}
-                    </Text>
+                    <Group gap="xs" align="center">
+                        <Text fw={600}>
+                            Scraped Cards{" "}
+                            {collectionCode ? `(${collectionCode})` : ""}
+                        </Text>
+                        <Badge
+                            variant="light"
+                            color={filterInvalid ? "orange" : "gray"}
+                        >
+                            {filteredCards.length}{" "}
+                            {filterInvalid ? "Invalid" : "Cards"}
+                        </Badge>
+                    </Group>
                     <Group gap="xs">
                         <ActionIcon
                             variant="light"
@@ -215,17 +224,10 @@ export function CardScraperCardList({
                         >
                             <IconTrash size={14} />
                         </ActionIcon>
-                        <Badge
-                            variant="light"
-                            color={filterInvalid ? "orange" : "gray"}
-                        >
-                            {filteredCards.length}{" "}
-                            {filterInvalid ? "Invalid" : "Cards"}
-                        </Badge>
                     </Group>
                 </Group>
 
-                <ScrollArea h={480} pt="xs">
+                <ScrollArea style={{ flex: 1, minHeight: 0 }} pt="xs">
                     <SimpleGrid cols={1} spacing="xs">
                         {filteredCards.map((card, index) => (
                             <Card
