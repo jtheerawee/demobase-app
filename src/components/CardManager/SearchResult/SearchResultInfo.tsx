@@ -21,18 +21,18 @@ export function SearchResultInfo({
             {loading ? (
                 <Stack align="center" gap="xs">
                     <Loader size="sm" />
-                    <Text c="dimmed" size="xs">
+                    <Text c="dimmed" size="sm">
                         Scanning and looking for cards...
                     </Text>
                 </Stack>
             ) : (
                 <>
                     {info.length >= CARD_MANAGER_CONFIG.SEARCH.MIN_CHARS ? (
-                        <Text c="dimmed" size="xs">
+                        <Text c="dimmed" size="sm">
                             No cards found matching "{info}"
                         </Text>
                     ) : (
-                        <Text c="dimmed" size="xs">
+                        <Text c="dimmed" size="sm">
                             Waiting for next searching
                         </Text>
                     )}
