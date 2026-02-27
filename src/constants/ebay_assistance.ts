@@ -1,4 +1,4 @@
-export const EBAY_CONFIG = {
+export const EBAY_ASSISTANCE_CONFIG = {
     ITEMS_PER_PAGE: 8,
     HIDE_ABNORMAL_PRICES: false,
     HIDE_UNMATCHED_SERVICES: true,

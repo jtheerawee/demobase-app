@@ -22,13 +22,13 @@ import { EbayApiInspector } from "@/components/EbayAssistance/EbayApiInspector";
 import { EbaySearchList } from "@/components/EbayAssistance/EbaySearchList";
 import { MarketTrendAnalysis } from "@/components/EbayAssistance/MarketTrendAnalysis";
 import { PageHeader } from "@/components/PageHeader";
-import { EBAY_CONFIG } from "@/constants/ebay";
+import { EBAY_ASSISTANCE_CONFIG } from "@/constants/ebay_assistance";
 import type { EbayItem } from "@/services/ebayService";
 import { createClient } from "@/utils/supabase/client";
 
-const EBAY_ITEMS_PER_PAGE = EBAY_CONFIG.ITEMS_PER_PAGE;
-const EBAY_OUTLIER_THRESHOLD = EBAY_CONFIG.OUTLIER_THRESHOLD;
-const EBAY_OUTLIER_WINDOW_SAMPLES = EBAY_CONFIG.OUTLIER_WINDOW_SAMPLES;
+const EBAY_ITEMS_PER_PAGE = EBAY_ASSISTANCE_CONFIG.ITEMS_PER_PAGE;
+const EBAY_OUTLIER_THRESHOLD = EBAY_ASSISTANCE_CONFIG.OUTLIER_THRESHOLD;
+const EBAY_OUTLIER_WINDOW_SAMPLES = EBAY_ASSISTANCE_CONFIG.OUTLIER_WINDOW_SAMPLES;
 
 export default function EbaySearchPage() {
     const t = useTranslations("EbayAssistance");
@@ -55,10 +55,10 @@ export default function EbaySearchPage() {
     const [soldRaw, setSoldRaw] = useState<any>(null);
     const [displayMode, setDisplayMode] = useState<"active" | "sold">("active");
     const [hideUnmatched, setHideUnmatched] = useState(
-        EBAY_CONFIG.HIDE_UNMATCHED_SERVICES,
+        EBAY_ASSISTANCE_CONFIG.HIDE_UNMATCHED_SERVICES,
     );
     const [hideAbnormal, setHideAbnormal] = useState(
-        EBAY_CONFIG.HIDE_ABNORMAL_PRICES,
+        EBAY_ASSISTANCE_CONFIG.HIDE_ABNORMAL_PRICES,
     );
     const [threshold, setThreshold] = useState(EBAY_OUTLIER_THRESHOLD);
     const [hoveredDate, setHoveredDate] = useState<string | null>(null);
@@ -184,20 +184,20 @@ export default function EbaySearchPage() {
                                                     itemLocation:
                                                         item.itemLocation
                                                             ? [
-                                                                  item
-                                                                      .itemLocation
-                                                                      .city,
-                                                                  item
-                                                                      .itemLocation
-                                                                      .stateOrProvince,
-                                                                  item
-                                                                      .itemLocation
-                                                                      .country,
-                                                              ]
-                                                                  .filter(
-                                                                      Boolean,
-                                                                  )
-                                                                  .join(", ")
+                                                                item
+                                                                    .itemLocation
+                                                                    .city,
+                                                                item
+                                                                    .itemLocation
+                                                                    .stateOrProvince,
+                                                                item
+                                                                    .itemLocation
+                                                                    .country,
+                                                            ]
+                                                                .filter(
+                                                                    Boolean,
+                                                                )
+                                                                .join(", ")
                                                             : item.itemLocation,
                                                     endDate:
                                                         item.itemEndDate ||
@@ -262,13 +262,13 @@ export default function EbaySearchPage() {
                                             "",
                                         itemLocation: item.itemLocation
                                             ? [
-                                                  item.itemLocation.city,
-                                                  item.itemLocation
-                                                      .stateOrProvince,
-                                                  item.itemLocation.country,
-                                              ]
-                                                  .filter(Boolean)
-                                                  .join(", ")
+                                                item.itemLocation.city,
+                                                item.itemLocation
+                                                    .stateOrProvince,
+                                                item.itemLocation.country,
+                                            ]
+                                                .filter(Boolean)
+                                                .join(", ")
                                             : item.itemLocation,
                                         endDate:
                                             item.itemEndDate || item.endDate,
@@ -368,15 +368,15 @@ export default function EbaySearchPage() {
         const sortedResults = [...filteredSoldResults].sort((a, b) => {
             const dateA = new Date(
                 a.endDate ||
-                    (a as any).soldTime ||
-                    (a as any).soldDate ||
-                    (a as any).timestamp,
+                (a as any).soldTime ||
+                (a as any).soldDate ||
+                (a as any).timestamp,
             ).getTime();
             const dateB = new Date(
                 b.endDate ||
-                    (b as any).soldTime ||
-                    (b as any).soldDate ||
-                    (b as any).timestamp,
+                (b as any).soldTime ||
+                (b as any).soldDate ||
+                (b as any).timestamp,
             ).getTime();
             return dateA - dateB;
         });
@@ -646,27 +646,27 @@ export default function EbaySearchPage() {
                                         {process.env
                                             .NEXT_PUBLIC_DEVELOPER_MODE ===
                                             "true" && (
-                                            <SegmentedControl
-                                                size="xs"
-                                                color="orange"
-                                                value={displayMode}
-                                                onChange={(value: any) =>
-                                                    setDisplayMode(value)
-                                                }
-                                                data={[
-                                                    {
-                                                        label: t(
-                                                            "activeResults",
-                                                        ),
-                                                        value: "active",
-                                                    },
-                                                    {
-                                                        label: t("soldResults"),
-                                                        value: "sold",
-                                                    },
-                                                ]}
-                                            />
-                                        )}
+                                                <SegmentedControl
+                                                    size="xs"
+                                                    color="orange"
+                                                    value={displayMode}
+                                                    onChange={(value: any) =>
+                                                        setDisplayMode(value)
+                                                    }
+                                                    data={[
+                                                        {
+                                                            label: t(
+                                                                "activeResults",
+                                                            ),
+                                                            value: "active",
+                                                        },
+                                                        {
+                                                            label: t("soldResults"),
+                                                            value: "sold",
+                                                        },
+                                                    ]}
+                                                />
+                                            )}
                                     </Group>
 
                                     <EbayActiveResults

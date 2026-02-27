@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { EBAY_CONFIG } from "@/constants/ebay";
+import { EBAY_ASSISTANCE_CONFIG } from "@/constants/ebay_assistance";
 
-const CARD_API = EBAY_CONFIG.API_HOST;
+const CARD_API = EBAY_ASSISTANCE_CONFIG.API_HOST;
 
 export async function GET(request: NextRequest) {
     const authorization = request.headers.get("Authorization") ?? "";
