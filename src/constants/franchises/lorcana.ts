@@ -22,5 +22,6 @@ export const LORCANA_CONFIG = {
         "reign-of-jafar": "8",
         "fabled": "9",
         "whispers-in-the-well": "10",
+        "winterspell": "11",
     } as Record<string, string>,
 };

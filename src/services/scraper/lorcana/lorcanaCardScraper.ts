@@ -45,10 +45,9 @@ export async function scrapeLorcanaCards({
                 try {
                     send({
                         type: "step",
-                        message: `Worker ${workerId} scraping page ${p}: ${targetPageUrl}`,
+                        message: `Worker ${workerId} scraping page ${p}`,
                     });
 
-                    // Use a slightly longer timeout and wait for network idle to be safe
                     await workerPage.goto(targetPageUrl, {
                         waitUntil: "domcontentloaded",
                         timeout: 60000,
@@ -56,32 +55,48 @@ export async function scrapeLorcanaCards({
 
                     if (shouldAbort) break;
 
-                    // Verify set filter is applied if we are looking for a specific set
-                    if (targetPageUrl.includes("setName=")) {
-                        await workerPage.waitForSelector('.tcg-standard-button--border.hfb-popover__button', { timeout: 10000 })
-                            .catch(() => console.warn(`[Lorcana Scraper] Filter chip not detected for page ${p}.`));
+                    // 1. Redirect Check: If TCGPlayer redirects to a generic search, stop.
+                    const currentUrl = workerPage.url();
+                    const isLorcana = currentUrl.includes("lorcana-tcg") || currentUrl.includes("productLineName=lorcana-tcg");
+                    // If we expected a set but the URL no longer has setName, we likely hit a redirect
+                    const expectedSetSlug = url.match(/setName=([^&]+)/)?.[1];
+                    const stillHasSet = expectedSetSlug ? currentUrl.includes(`setName=${expectedSetSlug}`) : true;
+
+                    if (!isLorcana || !stillHasSet) {
+                        console.warn(`[Lorcana Scraper] Worker ${workerId} detected redirect or set loss on page ${p}. Stopping.`);
+                        if (totalPages === Infinity) totalPages = p - 1;
+                        break;
                     }
 
                     // Wait for results or empty state
-                    await workerPage.waitForSelector('.product-card, .search-results__no-results', { timeout: 20000 }).catch(() => { });
+                    await workerPage.waitForSelector('.product-card, .search-results__no-results, .search-results-count', { timeout: 15000 }).catch(() => { });
 
-                    // Extract total pages on first page
-                    if (p === 1 && totalPages === Infinity) {
-                        const totalResults = await workerPage.evaluate(() => {
-                            const resultsText = document.querySelector('.search-results-count')?.textContent || "";
-                            // Match numbers with commas, e.g., "1,238 results"
-                            const match = resultsText.replace(/,/g, '').match(/(\d+)\s+results/i);
-                            return match ? parseInt(match[1], 10) : 0;
-                        });
+                    // 2. Total Results Consistency Check
+                    const currentTotalResults = await workerPage.evaluate(() => {
+                        const el = document.querySelector('.search-results-count') ||
+                            document.querySelector('.search-results__summary');
+                        const text = el?.textContent || "";
+                        const match = text.replace(/,/g, '').match(/(\d+)\s+results/i);
+                        return match ? parseInt(match[1], 10) : 0;
+                    });
 
-                        if (totalResults > 0) {
-                            // TCGPlayer usually has 24 results per page in grid view
-                            totalPages = Math.ceil(totalResults / 24);
-                            send({ type: "meta", totalPages, totalCards: totalResults });
+                    // If we already detected totalPages and the count suddenly changed (e.g. 200 -> 400,000), it's a redirect
+                    if (totalPages !== Infinity && currentTotalResults > 0) {
+                        const currentTotalPages = Math.ceil(currentTotalResults / 24);
+                        // Allow a small margin for TCGPlayer weirdness, but if it jumps significantly, stop
+                        if (currentTotalPages > totalPages + 10) {
+                            console.warn(`[Lorcana Scraper] Result count jump detected on page ${p}. Stopping.`);
+                            break;
                         }
                     }
 
-                    const pageData = await workerPage.evaluate((map: Record<string, string>) => {
+                    // Extract total pages on first page if not already done
+                    if (p === 1 && totalPages === Infinity && currentTotalResults > 0) {
+                        totalPages = Math.ceil(currentTotalResults / 24);
+                        send({ type: "meta", totalPages, totalCards: currentTotalResults });
+                    }
+
+                    const pageData = await workerPage.evaluate(({ map, reqSet }: { map: Record<string, string>, reqSet: string | undefined }) => {
                         const items: any[] = [];
                         const cardElements = document.querySelectorAll('.product-card');
 
@@ -93,36 +108,45 @@ export async function scrapeLorcanaCards({
                             const setEl = el.querySelector('.product-card__set-name, h4');
                             const linkEl = el.closest('a') || el.querySelector('a');
 
-                            const name = nameEl?.textContent?.trim() || "Unknown Lorcana Card";
-                            // Ensure absolute URLs (browser resolved)
+                            const name = nameEl?.textContent?.trim() || "";
                             const cardUrl = (linkEl as HTMLAnchorElement)?.href || "";
+
+                            // Basic validation: must have name and URL
+                            if (!name || !cardUrl) return;
+
                             const imageUrl = (imageEl as HTMLImageElement)?.src || "";
                             const setName = setEl?.textContent?.trim() || "";
 
-                            // Lorcana numbers are usually like #1/204
+                            // If we filtered by a specific set, verify the card's set name (case-insensitive check)
+                            // This stops us from scraping Pokemon cards if we redirected but stayed in a valid-looking URL
+                            if (reqSet) {
+                                const slugify = (s: string) => s.toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+                                if (slugify(setName) !== reqSet && !setName.toLowerCase().includes(reqSet.replace(/-/g, ' '))) {
+                                    return; // Skip this card
+                                }
+                            }
+
                             const rawNo = numberEl?.textContent?.trim() || "";
                             const cardNo = rawNo.replace('#', '').split('/')[0].trim();
 
-                            const rarityRaw = rarityEl?.textContent?.trim() || "";
-                            const rarity = map[rarityRaw] || rarityRaw;
+                            // Normalize rarity: remove commas, trim, and handle case lookup
+                            const rarityRaw = rarityEl?.textContent?.trim().replace(/[,]$/, '') || "";
 
-                            if (cardUrl && cardUrl.startsWith('http')) {
-                                items.push({
-                                    name,
-                                    cardUrl,
-                                    imageUrl,
-                                    cardNo,
-                                    rarity,
-                                    setName,
-                                });
+                            // Try exact match, then case-insensitive match
+                            let rarity = map[rarityRaw];
+                            if (!rarity) {
+                                const lowerRaw = rarityRaw.toLowerCase();
+                                const foundKey = Object.keys(map).find(k => k.toLowerCase() === lowerRaw);
+                                rarity = foundKey ? map[foundKey] : rarityRaw;
                             }
+
+                            items.push({ name, cardUrl, imageUrl, cardNo, rarity, setName });
                         });
                         return items;
-                    }, rarityMap);
+                    }, { map: rarityMap, reqSet: expectedSetSlug });
 
                     if (pageData.length === 0) {
-                        // If we get 0 cards on a page that we expected to have cards, 
-                        // it might be a block or the end of results
+                        // End of results reached
                         if (totalPages === Infinity || p <= totalPages) {
                             totalPages = p - 1;
                         }
