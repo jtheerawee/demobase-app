@@ -71,11 +71,15 @@ function StatWidget({
                         </Badge>
                     )}
                     {onCopy && (
-                        <Tooltip label={`Copy ${label.toLowerCase()} items for investigation`} withArrow>
+                        <Tooltip
+                            label={collections === 0 && cards === 0 ? "No items to copy" : `Copy ${label.toLowerCase()} items for investigation`}
+                            withArrow
+                        >
                             <ActionIcon
                                 variant="subtle"
                                 color="gray"
                                 size="xs"
+                                disabled={collections === 0 && cards === 0}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleCopy();

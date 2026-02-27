@@ -459,15 +459,14 @@ export async function scrapeMTGCards({
                             collectionId,
                         );
                         if (result) {
-                            const { added, matched, addedItems, matchedItems } = result;
                             send({
                                 type: "stats",
                                 category: "cards",
-                                added,
+                                added: 0,
                                 matched: 0,
                                 missed: 0,
-                                addedItems,
-                                matchedItems,
+                                addedItems: [],
+                                matchedItems: [],
                             });
                             const allCardUrls = new Set(
                                 allCards
