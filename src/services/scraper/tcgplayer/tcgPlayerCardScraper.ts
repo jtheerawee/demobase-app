@@ -78,6 +78,24 @@ export async function scrapeTCGPlayerCards(options: ScraperOptions) {
                         })
                         .catch(() => { });
 
+                    // Scroll to bottom to trigger lazy loading of images
+                    await workerPage.evaluate(async () => {
+                        await new Promise((resolve) => {
+                            let totalHeight = 0;
+                            const distance = 500;
+                            const timer = setInterval(() => {
+                                const scrollHeight = document.body.scrollHeight;
+                                window.scrollBy(0, distance);
+                                totalHeight += distance;
+                                if (totalHeight >= scrollHeight) {
+                                    clearInterval(timer);
+                                    resolve(true);
+                                }
+                            }, 100);
+                        });
+                    });
+                    await workerPage.waitForTimeout(1000);
+
                     // 2. Total Results Consistency Check
                     const currentTotalResults = await workerPage.evaluate(() => {
                         const el =
@@ -127,7 +145,16 @@ export async function scrapeTCGPlayerCards(options: ScraperOptions) {
                                 if (!name || !cardUrl) return;
 
                                 let imageUrl = (imageEl as HTMLImageElement)?.src || "";
-                                if (imageUrl) {
+
+                                // If we got the 1x1 GIF placeholder, check if there's a data-src attribute or wait one more frame
+                                if (imageUrl.startsWith("data:image/gif;base64") || !imageUrl.includes("tcgplayer-cdn")) {
+                                    imageUrl =
+                                        (imageEl as HTMLImageElement)?.getAttribute("data-src") ||
+                                        (imageEl as HTMLImageElement)?.getAttribute("data-original") ||
+                                        imageUrl;
+                                }
+
+                                if (imageUrl && !imageUrl.startsWith("data:")) {
                                     // TCGPlayer returns various thumbnail sizes, update to 1000x1000 for high quality
                                     imageUrl = imageUrl.replace(/\d+x\d+/, "1000x1000");
                                 }
