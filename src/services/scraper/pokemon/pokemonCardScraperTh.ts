@@ -1,3 +1,4 @@
+import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
@@ -8,6 +9,7 @@ import {
     reportScraperStats,
     reportScraperMeta,
     reportScraperChunk,
+    lookupRarity,
 } from "@/services/scraper/utils";
 
 export async function scrapePokemonCardsTh({
@@ -171,7 +173,7 @@ export async function scrapePokemonCardsTh({
                             waitUntil: "networkidle",
                             timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
                         });
-                        const details = await workerPage.evaluate(() => {
+                        const details = await workerPage.evaluate((enableRarity: boolean) => {
                             const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "";
                             const h1 =
                                 document.querySelector("h1") ||
@@ -191,13 +193,22 @@ export async function scrapePokemonCardsTh({
 
                             let collectorNumber = "N/A";
                             let rarity: string | null = null;
-                            if (numberAndRarity?.includes("/")) {
-                                const parts = numberAndRarity.split("/");
-                                collectorNumber = parts[0]?.trim() || "N/A";
-                                const r = parts[1]?.trim();
-                                rarity = r && r !== "N/A" ? r : null;
-                            } else if (numberAndRarity) {
-                                collectorNumber = numberAndRarity;
+
+                            if (enableRarity) {
+                                if (numberAndRarity?.includes("/")) {
+                                    const parts = numberAndRarity.split("/");
+                                    collectorNumber = parts[0]?.trim() || "N/A";
+                                    const r = parts[1]?.trim();
+                                    rarity = r && r !== "N/A" ? r : null;
+                                } else if (numberAndRarity) {
+                                    collectorNumber = numberAndRarity;
+                                }
+                            } else {
+                                if (numberAndRarity?.includes("/")) {
+                                    collectorNumber = numberAndRarity.split("/")[0]?.trim() || "N/A";
+                                } else if (numberAndRarity) {
+                                    collectorNumber = numberAndRarity;
+                                }
                             }
 
                             return {
@@ -206,7 +217,12 @@ export async function scrapePokemonCardsTh({
                                 rarity,
                                 isDeepScraped: true,
                             };
-                        });
+                        }, CARD_SCRAPER_CONFIG.FEATURE_FLAGS.POKEMON_TH_RARITY);
+
+                        // Map rarity to code
+                        if (details.rarity) {
+                            details.rarity = lookupRarity(details.rarity, APP_CONFIG.POKEMON_RARITY_MAP);
+                        }
 
                         Object.assign(card, details);
                         card.isBeingScraped = false;

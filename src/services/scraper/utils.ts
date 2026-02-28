@@ -68,3 +68,22 @@ export function reportScraperChunk(send: (msg: any) => void, items: any[], start
         startIndex,
     });
 }
+
+/**
+ * Look up a rarity value in a map, with case-insensitive support.
+ */
+export function lookupRarity(rawRarity: string | null, map: Record<string, string>): string | null {
+    const trimmed = rawRarity?.trim();
+    if (!trimmed) return null;
+
+    // Try exact match
+    if (map[trimmed]) return map[trimmed];
+
+    // Try case-insensitive match
+    const lowerRaw = trimmed.toLowerCase();
+    const foundKey = Object.keys(map).find((k) => k.toLowerCase() === lowerRaw);
+    if (foundKey) return map[foundKey];
+
+    // Fallback to the raw value if no match found
+    return trimmed;
+}

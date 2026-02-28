@@ -2,19 +2,25 @@ import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
-import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
+import {
+    createWorkerUpdater,
+    createStepLogger,
+    reportScraperStats,
+    reportScraperChunk,
+} from "@/services/scraper/utils";
 
 export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
     const { url, context, send, franchise, language } = options;
     const logStep = createStepLogger(send);
+    const updateWorkers = createWorkerUpdater(send);
 
     logStep(`Fetching ${franchise} collections from TCGPlayer...`);
 
     const sharedCollectionList: any[] = [];
 
+    updateWorkers(1);
+    const page = await context.newPage();
     try {
-        const page = await context.newPage();
-
         logStep(`Navigating to ${url}...`);
         await page.goto(url, {
             waitUntil: "domcontentloaded",
@@ -133,13 +139,14 @@ export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
                 .join(", ")}...`,
         );
 
-        await page.close();
     } catch (err) {
         console.error(`Failed to fetch ${franchise} collections:`, err);
         logStep(
             "Error: Could not fetch set list from TCGPlayer. " + (err instanceof Error ? err.message : String(err)),
         );
-        return;
+    } finally {
+        await page.close();
+        updateWorkers(-1);
     }
 
     if (franchise && language && sharedCollectionList.length > 0) {

@@ -8,6 +8,7 @@ import {
     reportScraperStats,
     reportScraperMeta,
     reportScraperChunk,
+    lookupRarity,
 } from "@/services/scraper/utils";
 
 export async function scrapePokemonCardsEn({
@@ -299,7 +300,7 @@ export async function scrapePokemonCardsEn({
 
                         // Map rarity to code
                         if (details.rarity && details.rarity !== "N/A") {
-                            details.rarity = APP_CONFIG.POKEMON_RARITY_MAP[details.rarity] || details.rarity;
+                            details.rarity = lookupRarity(details.rarity, APP_CONFIG.POKEMON_RARITY_MAP);
                         } else {
                             details.rarity = null;
                         }

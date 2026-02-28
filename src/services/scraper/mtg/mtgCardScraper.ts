@@ -8,6 +8,7 @@ import {
     reportScraperStats,
     reportScraperChunk,
     reportScraperMeta,
+    lookupRarity,
 } from "../utils";
 
 export async function scrapeMTGCards(options: ScraperOptions) {
@@ -287,8 +288,8 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                     const rarityEl = document.querySelector(
                                         "[data-testid='cardDetailsRarity'], .rarity",
                                     );
-                                    const rarityText = rarityEl?.textContent?.trim();
-                                    const rarity = rarityText ? (rarityMap[rarityText] || rarityText) : null;
+                                    const rarityText = rarityEl?.textContent?.trim() || null;
+                                    const rarity = lookupRarity(rarityText, rarityMap);
 
                                     const artistEl = document.querySelector(
                                         "[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist",

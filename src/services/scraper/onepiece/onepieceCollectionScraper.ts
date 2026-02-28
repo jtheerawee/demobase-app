@@ -1,13 +1,20 @@
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import { type ScraperOptions } from "@/services/scraper/types";
-import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
+import {
+    createWorkerUpdater,
+    createStepLogger,
+    reportScraperStats,
+    reportScraperChunk,
+} from "@/services/scraper/utils";
 
 export async function scrapeOnepieceCollections({ url, context, send, franchise, language }: ScraperOptions) {
     const logStep = createStepLogger(send);
+    const updateWorkers = createWorkerUpdater(send);
 
     logStep("Discovering One Piece collections...");
 
+    updateWorkers(1);
     const workerPage = await context.newPage();
     try {
         logStep(`Navigating to: ${url}`);
@@ -79,5 +86,6 @@ export async function scrapeOnepieceCollections({ url, context, send, franchise,
         }
     } finally {
         await workerPage.close();
+        updateWorkers(-1);
     }
 }

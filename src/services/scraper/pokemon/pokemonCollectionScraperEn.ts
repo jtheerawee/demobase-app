@@ -1,10 +1,16 @@
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
-import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
+import {
+    createWorkerUpdater,
+    createStepLogger,
+    reportScraperStats,
+    reportScraperChunk,
+} from "@/services/scraper/utils";
 
 export async function scrapePokemonCollectionsEn({ url, context, send, franchise, language }: ScraperOptions) {
     const logStep = createStepLogger(send);
+    const updateWorkers = createWorkerUpdater(send);
 
     logStep(`Step 1: ${franchise}. Fetching sets...`);
 
@@ -12,9 +18,9 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
     // Map to store key -> Name transitions
     const nameMap: Record<string, string> = {};
 
+    updateWorkers(1);
+    const page = await context.newPage();
     try {
-        const page = await context.newPage();
-
         logStep(`Step 2: Navigating to ${url}...`);
         // Use a more realistic user agent if possible through context, but here we just navigate
         await page.goto(url, {
@@ -30,7 +36,7 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
             .waitForSelector(advancedBtnSelector, {
                 timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
             })
-            .catch(() => {});
+            .catch(() => { });
 
         const advancedBtn = await page.$(advancedBtnSelector);
         if (advancedBtn) {
@@ -55,7 +61,7 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
         const expansionSection = await page.$(expansionHeaderSelector);
         if (expansionSection) {
             logStep("Clicking Expansions section...");
-            await expansionSection.scrollIntoViewIfNeeded().catch(() => {});
+            await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
             await expansionSection
                 .click({
                     force: true,
@@ -104,12 +110,12 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
         if (Object.keys(nameMap).length === 0) {
             throw new Error("No collections found in the DOM.");
         }
-
-        await page.close();
     } catch (err) {
         console.error("Failed to fetch name mappings:", err);
         logStep("Error: Could not fetch set list from Pokemon.com.");
-        return;
+    } finally {
+        await page.close();
+        updateWorkers(-1);
     }
 
     for (const [key, name] of Object.entries(nameMap)) {

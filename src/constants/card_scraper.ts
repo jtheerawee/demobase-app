@@ -19,6 +19,10 @@ export const CARD_SCRAPER_CONFIG = {
     PAGE_LOAD_TIMEOUT: 60000,
     CARD_DETAILS_LOAD_TIMEOUT: 30000,
     SELECTOR_WAIT_TIMEOUT: 5000,
+
+    FEATURE_FLAGS: {
+        POKEMON_TH_RARITY: false,
+    },
 } as const;
 
 export const SCRAPER_STEP_STATUS = {

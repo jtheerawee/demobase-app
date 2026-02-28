@@ -75,11 +75,14 @@ export const FRANCHISES: FranchiseOption[] = [
                 "Uncommon Holo": "UH",
                 Rare: "R",
                 "Rare Holo": "RH",
+                "PIKA Rare Holo": "RH", // fix black and white
                 "Illustration Rare": "IR",
                 "Special Illustration Rare": "SIR",
+                "Super Rare": "SR",
                 "Double Rare": "DR",
                 "Ultra Rare": "UR",
                 "Hyper Rare": "HR",
+                "Black White Rare": "BWR",
                 Promo: "P",
             },
             SET_MAP: {
