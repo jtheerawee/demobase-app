@@ -6,7 +6,7 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { FRANCHISES } from "@/constants/franchises";
 import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
-import { createWorkerUpdater, createStepLogger } from "../utils";
+import { createWorkerUpdater, createStepLogger, reportScraperStats } from "../utils";
 
 export async function scrapeMTGCollections(options: ScraperOptions) {
     const { url, context, send, franchise, language, skipSave } = options;
@@ -142,18 +142,8 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
                         const { saved, addedItems, matchedItems } = result;
                         totalAdded += addedItems.length;
                         totalMatched += matchedItems.length;
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
-                            items: saved,
-                        });
+                        reportScraperStats(send, "collections", result);
                         logStep(`Step 5: Page ${p}: Saved ${newSets.length} sets — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STATS,
-                            category: "collections",
-                            addedItems,
-                            matchedItems,
-                            missed: 0,
-                        });
                     }
                 } catch (error) {
                     console.error(
@@ -181,12 +171,7 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
             if (missedResult.count > 0) {
                 logStep(`⚠️ ${missedResult.count} collections are in DB but were not found in this scrape.`);
             }
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STATS,
-                category: "collections",
-                added: 0,
-                matched: 0,
-                missed: missedResult.count,
+            reportScraperStats(send, "collections", {
                 missedItems: missedResult.items,
             });
         }

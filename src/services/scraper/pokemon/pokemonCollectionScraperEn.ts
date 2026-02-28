@@ -2,6 +2,7 @@ import { saveScrapedCollections } from "@/services/scraper/persistence";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
+import { createStepLogger, reportScraperStats } from "@/services/scraper/utils";
 
 export async function scrapePokemonCollectionsEn({
     url,
@@ -10,10 +11,9 @@ export async function scrapePokemonCollectionsEn({
     franchise,
     language,
 }: ScraperOptions) {
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: `Step 1: ${franchise}. Fetching sets...`,
-    });
+    const logStep = createStepLogger(send);
+
+    logStep(`Step 1: ${franchise}. Fetching sets...`);
 
     const sharedCollectionList: any[] = [];
     // Map to store key -> Name transitions
@@ -22,20 +22,14 @@ export async function scrapePokemonCollectionsEn({
     try {
         const page = await context.newPage();
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Step 2: Navigating to ${url}...`,
-        });
+        logStep(`Step 2: Navigating to ${url}...`);
         // Use a more realistic user agent if possible through context, but here we just navigate
         await page.goto(url, {
             waitUntil: "domcontentloaded",
             timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Step 3: Activating Advanced Search filters...",
-        });
+        logStep("Step 3: Activating Advanced Search filters...");
         // 1. Click "Show Advanced Search"
         // Try multiple selectors and wait for it to be visible
         const advancedBtnSelector =
@@ -53,17 +47,11 @@ export async function scrapePokemonCollectionsEn({
             await page.waitForTimeout(1000);
         }
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Expanding the 'Expansions' section...",
-        });
+        logStep("Expanding the 'Expansions' section...");
         // 2. Click "Expansions" header
         const expansionHeaderSelector =
             "header:has-text('Expansions'), div.column-12:has-text('Expansions'), .expansion-filter header";
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Waiting for Expansions section...",
-        });
+        logStep("Waiting for Expansions section...");
         await page
             .waitForSelector(expansionHeaderSelector, {
                 timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
@@ -74,10 +62,7 @@ export async function scrapePokemonCollectionsEn({
 
         const expansionSection = await page.$(expansionHeaderSelector);
         if (expansionSection) {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Clicking Expansions section...",
-            });
+            logStep("Clicking Expansions section...");
             await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
             await expansionSection
                 .click({ force: true, timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT })
@@ -86,17 +71,10 @@ export async function scrapePokemonCollectionsEn({
                 });
             await page.waitForTimeout(1000);
         } else {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message:
-                    "Warning: Expansions section not found, proceeding anyway...",
-            });
+            logStep("Warning: Expansions section not found, proceeding anyway...");
         }
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Scraping set names from filters...",
-        });
+        logStep("Scraping set names from filters...");
         // Scroll down a bit to ensure lazy-loaded labels are triggered
         await page.evaluate(() => window.scrollBy(0, 500));
         await page.waitForTimeout(500);
@@ -137,10 +115,7 @@ export async function scrapePokemonCollectionsEn({
         await page.close();
     } catch (err) {
         console.error("Failed to fetch name mappings:", err);
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Error: Could not fetch set list from Pokemon.com.",
-        });
+        logStep("Error: Could not fetch set list from Pokemon.com.");
         return;
     }
 
@@ -161,39 +136,20 @@ export async function scrapePokemonCollectionsEn({
             startIndex: 0,
         });
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Scraped ${sharedCollectionList.length} collections...`,
-        });
+        logStep(`Scraped ${sharedCollectionList.length} collections...`);
         try {
             const result = await saveScrapedCollections(sharedCollectionList, {
                 franchise,
                 language,
             });
             if (result) {
-                const { saved, addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
-                    items: saved,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "collections",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                const { addedItems, matchedItems } = result;
+                reportScraperStats(send, "collections", result);
+                logStep(`Successfully registered ${sharedCollectionList.length} English collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } catch (error) {
             console.error("Failed to save English sets:", error);
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Error: Could not register collections.",
-            });
+            logStep("Error: Could not register collections.");
         }
     }
 }

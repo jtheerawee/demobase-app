@@ -2,7 +2,7 @@ import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import { createWorkerUpdater, createStepLogger } from "@/services/scraper/utils";
+import { createWorkerUpdater, createStepLogger, reportScraperStats } from "@/services/scraper/utils";
 
 export async function scrapePokemonCardsEn({
     url,
@@ -395,13 +395,7 @@ export async function scrapePokemonCardsEn({
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
                 const { addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "cards",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
+                reportScraperStats(send, "cards", result);
                 logStep(`Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } catch (error) {

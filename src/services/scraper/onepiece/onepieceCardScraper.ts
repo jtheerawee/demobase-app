@@ -1,14 +1,7 @@
-import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
-import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-
-// ==========================================
-// ONE PIECE CARD SCRAPER LOGIC
-// ==========================================
-// Load the page once, then click each card anchor to open the fancybox modal.
-// The card URL is assigned as baseUrl#group_1-N based on click order.
-// Stop when modal has no valid card data.
+import { type ScraperOptions } from "@/services/scraper/types";
+import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
 
 export async function scrapeOnepieceCards({
     url,
@@ -17,21 +10,16 @@ export async function scrapeOnepieceCards({
     send,
     cardLimit,
 }: ScraperOptions) {
+    const logStep = createStepLogger(send);
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const cards: any[] = [];
     const baseUrl = url.split("#")[0];
 
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: "Initializing One Piece card scraper...",
-    });
+    logStep("Initializing One Piece card scraper...");
 
     const page = await context.newPage();
     try {
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Loading: ${baseUrl}`,
-        });
+        logStep(`Loading: ${baseUrl}`);
         await page.goto(baseUrl, {
             waitUntil: "networkidle",
             timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
@@ -56,17 +44,11 @@ export async function scrapeOnepieceCards({
         });
 
         if (totalAnchors === 0) {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "⚠️ No card anchors found on page.",
-            });
+            logStep("⚠️ No card anchors found on page.");
             return;
         }
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Found ${totalAnchors} cards. Scraping...`,
-        });
+        logStep(`Found ${totalAnchors} cards. Scraping...`);
 
         for (let N = 1; N <= totalAnchors; N++) {
             const cardUrl = `${baseUrl}#group_1-${N}`;
@@ -101,10 +83,7 @@ export async function scrapeOnepieceCards({
             );
 
             if (!clicked) {
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `[${N}] Could not click anchor — stopping.`,
-                });
+                logStep(`[${N}] Could not click anchor — stopping.`);
                 break;
             }
 
@@ -115,10 +94,7 @@ export async function scrapeOnepieceCards({
                     { state: "visible", timeout: 10000 },
                 );
             } catch {
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `[${N}] No modal appeared — stopping.`,
-                });
+                logStep(`[${N}] No modal appeared — stopping.`);
                 break;
             }
 
@@ -205,10 +181,7 @@ export async function scrapeOnepieceCards({
 
             // Stop when modal has no valid card data
             if (!details || details.cardNo === "N/A" || !details.rarity) {
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}", file="${details?.debugFilename}")`,
-                });
+                logStep(`[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}", file="${details?.debugFilename}")`);
                 break;
             }
 
@@ -219,16 +192,10 @@ export async function scrapeOnepieceCards({
                 isDeepScraped: true,
                 isBeingScraped: false,
             });
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: `[${N}/${totalAnchors}] ${details.cardNo}: ${details.name} | Rarity="${details.rarity}"`,
-            });
+            logStep(`[${N}/${totalAnchors}] ${details.cardNo}: ${details.name} | Rarity="${details.rarity}"`);
 
             if (cards.length >= limit) {
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Reached card limit (${limit}). Stopping...`,
-                });
+                logStep(`Reached card limit (${limit}). Stopping...`);
                 break;
             }
             // Close modal before clicking next card
@@ -255,41 +222,19 @@ export async function scrapeOnepieceCards({
         });
         const variants = cards.length - uniqueCards.length;
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `✅ Scraped ${cards.length} cards (${variants} variants skipped).`,
-        });
-        send({
-            type: SCRAPER_MESSAGE_TYPE.CHUNK,
-            items: uniqueCards,
-            startIndex: 0,
-        });
+        logStep(`✅ Scraped ${cards.length} cards (${variants} variants skipped).`);
+        reportScraperChunk(send, uniqueCards, 0);
 
         if (collectionId && uniqueCards.length > 0) {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: `Final Step: Persisting ${uniqueCards.length} cards to database...`,
-            });
+            logStep(`Final Step: Persisting ${uniqueCards.length} cards to database...`);
             const result = await saveScrapedCards(uniqueCards, collectionId);
             if (result) {
                 const { addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "cards",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `✨ Scrape Complete! Saved ${uniqueCards.length} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                reportScraperStats(send, "cards", result);
+                logStep(`✨ Scrape Complete! Saved ${uniqueCards.length} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } else if (cards.length === 0) {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Scrape finished with 0 cards.",
-            });
+            logStep("Scrape finished with 0 cards.");
         }
     } finally {
         await page.close();

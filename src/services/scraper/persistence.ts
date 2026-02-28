@@ -13,7 +13,6 @@ export async function saveScrapedCollections(
             saved: [],
             addedItems: [],
             matchedItems: [],
-            missed: 0,
         };
 
     const supabase = await createClient();
@@ -42,8 +41,7 @@ export async function saveScrapedCollections(
         allExistingUrls.has(c.collectionUrl),
     );
 
-    // missed is calculated after the full scrape run, not per-page
-    const missed = 0;
+
 
     const dataToInsert = collections.map((col) => ({
         name: col.name,
@@ -83,7 +81,6 @@ export async function saveScrapedCollections(
         saved,
         addedItems,
         matchedItems,
-        missed,
     };
 }
 
@@ -110,7 +107,6 @@ export async function saveScrapedCards(
         return {
             addedItems: [],
             matchedItems: [],
-            missed: 0,
         };
 
     const supabase = await createClient();
@@ -162,8 +158,7 @@ export async function saveScrapedCards(
         return urlExists || nameNoExists;
     });
 
-    // missed is calculated after the full scrape run
-    const missed = 0;
+
 
     if (cardsToUpsert.length > 0) {
         const dataToInsert = cardsToUpsert.map((card) => ({
@@ -197,7 +192,6 @@ export async function saveScrapedCards(
     return {
         addedItems: addedCardsList,
         matchedItems: matchedCardsList,
-        missed,
     };
 }
 

@@ -6,18 +6,25 @@ import {
 } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import { createWorkerUpdater } from "@/services/scraper/utils";
+import {
+    createWorkerUpdater,
+    createStepLogger,
+    reportScraperStats,
+} from "@/services/scraper/utils";
+export async function scrapeTCGPlayerCards(options: ScraperOptions) {
+    const {
+        url,
+        context,
+        send,
+        deepScrape,
+        collectionId,
+        cardLimit,
+        franchise,
+        tcgUrlOnly,
+    } = options;
 
-export async function scrapeTCGPlayerCards({
-    url,
-    context,
-    send,
-    deepScrape,
-    collectionId,
-    cardLimit,
-    franchise,
-    tcgUrlOnly,
-}: ScraperOptions) {
+    const logStep = createStepLogger(send);
+
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
@@ -48,10 +55,7 @@ export async function scrapeTCGPlayerCards({
 
                 const targetPageUrl = getTargetUrl(p);
                 try {
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} scraping page ${p} - ${targetPageUrl}`,
-                    });
+                    logStep(`Worker ${workerId} scraping page ${p} - ${targetPageUrl}`);
 
                     await workerPage.goto(targetPageUrl, {
                         waitUntil: "domcontentloaded",
@@ -303,10 +307,7 @@ export async function scrapeTCGPlayerCards({
     // Deep Scrape Pass for high quality images
     // Note: Temporarily disabled (false) as requested by user
     if (false && deepScrape && sharedCardList.length > 0) {
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Deep scraping ${sharedCardList.length} Lorcana cards for high-quality images...`,
-        });
+        logStep(`Deep scraping ${sharedCardList.length} Lorcana cards for high-quality images...`);
 
         const deepWorker = async (workerId: number) => {
             const workerPage = await context.newPage();
@@ -322,10 +323,7 @@ export async function scrapeTCGPlayerCards({
                     card.isBeingScraped = true;
 
                     try {
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STEP,
-                            message: `Deep scraping card ${cardIndex + 1}/${sharedCardList.length}: ${card.name}`,
-                        });
+                        logStep(`Deep scraping card ${cardIndex + 1}/${sharedCardList.length}: ${card.name}`);
 
                         await workerPage.goto(card.cardUrl, {
                             waitUntil: "domcontentloaded",
@@ -392,10 +390,7 @@ export async function scrapeTCGPlayerCards({
     }
 
     if (collectionId && sharedCardList.length > 0) {
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Scraped ${sharedCardList.length} cards. Registering...`,
-        });
+        logStep(`Scraped ${sharedCardList.length} cards. Registering...`);
 
         try {
             if (tcgUrlOnly) {
@@ -403,16 +398,8 @@ export async function scrapeTCGPlayerCards({
                     sharedCardList,
                     collectionId,
                 );
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "cards",
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully mapped TCGPlayer URLs for ${matchedItems?.length ?? 0} ${franchise} cards!`,
-                });
+                reportScraperStats(send, "cards", { matchedItems });
+                logStep(`Successfully mapped TCGPlayer URLs for ${matchedItems?.length ?? 0} ${franchise} cards!`);
             } else {
                 const result = await saveScrapedCards(
                     sharedCardList,
@@ -420,25 +407,13 @@ export async function scrapeTCGPlayerCards({
                 );
                 if (result) {
                     const { addedItems, matchedItems } = result;
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STATS,
-                        category: "cards",
-                        addedItems,
-                        matchedItems,
-                        missed: 0,
-                    });
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                    });
+                    reportScraperStats(send, "cards", result);
+                    logStep(`Successfully registered ${sharedCardList.length} ${franchise} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
                 }
             }
         } catch (error) {
             console.error(`Failed to save ${franchise} cards:`, error);
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Error: Could not register cards.",
-            });
+            logStep("Error: Could not register cards.");
         }
     }
 

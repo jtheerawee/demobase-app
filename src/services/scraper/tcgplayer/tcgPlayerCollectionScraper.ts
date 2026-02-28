@@ -3,41 +3,26 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
+import { createStepLogger, reportScraperStats } from "@/services/scraper/utils";
 
-// ==========================================
-// LORCANA COLLECTION SCRAPER LOGIC
-// ==========================================
+export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
+    const { url, context, send, franchise, language } = options;
+    const logStep = createStepLogger(send);
 
-export async function scrapeTCGPlayerCollections({
-    url,
-    context,
-    send,
-    franchise,
-    language,
-}: ScraperOptions) {
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: `Fetching ${franchise} collections from TCGPlayer...`,
-    });
+    logStep(`Fetching ${franchise} collections from TCGPlayer...`);
 
     const sharedCollectionList: any[] = [];
 
     try {
         const page = await context.newPage();
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Navigating to ${url}...`,
-        });
+        logStep(`Navigating to ${url}...`);
         await page.goto(url, {
             waitUntil: "domcontentloaded",
             timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Opening the 'Set' filter dropdown...",
-        });
+        logStep("Opening the 'Set' filter dropdown...");
 
         // Toggle the "Set" filter popover
         // TCGPlayer uses a button with a div inside containing "Set"
@@ -77,10 +62,7 @@ export async function scrapeTCGPlayerCollections({
             throw new Error("Could not find the 'Set' filter button.");
         }
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Extracting collection names from the dropdown...",
-        });
+        logStep("Extracting collection names from the dropdown...");
 
         // Extract mappings (name and slug)
         const collections = await page.evaluate(() => {
@@ -153,23 +135,16 @@ export async function scrapeTCGPlayerCollections({
             });
         }
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Found ${sharedCollectionList.length} collections: ${sharedCollectionList
-                .map((c) => c.name)
-                .slice(0, 3)
-                .join(", ")}...`,
-        });
+        logStep(`Found ${sharedCollectionList.length} collections: ${sharedCollectionList
+            .map((c) => c.name)
+            .slice(0, 3)
+            .join(", ")}...`);
 
         await page.close();
     } catch (err) {
         console.error(`Failed to fetch ${franchise} collections:`, err);
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message:
-                "Error: Could not fetch set list from TCGPlayer. " +
-                (err instanceof Error ? err.message : String(err)),
-        });
+        logStep("Error: Could not fetch set list from TCGPlayer. " +
+            (err instanceof Error ? err.message : String(err)));
         return;
     }
 
@@ -181,10 +156,7 @@ export async function scrapeTCGPlayerCollections({
             startIndex: 0,
         });
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Scraped ${sharedCollectionList.length} collections from TCGPlayer. Registering...`,
-        });
+        logStep(`Scraped ${sharedCollectionList.length} collections from TCGPlayer. Registering...`);
 
         try {
             const result = await saveScrapedCollections(sharedCollectionList, {
@@ -193,28 +165,12 @@ export async function scrapeTCGPlayerCollections({
             });
             if (result) {
                 const { saved, addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
-                    items: saved,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "collections",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                reportScraperStats(send, "collections", result);
+                logStep(`Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } catch (error) {
             console.error(`Failed to save ${franchise} sets:`, error);
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Error: Could not register collections.",
-            });
+            logStep("Error: Could not register collections.");
         }
     }
 }

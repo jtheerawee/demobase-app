@@ -1,6 +1,7 @@
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
+import { createStepLogger, reportScraperStats } from "@/services/scraper/utils";
 
 export async function scrapeOnepieceCollections({
     url,
@@ -9,26 +10,19 @@ export async function scrapeOnepieceCollections({
     franchise,
     language,
 }: ScraperOptions) {
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: "Discovering One Piece collections...",
-    });
+    const logStep = createStepLogger(send);
+
+    logStep("Discovering One Piece collections...");
 
     const workerPage = await context.newPage();
     try {
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Navigating to: ${url}`,
-        });
+        logStep(`Navigating to: ${url}`);
         await workerPage.goto(url, {
             waitUntil: "networkidle",
             timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Opening series selector modal...",
-        });
+        logStep("Opening series selector modal...");
         // Match the button provided by the user
         await workerPage.click('button[data-selmodalbtn="series"]');
 
@@ -85,10 +79,7 @@ export async function scrapeOnepieceCollections({
         });
 
         if (franchise && language && collections.length > 0) {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: `Found ${collections.length} One Piece collections.`,
-            });
+            logStep(`Found ${collections.length} One Piece collections.`);
             send({
                 type: SCRAPER_MESSAGE_TYPE.CHUNK,
                 items: collections,
@@ -99,28 +90,12 @@ export async function scrapeOnepieceCollections({
                 language,
             });
             if (result) {
-                const { saved, addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
-                    items: saved,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "collections",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully registered ${collections.length} One Piece collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                const { addedItems, matchedItems } = result;
+                reportScraperStats(send, "collections", result);
+                logStep(`Successfully registered ${collections.length} One Piece collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } else {
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "No collections found in the series modal.",
-            });
+            logStep("No collections found in the series modal.");
         }
     } finally {
         await workerPage.close();

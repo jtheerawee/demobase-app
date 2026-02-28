@@ -6,8 +6,7 @@ import {
     updateScrapedCollectionYear,
 } from "../persistence";
 import type { ScraperOptions } from "../types";
-import { SCRAPER_MESSAGE_TYPE } from "../types";
-import { createWorkerUpdater, createStepLogger } from "../utils";
+import { createWorkerUpdater, createStepLogger, reportScraperStats, reportScraperChunk, reportScraperMeta } from "../utils";
 
 export async function scrapeMTGCards(options: ScraperOptions) {
     const { url, context, send, collectionId, deepScrape, language, cardLimit } = options;
@@ -237,13 +236,10 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                     discarded: discardedCount,
                                 },
                             );
-                            send({
-                                type: SCRAPER_MESSAGE_TYPE.STATS,
-                                category: "cards",
+                            reportScraperStats(send, "cards", {
                                 addedItems,
                                 matchedItems,
                                 discardedItems: pageDiscardedItems,
-                                missed: 0,
                             });
                         }
                     } catch (error) {
@@ -386,11 +382,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                 );
 
                                 Object.assign(card, details);
-                                send({
-                                    type: SCRAPER_MESSAGE_TYPE.CHUNK,
-                                    items: [card],
-                                    startIndex: idx,
-                                });
+                                reportScraperChunk(send, [card], idx);
                             } catch (err) {
                                 console.error(
                                     `[Worker ${workerId}] Failed: ${card.name}`,
@@ -418,12 +410,9 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                             collectionId,
                         );
                         if (result) {
-                            send({
-                                type: SCRAPER_MESSAGE_TYPE.STATS,
-                                category: "cards",
+                            reportScraperStats(send, "cards", {
                                 addedItems: [],
                                 matchedItems: [],
-                                missed: 0,
                             });
                             const allCardUrls = new Set(
                                 allCards
@@ -437,13 +426,10 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                             if (missedResult.count > 0) {
                                 logStep(`⚠️ ${missedResult.count} cards are in DB but were not found in this scrape.`);
                             }
-                            send({
-                                type: SCRAPER_MESSAGE_TYPE.STATS,
-                                category: "cards",
+                            reportScraperStats(send, "cards", {
                                 addedItems: [],
                                 matchedItems: [],
                                 missedItems: missedResult.items,
-                                missed: missedResult.count,
                             });
                         }
                     } catch (error) {
@@ -454,11 +440,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
         }
 
         logStep(`Total extracted: ${allCards.length} cards.${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}`);
-        send({
-            type: SCRAPER_MESSAGE_TYPE.META,
-            totalItems: allCards.length,
-            totalPages: 1,
-        });
+        reportScraperMeta(send, { totalItems: allCards.length, totalPages: 1 });
     } finally {
         await workerPage.close();
         updateWorkers(-1);

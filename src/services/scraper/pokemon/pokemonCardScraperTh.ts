@@ -2,7 +2,7 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import { createWorkerUpdater } from "@/services/scraper/utils";
+import { createWorkerUpdater, createStepLogger, reportScraperStats } from "@/services/scraper/utils";
 
 
 export async function scrapePokemonCardsTh({
@@ -13,6 +13,7 @@ export async function scrapePokemonCardsTh({
     collectionId,
     cardLimit,
 }: ScraperOptions) {
+    const logStep = createStepLogger(send);
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
     let totalPages = Infinity;
@@ -28,10 +29,7 @@ export async function scrapePokemonCardsTh({
     let shouldAbort = false;
     const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
 
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: `Initializing ${concurrency} parallel pagination workers for Thai site...`,
-    });
+    logStep(`Initializing ${concurrency} parallel pagination workers for Thai site...`);
 
     const updateWorkers = createWorkerUpdater(send);
 
@@ -141,10 +139,7 @@ export async function scrapePokemonCardsTh({
                     sharedCardList.push(...cardsToAdd);
 
                     if (sharedCardList.length >= limit) {
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STEP,
-                            message: `Reached card limit (${limit}). Stopping all workers...`,
-                        });
+                        logStep(`Reached card limit (${limit}). Stopping all workers...`);
                         shouldAbort = true;
                     }
                     send({
@@ -157,10 +152,7 @@ export async function scrapePokemonCardsTh({
                         `[Scraper] Worker ${workerId} failed at page ${p}:`,
                         pageErr,
                     );
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} failed at page ${p}. Retrying...`,
-                    });
+                    logStep(`Worker ${workerId} failed at page ${p}. Retrying...`);
                 }
             }
         } finally {
@@ -183,10 +175,7 @@ export async function scrapePokemonCardsTh({
     // Deep Scrape Phase (Thai)
     if (deepScrape && sharedCardList.length > 0) {
         const totalCards = sharedCardList.length;
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Starting deep scrape for ${totalCards} cards...`,
-        });
+        logStep(`Starting deep scrape for ${totalCards} cards...`);
 
         const deepWorker = async (workerId: number) => {
             updateWorkers(1);
@@ -287,32 +276,17 @@ export async function scrapePokemonCardsTh({
     }
 
     if (collectionId && sharedCardList.length > 0) {
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Saving Thai cards to database...",
-        });
+        logStep("Saving Thai cards to database...");
         try {
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
                 const { addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "cards",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully saved ${sharedCardList.length} Thai cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                reportScraperStats(send, "cards", result);
+                logStep(`Successfully saved ${sharedCardList.length} Thai cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } catch (error) {
             console.error("Failed to save Thai cards:", error);
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Warning: Failed to persist cards to database.",
-            });
+            logStep("Warning: Failed to persist cards to database.");
         }
     }
 }

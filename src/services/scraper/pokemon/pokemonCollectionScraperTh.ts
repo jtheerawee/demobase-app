@@ -2,7 +2,7 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import { createWorkerUpdater, createStepLogger } from "@/services/scraper/utils";
+import { createWorkerUpdater, createStepLogger, reportScraperStats } from "@/services/scraper/utils";
 
 export async function scrapePokemonCollectionsTh({
     url,
@@ -122,19 +122,13 @@ export async function scrapePokemonCollectionsTh({
                     }
 
                     sharedCollectionList.push(...pageData.items);
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} found ${pageData.items.length} sets on page ${p}.`,
-                    });
+                    logStep(`Worker ${workerId} found ${pageData.items.length} sets on page ${p}.`);
                 } catch (pageErr) {
                     console.error(
                         `[Scraper] Worker ${workerId} failed at collection page ${p}:`,
                         pageErr,
                     );
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} failed at page ${p}. Retrying...`,
-                    });
+                    logStep(`Worker ${workerId} failed at page ${p}. Retrying...`);
                 }
             }
         } finally {
@@ -160,16 +154,14 @@ export async function scrapePokemonCollectionsTh({
             type: SCRAPER_MESSAGE_TYPE.META,
             totalItems: sharedCollectionList.length,
         });
+        logStep(`Scraped ${sharedCollectionList.length} unique collections total.`);
         send({
             type: SCRAPER_MESSAGE_TYPE.CHUNK,
             items: sharedCollectionList,
             startIndex: 0,
         });
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Saving discovered Thai collections to database...",
-        });
+        logStep("Saving discovered Thai collections to database...");
         try {
             const result = await saveScrapedCollections(sharedCollectionList, {
                 franchise,
@@ -177,28 +169,12 @@ export async function scrapePokemonCollectionsTh({
             });
             if (result) {
                 const { saved, addedItems, matchedItems } = result;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
-                    items: saved,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STATS,
-                    category: "collections",
-                    addedItems,
-                    matchedItems,
-                    missed: 0,
-                });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully saved ${sharedCollectionList.length} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                reportScraperStats(send, "collections", result);
+                logStep(`Successfully saved ${sharedCollectionList.length} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } catch (error) {
             console.error("Failed to save Thai collections:", error);
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Warning: Failed to persist collections to database.",
-            });
+            logStep("Warning: Failed to persist collections to database.");
         }
     }
 }
