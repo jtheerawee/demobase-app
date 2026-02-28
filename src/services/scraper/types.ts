@@ -10,6 +10,11 @@ export const SCRAPER_MESSAGE_TYPE = {
     CARD_UPDATE: "cardUpdate",
 } as const;
 
+export const SCRAPER_TYPE = {
+    CARDS: "cards",
+    COLLECTIONS: "collections",
+} as const;
+
 export type ScraperMessageType = (typeof SCRAPER_MESSAGE_TYPE)[keyof typeof SCRAPER_MESSAGE_TYPE];
 
 export interface ScraperOptions {

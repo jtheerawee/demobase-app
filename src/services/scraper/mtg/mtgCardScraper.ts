@@ -11,12 +11,13 @@ import {
 } from "../utils";
 
 export async function scrapeMTGCards(options: ScraperOptions) {
-    const { url, context, send, collectionId, deepScrape, language, cardLimit } = options;
+    const { url, context, send, collectionId, deepScrape, language, cardLimit, franchise } = options;
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
-    console.log(`[Scraper] Starting MTG card scrape. collectionId:`, collectionId);
-    const logStep = createStepLogger(send);
-    logStep("MTG Gatherer detected. Starting card extraction...");
-    let discardedCount = 0;
+
+    let logStep = createStepLogger(send);
+    logStep(`Step 1: ${franchise}. Fetching cards from collection ${collectionId}...`);
+
+    const discardedItems: any[] = [];
 
     const isMismatchedSlug = (name: string, url: string) => {
         try {
@@ -151,8 +152,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                     }
                     return !mismatched;
                 });
-                const pageDiscardedCount = pageDiscardedItems.length;
-                discardedCount += pageDiscardedCount;
+                discardedItems.push(...pageDiscardedItems);
 
                 const releaseYear = pageResults.releaseYear;
 
@@ -181,7 +181,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                 allCards.push(...cardsToAdd);
 
                 logStep(
-                    `Found ${cardsToAdd.length} new cards on page ${p}${pageDiscardedCount > 0 ? ` (${pageDiscardedCount} discarded)` : ""}.`,
+                    `Found ${cardsToAdd.length} new cards on page ${p}${pageDiscardedItems.length > 0 ? ` (${pageDiscardedItems.length} discarded)` : ""}.`,
                 );
 
                 // Save this page's cards immediately to get real-time stats
@@ -194,7 +194,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                             console.log(`[Scraper] Sending incremental card stats for page ${p}:`, {
                                 added: addedItems.length,
                                 matched: matchedItems.length,
-                                discarded: discardedCount,
+                                discarded: discardedItems.length,
                             });
                             reportScraperStats(send, "cards", {
                                 addedItems,
@@ -359,7 +359,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
         }
 
         logStep(
-            `Total extracted: ${allCards.length} cards.${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}`,
+            `Total extracted: ${allCards.length} cards.${discardedItems.length > 0 ? ` (${discardedItems.length} discarded)` : ""}`,
         );
         reportScraperMeta(send, { totalItems: allCards.length, totalPages: 1 });
     } finally {

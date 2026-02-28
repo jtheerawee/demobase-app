@@ -8,10 +8,13 @@ import {
     scrapeTCGPlayerCards as scrapeLorcanaCards,
     scrapeTCGPlayerCollections as scrapeLorcanaCollections,
 } from "@/services/scraper/tcgplayer/tcgPlayerScraper";
+import { createStepLogger } from "@/services/scraper/utils";
+import { SCRAPER_MESSAGE_TYPE, SCRAPER_TYPE } from "@/services/scraper/types";
+import { FRANCHISES, FRANCHISE_INDEX } from "@/constants/franchises";
 
 export async function POST(request: Request) {
     let url: string = "";
-    let type: string = "cards";
+    let type: string = SCRAPER_TYPE.CARDS;
     let browser: any = null;
     let franchise: string | undefined;
     let language: string | undefined;
@@ -22,7 +25,7 @@ export async function POST(request: Request) {
         try {
             body = await request.json();
             url = body.url;
-            type = body.type || "cards";
+            type = body.type || SCRAPER_TYPE.CARDS;
             franchise = body.franchise;
             language = body.language;
             collectionId = body.collectionId ? Number(body.collectionId) : undefined;
@@ -31,8 +34,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
         }
 
-        if (!url && type === "collections") {
-            if (franchise === "pokemon") {
+        if (!url && type === SCRAPER_TYPE.COLLECTIONS) {
+            if (franchise === FRANCHISES[FRANCHISE_INDEX.POKEMON].value) {
                 if (language === "th") {
                     url = APP_CONFIG.POKEMON_URL_TH;
                 } else if (language === "jp") {
@@ -40,18 +43,19 @@ export async function POST(request: Request) {
                 } else {
                     url = APP_CONFIG.POKEMON_URL_EN;
                 }
-            } else if (franchise === "one-piece") {
+            } else if (franchise === FRANCHISES[FRANCHISE_INDEX.ONEPIECE].value) {
                 if (language === "jp") {
                     url = APP_CONFIG.ONEPIECE_URL_JP;
                 } else {
                     url = APP_CONFIG.ONEPIECE_URL_EN;
                 }
-            } else if (franchise === "lorcana") {
+            } else if (franchise === FRANCHISES[FRANCHISE_INDEX.LORCANA].value) {
                 url = APP_CONFIG.LORCANA_URL_EN;
             } else {
                 url = APP_CONFIG.MTG_URL_EN;
             }
         }
+
 
         if (!url) {
             return NextResponse.json({ error: "URL is required" }, { status: 400 });
@@ -67,14 +71,14 @@ export async function POST(request: Request) {
                     const send = (data: unknown) => {
                         try {
                             controller.enqueue(encoder.encode(`${JSON.stringify(data)}\n`));
-                        } catch (_err) {}
+                        } catch (_err) { }
                     };
 
+                    const logStep = createStepLogger(send);
+
                     try {
-                        send({
-                            type: "step",
-                            message: "Launching browser engine...",
-                        });
+                        logStep("Launching browser engine...");
+
                         try {
                             browser = await playwright.launch({
                                 args: [
@@ -95,10 +99,8 @@ export async function POST(request: Request) {
                             return;
                         }
 
-                        send({
-                            type: "step",
-                            message: "Creating browser context...",
-                        });
+                        logStep("Creating browser context...");
+
                         const context = await browser.newContext({
                             userAgent:
                                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -122,43 +124,43 @@ export async function POST(request: Request) {
                             tcgUrlOnly,
                         };
 
-                        if (url.includes("gatherer.wizards.com") || franchise === "mtg") {
-                            if (type === "cards") {
+                        const mtgValue = FRANCHISES[FRANCHISE_INDEX.MTG].value;
+                        const pokemonValue = FRANCHISES[FRANCHISE_INDEX.POKEMON].value;
+                        const onepieceValue = FRANCHISES[FRANCHISE_INDEX.ONEPIECE].value;
+                        const lorcanaValue = FRANCHISES[FRANCHISE_INDEX.LORCANA].value;
+
+
+                        if (url.includes("gatherer.wizards.com") || franchise === mtgValue) {
+                            if (type === SCRAPER_TYPE.CARDS) {
                                 await scrapeMTGCards(scraperOptions);
                             } else {
                                 await scrapeMTGCollections(scraperOptions);
                             }
-                        } else if (franchise === "pokemon") {
-                            if (type === "cards") {
+                        } else if (franchise === pokemonValue) {
+                            if (type === SCRAPER_TYPE.CARDS) {
                                 await scrapePokemonCards(scraperOptions);
                             } else {
                                 await scrapePokemonCollections(scraperOptions);
                             }
-                        } else if (franchise === "one-piece") {
-                            if (type === "cards") {
+                        } else if (franchise === onepieceValue) {
+                            if (type === SCRAPER_TYPE.CARDS) {
                                 await scrapeOnepieceCards(scraperOptions);
                             } else {
                                 await scrapeOnepieceCollections(scraperOptions);
                             }
-                        } else if (franchise === "lorcana") {
-                            if (type === "cards") {
+                        } else if (franchise === lorcanaValue) {
+                            if (type === SCRAPER_TYPE.CARDS) {
                                 await scrapeLorcanaCards(scraperOptions);
                             } else {
                                 await scrapeLorcanaCollections(scraperOptions);
                             }
                         } else {
-                            send({
-                                type: "step",
-                                message: `Unsupported franchise: ${franchise}.`,
-                            });
+                            logStep(`Unsupported franchise: ${franchise}.`);
                         }
 
+                        logStep("Scraping session finished successfully.");
                         send({
-                            type: "step",
-                            message: "Scraping session finished successfully.",
-                        });
-                        send({
-                            type: "complete",
+                            type: SCRAPER_MESSAGE_TYPE.COMPLETE,
                             success: true,
                         });
                     } catch (error: any) {
@@ -173,7 +175,7 @@ export async function POST(request: Request) {
                         }
                         try {
                             controller.close();
-                        } catch (_e) {}
+                        } catch (_e) { }
                     }
                 },
             }),

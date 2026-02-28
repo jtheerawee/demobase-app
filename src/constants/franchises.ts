@@ -146,6 +146,13 @@ export const FRANCHISES: FranchiseOption[] = [
     },
 ];
 
+export const FRANCHISE_INDEX = {
+    MTG: 0,
+    POKEMON: 1,
+    ONEPIECE: 2,
+    LORCANA: 3,
+} as const;
+
 // Helper to get just the options for dropdowns
 export const FRANCHISE_OPTIONS = FRANCHISES.map((f) => ({
     value: f.value,
