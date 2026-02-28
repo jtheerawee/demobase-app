@@ -1,20 +1,14 @@
 "use client";
 
 import {
-    ActionIcon,
     Card,
-    Group,
     ScrollArea,
     Stack,
     Text,
-    TextInput,
 } from "@mantine/core";
-import {
-    IconSearch,
-    IconX,
-} from "@tabler/icons-react";
 import { useState } from "react";
 import { WidgetHeader } from "../WidgetHeader";
+import { ListSearchInput } from "./ListSearchInput";
 import {
     CardScraperCollectionItem,
     type CollectionItem,
@@ -119,25 +113,10 @@ export function CardScraperCollectionList({
             />
             <Stack gap="md" style={{ flex: 1, minHeight: 0 }} p="sm">
 
-                <TextInput
+                <ListSearchInput
                     placeholder="Search by name or code..."
-                    leftSection={<IconSearch size={14} />}
-                    rightSection={
-                        search ? (
-                            <ActionIcon
-                                size="xs"
-                                color="gray"
-                                variant="subtle"
-                                onClick={() => setSearch("")}
-                            >
-                                <IconX size={12} />
-                            </ActionIcon>
-                        ) : null
-                    }
                     value={search}
-                    onChange={(e) => setSearch(e.currentTarget.value)}
-                    size="xs"
-                    radius="md"
+                    onChange={setSearch}
                 />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }}>

@@ -5,7 +5,6 @@ import {
     Badge,
     Card,
     Flex,
-    Group,
     Image,
     ScrollArea,
     SimpleGrid,
@@ -18,6 +17,7 @@ import {
 } from "@tabler/icons-react";
 import JSZip from "jszip";
 import { useMemo, useState } from "react";
+import { ListSearchInput } from "./ListSearchInput";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { WidgetHeader } from "../WidgetHeader";
 import { ScrapedCardIcons } from "./ScrapedCardIcons";
@@ -56,6 +56,7 @@ export function CardScraperCardList({
     canDownload,
 }: CardScraperCardListProps) {
     const [filterInvalid, setFilterInvalid] = useState(false);
+    const [search, setSearch] = useState("");
     const [bulkDownloading, setBulkDownloading] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState({
         current: 0,
@@ -63,9 +64,21 @@ export function CardScraperCardList({
     });
 
     const filteredCards = useMemo(() => {
-        if (!filterInvalid) return cards;
-        return cards.filter((c) => !c.rarity);
-    }, [cards, filterInvalid]);
+        let result = cards;
+        if (filterInvalid) {
+            result = result.filter((c) => !c.rarity);
+        }
+        if (search) {
+            const query = search.toLowerCase();
+            result = result.filter(
+                (c) =>
+                    c.name.toLowerCase().includes(query) ||
+                    (c.cardNo && c.cardNo.toLowerCase().includes(query)) ||
+                    (c.rarity && c.rarity.toLowerCase().includes(query))
+            );
+        }
+        return result;
+    }, [cards, filterInvalid, search]);
 
     const invalidCount = useMemo(
         () => cards.filter((c) => !c.rarity).length,
@@ -174,7 +187,13 @@ export function CardScraperCardList({
             />
             <Stack gap="md" style={{ flex: 1, minHeight: 0 }} p="sm">
 
-                <ScrapedCardSummary cards={cards} />
+                <ListSearchInput
+                    placeholder="Search by name, number, or rarity..."
+                    value={search}
+                    onChange={setSearch}
+                />
+
+                <ScrapedCardSummary cards={filteredCards} />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} pt="xs">
                     <SimpleGrid cols={CARD_SCRAPER_CONFIG.CARDS_PER_ROW} spacing="xs">
