@@ -2,10 +2,7 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-
-// ==========================================
-// THAI (TH) COLLECTION SCRAPER LOGIC
-// ==========================================
+import { createWorkerUpdater, createStepLogger } from "@/services/scraper/utils";
 
 export async function scrapePokemonCollectionsTh({
     url,
@@ -27,16 +24,12 @@ export async function scrapePokemonCollectionsTh({
 
     let shouldAbort = false;
     const concurrency = CARD_SCRAPER_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: `Initializing ${concurrency} parallel workers for Thai collections...`,
-    });
 
-    let activeWorkers = 0;
-    const updateWorkers = (delta: number) => {
-        activeWorkers += delta;
-        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
-    };
+    const logStep = createStepLogger(send);
+
+    logStep(`Step 1: ${franchise}. Fetching cards...`);
+
+    const updateWorkers = createWorkerUpdater(send);
 
     const paginationWorker = async (workerId: number) => {
         updateWorkers(1);
@@ -51,7 +44,7 @@ export async function scrapePokemonCollectionsTh({
                 try {
                     await workerPage.goto(targetPageUrl, {
                         waitUntil: "networkidle",
-                        timeout: 45000,
+                        timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
                     });
                     if (shouldAbort || p > totalPages) break;
 

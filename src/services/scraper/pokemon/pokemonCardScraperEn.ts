@@ -2,10 +2,7 @@ import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-
-// ==========================================
-// ENGLISH (EN) CARD SCRAPER LOGIC
-// ==========================================
+import { createWorkerUpdater, createStepLogger } from "@/services/scraper/utils";
 
 export async function scrapePokemonCardsEn({
     url,
@@ -14,6 +11,7 @@ export async function scrapePokemonCardsEn({
     deepScrape,
     collectionId,
     cardLimit,
+    franchise,
 }: ScraperOptions) {
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const sharedCardList: any[] = [];
@@ -28,16 +26,11 @@ export async function scrapePokemonCardsEn({
     let shouldAbort = false;
     const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
 
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: `Initializing ${concurrency} parallel pagination workers for English site...`,
-    });
+    const logStep = createStepLogger(send);
 
-    let activeWorkers = 0;
-    const updateWorkers = (delta: number) => {
-        activeWorkers += delta;
-        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
-    };
+    logStep(`Step 1: ${franchise}. Fetching cards...`);
+
+    const updateWorkers = createWorkerUpdater(send);
 
     const paginationWorker = async (workerId: number) => {
         updateWorkers(1);
@@ -50,13 +43,10 @@ export async function scrapePokemonCardsEn({
 
                 const targetPageUrl = getTargetUrl(p);
                 try {
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} scraping page ${p}: ${targetPageUrl}`,
-                    });
+                    logStep(`Worker ${workerId} scraping page ${p}: ${targetPageUrl}`);
                     await workerPage.goto(targetPageUrl, {
                         waitUntil: "networkidle",
-                        timeout: 45000,
+                        timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
                     });
                     if (shouldAbort || p > totalPages) break;
 
@@ -168,10 +158,7 @@ export async function scrapePokemonCardsEn({
                                 "Execution context was destroyed",
                             )
                         ) {
-                            send({
-                                type: SCRAPER_MESSAGE_TYPE.STEP,
-                                message: `Worker ${workerId} context destroyed. Retrying...`,
-                            });
+                            logStep(`Worker ${workerId} context destroyed. Retrying...`);
                             await workerPage.waitForTimeout(2000);
                             pageData = await workerPage.evaluate(extractFn);
                         } else {
@@ -180,10 +167,7 @@ export async function scrapePokemonCardsEn({
                     }
 
                     if (pageData.error) {
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STEP,
-                            message: `ERROR: ${pageData.error}`,
-                        });
+                        logStep(`ERROR: ${pageData.error}`);
                         shouldAbort = true;
                         break;
                     }
@@ -227,16 +211,10 @@ export async function scrapePokemonCardsEn({
                     const startIndex = beforeCount;
                     sharedCardList.push(...cardsToAdd);
 
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} found ${cardsToAdd.length} cards on page ${p}.`,
-                    });
+                    logStep(`Worker ${workerId} found ${cardsToAdd.length} cards on page ${p}.`);
 
                     if (sharedCardList.length >= limit) {
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STEP,
-                            message: `Reached card limit (${limit}). Stopping all workers...`,
-                        });
+                        logStep(`Reached card limit (${limit}). Stopping all workers...`);
                         shouldAbort = true;
                     }
                     send({
@@ -249,10 +227,7 @@ export async function scrapePokemonCardsEn({
                         `[Scraper En] Worker ${workerId} failed at page ${p}:`,
                         pageErr,
                     );
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Worker ${workerId} failed at page ${p}. Retrying...`,
-                    });
+                    logStep(`Worker ${workerId} failed at page ${p}. Retrying...`);
                 }
             }
         } finally {
@@ -275,10 +250,7 @@ export async function scrapePokemonCardsEn({
     // Deep Scrape Phase (English)
     if (deepScrape && sharedCardList.length > 0) {
         const totalCards = sharedCardList.length;
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Starting deep scrape for ${totalCards} English cards...`,
-        });
+        logStep(`Starting deep scrape for ${totalCards} English cards...`);
 
         const deepWorker = async (workerId: number) => {
             updateWorkers(1);
@@ -295,10 +267,7 @@ export async function scrapePokemonCardsEn({
                     card.isBeingScraped = true;
 
                     try {
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STEP,
-                            message: `Deep scraping card ${cardIndex + 1}/${totalCards}: ${card.name}`,
-                        });
+                        logStep(`Deep scraping card ${cardIndex + 1}/${totalCards}: ${card.name}`);
 
                         // Robust goto with retry for English detail pages
                         let success = false;
@@ -306,16 +275,13 @@ export async function scrapePokemonCardsEn({
                             try {
                                 await workerPage.goto(card.cardUrl, {
                                     waitUntil: "networkidle",
-                                    timeout: 60000,
+                                    timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
                                 });
                                 success = true;
                                 break;
                             } catch (gotoErr) {
                                 if (attempt === 2) throw gotoErr;
-                                send({
-                                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                                    message: `Worker ${workerId} timeout on card ${cardIndex + 1}. Retrying...`,
-                                });
+                                logStep(`Worker ${workerId} timeout on card ${cardIndex + 1}. Retrying...`);
                                 await workerPage.waitForTimeout(2000);
                             }
                         }
@@ -424,10 +390,7 @@ export async function scrapePokemonCardsEn({
     }
 
     if (collectionId && sharedCardList.length > 0) {
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Saving English cards to database...",
-        });
+        logStep("Saving English cards to database...");
         try {
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
@@ -439,17 +402,11 @@ export async function scrapePokemonCardsEn({
                     matchedItems,
                     missed: 0,
                 });
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                });
+                logStep(`Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
             }
         } catch (error) {
             console.error("Failed to save English cards:", error);
-            send({
-                type: SCRAPER_MESSAGE_TYPE.STEP,
-                message: "Warning: Failed to persist cards to database.",
-            });
+            logStep("Warning: Failed to persist cards to database.");
         }
     }
 }

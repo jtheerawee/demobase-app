@@ -80,7 +80,7 @@ export async function scrapePokemonCollectionsEn({
             });
             await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
             await expansionSection
-                .click({ force: true, timeout: 5000 })
+                .click({ force: true, timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT })
                 .catch((e: any) => {
                     console.warn("Expansion click failed", e);
                 });

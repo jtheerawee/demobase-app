@@ -6,6 +6,7 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { FRANCHISES } from "@/constants/franchises";
 import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
+import { createWorkerUpdater } from "../utils";
 
 export async function scrapeMTGCollections({
     url,
@@ -19,11 +20,7 @@ export async function scrapeMTGCollections({
         type: SCRAPER_MESSAGE_TYPE.STEP,
         message: `Step 1: ${franchise}. Fetching sets...`,
     });
-    let activeWorkers = 0;
-    const updateWorkers = (delta: number) => {
-        activeWorkers += delta;
-        send({ type: "workers", count: activeWorkers });
-    };
+    const updateWorkers = createWorkerUpdater(send);
 
     // Get base URL from franchises configuration
     const franchiseData = FRANCHISES.find((f) => f.value === franchise);

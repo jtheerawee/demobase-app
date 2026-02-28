@@ -2,10 +2,8 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
+import { createWorkerUpdater } from "@/services/scraper/utils";
 
-// ==========================================
-// THAI (TH) CARD SCRAPER LOGIC
-// ==========================================
 
 export async function scrapePokemonCardsTh({
     url,
@@ -35,11 +33,7 @@ export async function scrapePokemonCardsTh({
         message: `Initializing ${concurrency} parallel pagination workers for Thai site...`,
     });
 
-    let activeWorkers = 0;
-    const updateWorkers = (delta: number) => {
-        activeWorkers += delta;
-        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
-    };
+    const updateWorkers = createWorkerUpdater(send);
 
     const paginationWorker = async (workerId: number) => {
         updateWorkers(1);
@@ -54,7 +48,7 @@ export async function scrapePokemonCardsTh({
                 try {
                     await workerPage.goto(targetPageUrl, {
                         waitUntil: "networkidle",
-                        timeout: 45000,
+                        timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
                     });
                     if (shouldAbort || p > totalPages) break;
 
@@ -211,7 +205,7 @@ export async function scrapePokemonCardsTh({
                     try {
                         await workerPage.goto(card.cardUrl, {
                             waitUntil: "networkidle",
-                            timeout: 30000,
+                            timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
                         });
                         const details = await workerPage.evaluate(() => {
                             const getText = (sel: string) =>

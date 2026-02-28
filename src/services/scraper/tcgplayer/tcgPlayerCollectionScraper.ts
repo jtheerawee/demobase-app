@@ -1,4 +1,5 @@
 import { APP_CONFIG } from "@/constants/app";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
@@ -30,7 +31,7 @@ export async function scrapeTCGPlayerCollections({
         });
         await page.goto(url, {
             waitUntil: "domcontentloaded",
-            timeout: 60000,
+            timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
         send({

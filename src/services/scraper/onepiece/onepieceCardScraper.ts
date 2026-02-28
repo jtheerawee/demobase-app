@@ -34,7 +34,7 @@ export async function scrapeOnepieceCards({
         });
         await page.goto(baseUrl, {
             waitUntil: "networkidle",
-            timeout: 60000,
+            timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
         await page.waitForTimeout(2000);
 

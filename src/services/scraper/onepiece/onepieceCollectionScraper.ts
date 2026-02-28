@@ -1,9 +1,6 @@
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-
-// ==========================================
-// ONE PIECE COLLECTION SCRAPER
-// ==========================================
 
 export async function scrapeOnepieceCollections({
     url,
@@ -25,7 +22,7 @@ export async function scrapeOnepieceCollections({
         });
         await workerPage.goto(url, {
             waitUntil: "networkidle",
-            timeout: 60000,
+            timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
         send({

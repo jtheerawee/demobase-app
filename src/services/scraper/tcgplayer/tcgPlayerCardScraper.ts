@@ -6,10 +6,7 @@ import {
 } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-
-// ==========================================
-// LORCANA CARD SCRAPER LOGIC (TCGPlayer)
-// ==========================================
+import { createWorkerUpdater } from "@/services/scraper/utils";
 
 export async function scrapeTCGPlayerCards({
     url,
@@ -35,9 +32,7 @@ export async function scrapeTCGPlayerCards({
     };
 
     const concurrency = 2; // Keep it low for TCGPlayer to avoid bot detection
-    const updateWorkers = (delta: number) => {
-        // Implementation if needed for worker tracking in UI
-    };
+    const updateWorkers = createWorkerUpdater(send);
 
     const rarityMap =
         franchise === "pokemon"
@@ -60,7 +55,7 @@ export async function scrapeTCGPlayerCards({
 
                     await workerPage.goto(targetPageUrl, {
                         waitUntil: "domcontentloaded",
-                        timeout: 60000,
+                        timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
                     });
 
                     if (shouldAbort) break;
@@ -334,7 +329,7 @@ export async function scrapeTCGPlayerCards({
 
                         await workerPage.goto(card.cardUrl, {
                             waitUntil: "domcontentloaded",
-                            timeout: 60000,
+                            timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
                         });
 
                         await workerPage.waitForSelector(

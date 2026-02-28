@@ -7,6 +7,7 @@ import {
 } from "../persistence";
 import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
+import { createWorkerUpdater } from "../utils";
 
 export async function scrapeMTGCards({
     url,
@@ -26,7 +27,6 @@ export async function scrapeMTGCards({
         type: SCRAPER_MESSAGE_TYPE.STEP,
         message: "MTG Gatherer detected. Starting card extraction...",
     });
-    let activeWorkers = 0;
     let discardedCount = 0;
 
     const isMismatchedSlug = (name: string, url: string) => {
@@ -61,10 +61,7 @@ export async function scrapeMTGCards({
         }
     };
 
-    const updateWorkers = (delta: number) => {
-        activeWorkers += delta;
-        send({ type: SCRAPER_MESSAGE_TYPE.WORKERS, count: activeWorkers });
-    };
+    const updateWorkers = createWorkerUpdater(send);
 
     // Detect if this is a modern /sets/CODE URL
     const isModernSetUrl = /gatherer\.wizards\.com\/sets\/[A-Za-z0-9]+/.test(
