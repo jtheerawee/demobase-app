@@ -12,7 +12,7 @@ export async function scrapePokemonCollectionsEn({
 }: ScraperOptions) {
     send({
         type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: "Fetching set name mapping from Pokemon.com...",
+        message: `Step 1: ${franchise}. Fetching sets...`,
     });
 
     const sharedCollectionList: any[] = [];
@@ -24,7 +24,7 @@ export async function scrapePokemonCollectionsEn({
 
         send({
             type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Navigating to ${url}...`,
+            message: `Step 2: Navigating to ${url}...`,
         });
         // Use a more realistic user agent if possible through context, but here we just navigate
         await page.goto(url, {
@@ -34,7 +34,7 @@ export async function scrapePokemonCollectionsEn({
 
         send({
             type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: "Activating Advanced Search filters...",
+            message: "Step 3: Activating Advanced Search filters...",
         });
         // 1. Click "Show Advanced Search"
         // Try multiple selectors and wait for it to be visible
@@ -149,7 +149,7 @@ export async function scrapePokemonCollectionsEn({
             name: name,
             collectionCode: key.toUpperCase(),
             imageUrl: "",
-            collectionUrl: `https://www.pokemon.com/us/pokemon-tcg/pokemon-cards/?${key}=on&advancedSubmit=`,
+            collectionUrl: `${url}/?${key}=on&advancedSubmit=`,
         });
     }
 
@@ -163,7 +163,7 @@ export async function scrapePokemonCollectionsEn({
 
         send({
             type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Scraped ${sharedCollectionList.length} collections from official site. Registering...`,
+            message: `Scraped ${sharedCollectionList.length} collections...`,
         });
         try {
             const result = await saveScrapedCollections(sharedCollectionList, {
