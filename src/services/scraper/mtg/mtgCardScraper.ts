@@ -7,7 +7,7 @@ import {
 } from "../persistence";
 import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
-import { createWorkerUpdater } from "../utils";
+import { createWorkerUpdater, createStepLogger } from "../utils";
 
 export async function scrapeMTGCards({
     url,
@@ -23,10 +23,8 @@ export async function scrapeMTGCards({
         `[Scraper] Starting MTG card scrape. collectionId:`,
         collectionId,
     );
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: "MTG Gatherer detected. Starting card extraction...",
-    });
+    const logStep = createStepLogger(send);
+    logStep("MTG Gatherer detected. Starting card extraction...");
     let discardedCount = 0;
 
     const isMismatchedSlug = (name: string, url: string) => {
@@ -85,10 +83,7 @@ export async function scrapeMTGCards({
                         : url.includes("?")
                             ? `${url}&page=${p}`
                             : `${url}?page=${p}`;
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Loading page ${p}...`,
-                });
+                logStep(`Loading page ${p}...`);
 
                 await workerPage.goto(pageUrl, {
                     waitUntil: "domcontentloaded",
@@ -204,17 +199,11 @@ export async function scrapeMTGCards({
                         collectionId,
                         releaseYear,
                     );
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Updated collection release year: ${releaseYear}`,
-                    });
+                    logStep(`Updated collection release year: ${releaseYear}`);
                 }
 
                 if (pageCards.length === 0 && rawPageCards.length === 0) {
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `No more cards found for set ${setCode} at page ${p + 1}.`,
-                    });
+                    logStep(`No more cards found for set ${setCode} at page ${p + 1}.`);
                     break;
                 }
 
@@ -223,10 +212,7 @@ export async function scrapeMTGCards({
                     (c: any) => !uniqueCardUrls.has(c.cardUrl),
                 );
                 if (newCards.length === 0 && pageCards.length > 0) {
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Page ${p + 1} returned only duplicate cards. Evolution complete.`,
-                    });
+                    logStep(`Page ${p + 1} returned only duplicate cards. Evolution complete.`);
                     break;
                 }
                 newCards.forEach((c: any) => uniqueCardUrls.add(c.cardUrl));
@@ -237,10 +223,7 @@ export async function scrapeMTGCards({
 
                 allCards.push(...cardsToAdd);
 
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Found ${cardsToAdd.length} new cards on page ${p}${pageDiscardedCount > 0 ? ` (${pageDiscardedCount} discarded)` : ""}.`,
-                });
+                logStep(`Found ${cardsToAdd.length} new cards on page ${p}${pageDiscardedCount > 0 ? ` (${pageDiscardedCount} discarded)` : ""}.`);
 
                 // Save this page's cards immediately to get real-time stats
                 if (collectionId !== undefined && collectionId !== null) {
@@ -276,10 +259,7 @@ export async function scrapeMTGCards({
                 }
 
                 if (allCards.length >= limit) {
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Reached card limit (${limit}). Stopping pagination...`,
-                    });
+                    logStep(`Reached card limit (${limit}). Stopping pagination...`);
                     break;
                 }
 
@@ -291,18 +271,12 @@ export async function scrapeMTGCards({
         if (deepScrape && allCards.length > 0) {
             const skipCount = allCards.length - cardsToDeepScrape.length;
             if (skipCount > 0) {
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Skipping deep scrape for ${skipCount} cards already in database.`,
-                });
+                logStep(`Skipping deep scrape for ${skipCount} cards already in database.`);
             }
 
             if (cardsToDeepScrape.length > 0) {
                 // ── Deep Scraping / Details Extraction ──
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `Launching workers to deep scrape ${cardsToDeepScrape.length} new cards...`,
-                });
+                logStep(`Launching workers to deep scrape ${cardsToDeepScrape.length} new cards...`);
                 const concurrency = Math.min(
                     CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT,
                     cardsToDeepScrape.length,
@@ -444,10 +418,7 @@ export async function scrapeMTGCards({
 
                 // Final Save: persist only deep-scraped details to prevent overwriting existing data with sparse objects
                 if (collectionId !== undefined && collectionId !== null) {
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: "Finalizing card details in database...",
-                    });
+                    logStep("Finalizing card details in database...");
                     try {
                         const result = await saveScrapedCards(
                             cardsToDeepScrape,
@@ -471,10 +442,7 @@ export async function scrapeMTGCards({
                                 collectionId,
                             );
                             if (missedResult.count > 0) {
-                                send({
-                                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                                    message: `⚠️ ${missedResult.count} cards are in DB but were not found in this scrape.`,
-                                });
+                                logStep(`⚠️ ${missedResult.count} cards are in DB but were not found in this scrape.`);
                             }
                             send({
                                 type: SCRAPER_MESSAGE_TYPE.STATS,
@@ -492,10 +460,7 @@ export async function scrapeMTGCards({
             }
         }
 
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Total extracted: ${allCards.length} cards.${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}`,
-        });
+        logStep(`Total extracted: ${allCards.length} cards.${discardedCount > 0 ? ` (${discardedCount} discarded)` : ""}`);
         send({
             type: SCRAPER_MESSAGE_TYPE.META,
             totalItems: allCards.length,

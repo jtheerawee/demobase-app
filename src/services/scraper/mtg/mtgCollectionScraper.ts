@@ -6,7 +6,7 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { FRANCHISES } from "@/constants/franchises";
 import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
-import { createWorkerUpdater } from "../utils";
+import { createWorkerUpdater, createStepLogger } from "../utils";
 
 export async function scrapeMTGCollections({
     url,
@@ -16,10 +16,8 @@ export async function scrapeMTGCollections({
     language,
     skipSave,
 }: ScraperOptions) {
-    send({
-        type: SCRAPER_MESSAGE_TYPE.STEP,
-        message: `Step 1: ${franchise}. Fetching sets...`,
-    });
+    const logStep = createStepLogger(send);
+    logStep(`Step 1: ${franchise}. Fetching sets...`);
     const updateWorkers = createWorkerUpdater(send);
 
     // Get base URL from franchises configuration
@@ -43,10 +41,7 @@ export async function scrapeMTGCollections({
                     : url.includes("?")
                         ? `${url}&page=${p}`
                         : `${url}?page=${p}`;
-            send({
-                type: "step",
-                message: `Step 2: Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`,
-            });
+            logStep(`Step 2: Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`);
 
             await workerPage.goto(pageUrl, {
                 waitUntil: "domcontentloaded",
@@ -62,10 +57,7 @@ export async function scrapeMTGCollections({
                 // No sets on this page
             }
 
-            send({
-                type: "step",
-                message: `Step 3: Searching for set links on page ${p}...`,
-            });
+            logStep(`Step 3: Searching for set links on page ${p}...`);
             const pageResults = await workerPage.evaluate(() => {
                 const rows = document.querySelectorAll("tr");
                 const items: any[] = [];
@@ -101,10 +93,7 @@ export async function scrapeMTGCollections({
             const { rawItems } = pageResults;
 
             if (rawItems.length === 0) {
-                send({
-                    type: "step",
-                    message: `No more sets found at page ${p}. Finishing...`,
-                });
+                logStep(`No more sets found at page ${p}. Finishing...`);
                 break;
             }
 
@@ -132,10 +121,7 @@ export async function scrapeMTGCollections({
             );
 
             if (newSets.length === 0) {
-                send({
-                    type: "step",
-                    message: `Page ${p} returned only duplicate sets. Extraction complete.`,
-                });
+                logStep(`Page ${p} returned only duplicate sets. Extraction complete.`);
                 break;
             }
 
@@ -143,10 +129,7 @@ export async function scrapeMTGCollections({
                 uniqueCollectionCodes.add(s.collectionCode),
             );
 
-            send({
-                type: "step",
-                message: `Step 4: Page ${p}: Discovered ${newSets.length} new sets.`,
-            });
+            logStep(`Step 4: Page ${p}: Discovered ${newSets.length} new sets.`);
 
             send({
                 type: SCRAPER_MESSAGE_TYPE.CHUNK,
@@ -169,10 +152,7 @@ export async function scrapeMTGCollections({
                             type: SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS,
                             items: saved,
                         });
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.STEP,
-                            message: `Step 5: Page ${p}: Saved ${newSets.length} sets — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                        });
+                        logStep(`Step 5: Page ${p}: Saved ${newSets.length} sets — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
                         send({
                             type: SCRAPER_MESSAGE_TYPE.STATS,
                             category: "collections",
@@ -186,20 +166,14 @@ export async function scrapeMTGCollections({
                         `Failed to save collections for page ${p}:`,
                         error,
                     );
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.STEP,
-                        message: `Warning: Failed to persist collections for page ${p}.`,
-                    });
+                    logStep(`Warning: Failed to persist collections for page ${p}.`);
                 }
             }
 
             p++;
             if (p > 50) break;
         }
-        send({
-            type: SCRAPER_MESSAGE_TYPE.STEP,
-            message: `Step 6: Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
-        });
+        logStep(`Step 6: Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`);
         if (!skipSave && franchise && language) {
             const allCollectionUrls = new Set(
                 allDiscoveredSets
@@ -211,10 +185,7 @@ export async function scrapeMTGCollections({
                 language,
             });
             if (missedResult.count > 0) {
-                send({
-                    type: SCRAPER_MESSAGE_TYPE.STEP,
-                    message: `⚠️ ${missedResult.count} collections are in DB but were not found in this scrape.`,
-                });
+                logStep(`⚠️ ${missedResult.count} collections are in DB but were not found in this scrape.`);
             }
             send({
                 type: SCRAPER_MESSAGE_TYPE.STATS,
