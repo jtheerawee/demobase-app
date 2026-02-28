@@ -287,9 +287,8 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                     const rarityEl = document.querySelector(
                                         "[data-testid='cardDetailsRarity'], .rarity",
                                     );
-                                    const rawRarity = rarityEl?.textContent?.trim() || "";
-
-                                    const rarity = rarityMap[rawRarity] || rawRarity;
+                                    const rarityText = rarityEl?.textContent?.trim();
+                                    const rarity = rarityText ? (rarityMap[rarityText] || rarityText) : null;
 
                                     const artistEl = document.querySelector(
                                         "[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist",

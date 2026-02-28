@@ -45,7 +45,7 @@ export interface ScrapedCard {
     cardUrl: string;
     tcgUrl?: string;
     cardNo?: string;
-    rarity?: string;
+    rarity?: string | null;
 }
 
 export interface ScrapedCollection {

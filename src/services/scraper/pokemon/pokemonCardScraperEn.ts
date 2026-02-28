@@ -270,7 +270,7 @@ export async function scrapePokemonCardsEn({
                             }
 
                             let collectorNumber = "";
-                            let rarity = "N/A";
+                            let rarity: string | null = null;
                             const statsText = getText(".stats-footer span") || "";
                             if (statsText.includes("/")) {
                                 const parts = statsText.split("/");
@@ -298,8 +298,10 @@ export async function scrapePokemonCardsEn({
                         });
 
                         // Map rarity to code
-                        if (details.rarity) {
+                        if (details.rarity && details.rarity !== "N/A") {
                             details.rarity = APP_CONFIG.POKEMON_RARITY_MAP[details.rarity] || details.rarity;
+                        } else {
+                            details.rarity = null;
                         }
 
                         Object.assign(card, details);

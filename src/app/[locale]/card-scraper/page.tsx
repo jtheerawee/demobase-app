@@ -1,7 +1,6 @@
 "use client";
 
 import {
-    ActionIcon,
     Alert,
     Box,
     Button,
@@ -9,10 +8,8 @@ import {
     Flex,
     Group,
     Modal,
-    NumberInput,
     Stack,
     Text,
-    Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";

@@ -82,7 +82,7 @@ export async function scrapeOnepieceCards({ url, context, collectionId, send, ca
                     () => {
                         const info = document.querySelector(
                             ".fancybox-slide--current .infoCol, .fancybox-slide--current .info_col," +
-                                ".fancybox-content .infoCol, .fancybox-content .info_col",
+                            ".fancybox-content .infoCol, .fancybox-content .info_col",
                         );
                         return !!info?.textContent?.includes("|");
                     },
@@ -103,11 +103,11 @@ export async function scrapeOnepieceCards({ url, context, collectionId, send, ca
                 const name = modal.querySelector(".cardName, .name, h2, h3")?.textContent?.trim() || "";
 
                 // Rarity from pipe-separated infoCol
-                let rarity = "";
+                let rarity: string | null = null;
                 const infoCol = modal.querySelector(".infoCol, .info_col");
                 if (infoCol) {
                     const parts = (infoCol.textContent || "").split("|").map((p: string) => p.trim());
-                    if (parts.length >= 2) rarity = parts[1];
+                    if (parts.length >= 2) rarity = parts[1] || null;
                 }
                 if (!rarity) {
                     const m = (modal.textContent || "").match(/\b(L|SEC|SR|R|UC|C|P)\b/);
@@ -143,10 +143,10 @@ export async function scrapeOnepieceCards({ url, context, collectionId, send, ca
                 };
             });
 
-            // Stop when modal has no valid card data
-            if (!details || details.cardNo === "N/A" || !details.rarity) {
+            // Stop when modal has no valid card data (name or image missing)
+            if (!details || details.cardNo === "N/A" || !details.imageUrl) {
                 logStep(
-                    `[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}", file="${details?.debugFilename}")`,
+                    `[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", file="${details?.debugFilename}")`,
                 );
                 break;
             }

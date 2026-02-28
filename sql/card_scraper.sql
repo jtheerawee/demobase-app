@@ -46,7 +46,7 @@ CREATE TABLE public.scraped_cards (
     card_url          TEXT NOT NULL UNIQUE,
     tcg_url           TEXT UNIQUE,
     card_no           TEXT NOT NULL,
-    rarity            TEXT NOT NULL,
+    rarity            TEXT,
     created_at        TIMESTAMPTZ DEFAULT NOW()
 );
 

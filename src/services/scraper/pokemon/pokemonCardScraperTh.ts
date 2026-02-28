@@ -28,8 +28,8 @@ export async function scrapePokemonCardsTh({
         url.includes("pageNo=")
             ? url.replace(/pageNo=\d+/, `pageNo=${p}`)
             : url.includes("?")
-              ? `${url}&pageNo=${p}`
-              : `${url}?pageNo=${p}`;
+                ? `${url}&pageNo=${p}`
+                : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
     const concurrency = CARD_SCRAPER_CONFIG.CARD_CONCURRENCY_LIMIT;
@@ -190,11 +190,12 @@ export async function scrapePokemonCardsTh({
                                 getText(".collectorNumber");
 
                             let collectorNumber = "N/A";
-                            let rarity = "N/A";
+                            let rarity: string | null = null;
                             if (numberAndRarity?.includes("/")) {
                                 const parts = numberAndRarity.split("/");
                                 collectorNumber = parts[0]?.trim() || "N/A";
-                                rarity = parts[1]?.trim() || "N/A";
+                                const r = parts[1]?.trim();
+                                rarity = r && r !== "N/A" ? r : null;
                             } else if (numberAndRarity) {
                                 collectorNumber = numberAndRarity;
                             }

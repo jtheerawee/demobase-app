@@ -76,7 +76,7 @@ export async function scrapeTCGPlayerCards(options: ScraperOptions) {
                         .waitForSelector(".product-card, .search-results__no-results, .search-results-count", {
                             timeout: 15000,
                         })
-                        .catch(() => {});
+                        .catch(() => { });
 
                     // 2. Total Results Consistency Check
                     const currentTotalResults = await workerPage.evaluate(() => {
@@ -155,14 +155,17 @@ export async function scrapeTCGPlayerCards(options: ScraperOptions) {
                                 const cardNo = rawNo.replace("#", "").split("/")[0].trim();
 
                                 // Normalize rarity: remove commas, trim, and handle case lookup
-                                const rarityRaw = rarityEl?.textContent?.trim().replace(/[,]$/, "") || "";
+                                const rarityRaw = rarityEl?.textContent?.trim().replace(/[,]$/, "") || null;
 
                                 // Try exact match, then case-insensitive match
-                                let rarity = map[rarityRaw];
-                                if (!rarity) {
-                                    const lowerRaw = rarityRaw.toLowerCase();
-                                    const foundKey = Object.keys(map).find((k) => k.toLowerCase() === lowerRaw);
-                                    rarity = foundKey ? map[foundKey] : rarityRaw;
+                                let rarity: string | null = null;
+                                if (rarityRaw) {
+                                    rarity = map[rarityRaw];
+                                    if (!rarity) {
+                                        const lowerRaw = rarityRaw.toLowerCase();
+                                        const foundKey = Object.keys(map).find((k) => k.toLowerCase() === lowerRaw);
+                                        rarity = foundKey ? map[foundKey] : rarityRaw;
+                                    }
                                 }
 
                                 items.push({
