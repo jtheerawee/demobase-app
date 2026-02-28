@@ -6,7 +6,6 @@ export const SCRAPER_MESSAGE_TYPE = {
     WORKERS: "workers",
     STEP: "step",
     COMPLETE: "complete",
-    META: "meta",
     CARD_UPDATE: "cardUpdate",
 } as const;
 

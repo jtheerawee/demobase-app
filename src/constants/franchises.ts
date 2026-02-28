@@ -76,6 +76,9 @@ export const FRANCHISES: FranchiseOption[] = [
                 Rare: "R",
                 "Rare Holo": "RH",
                 "Holo Rare": "RH", // reverse for Rare Holo
+                "Holo Rare V": "RH",
+                "Holo Rare VMAX": "RH",
+                "Holo Rare VSTAR": "RH",
                 "PIKA Rare Holo": "RH", // fix black and white
                 "Illustration Rare": "IR",
                 "Special Illustration Rare": "SIR",
@@ -84,6 +87,8 @@ export const FRANCHISES: FranchiseOption[] = [
                 "Double Rare": "DR",
                 "Ultra Rare": "UR",
                 "Hyper Rare": "HR",
+                "Radiant Rare": "Radiant Rare",
+                "Rainbow Rare": "Rainbow Rare",
                 "Black White Rare": "BWR",
                 Promo: "P",
             },

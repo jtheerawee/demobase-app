@@ -7,7 +7,6 @@ import {
     createWorkerUpdater,
     createStepLogger,
     reportScraperStats,
-    reportScraperMeta,
     reportScraperChunk,
 } from "@/services/scraper/utils";
 export async function scrapeTCGPlayerCards(options: ScraperOptions) {
@@ -119,10 +118,6 @@ export async function scrapeTCGPlayerCards(options: ScraperOptions) {
                     // Extract total pages on first page if not already done
                     if (p === 1 && totalPages === Infinity && currentTotalResults > 0) {
                         totalPages = Math.ceil(currentTotalResults / 24);
-                        reportScraperMeta(send, {
-                            totalPages,
-                            totalCards: currentTotalResults,
-                        });
                     }
 
                     const pageData = await workerPage.evaluate(

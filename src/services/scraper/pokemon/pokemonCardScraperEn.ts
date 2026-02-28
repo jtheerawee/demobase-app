@@ -1,15 +1,15 @@
 import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
-import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
+import { type ScraperOptions } from "@/services/scraper/types";
 import {
     createWorkerUpdater,
     createStepLogger,
     reportScraperStats,
-    reportScraperMeta,
     reportScraperChunk,
     lookupRarity,
 } from "@/services/scraper/utils";
+import { runDeepScraperWorkers, finalizeScraper } from "@/services/scraper/scrapingUtils";
 
 export async function scrapePokemonCardsEn({
     url,
@@ -21,9 +21,10 @@ export async function scrapePokemonCardsEn({
     franchise,
 }: ScraperOptions) {
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
-    const sharedCardList: any[] = [];
+    const allCards: any[] = [];
     let totalPages = Infinity;
     let nextPageIndex = 1;
+    const discardedItems: any[] = [];
 
     const getTargetUrl = (p: number) => {
         if (url.includes("page=")) return url.replace(/page=\d+/, `page=${p}`);
@@ -159,23 +160,17 @@ export async function scrapePokemonCardsEn({
                         if (p === 1) {
                             shouldAbort = true;
                             totalPages = 0;
-                            reportScraperMeta(send, {
-                                totalPages: 0,
-                                totalCards: 0,
-                            });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
-                            reportScraperMeta(send, { totalPages });
                         }
                         break;
                     }
 
                     if (pageData.discoveredTotal > 0 && totalPages === Infinity) {
                         totalPages = pageData.discoveredTotal;
-                        reportScraperMeta(send, { totalPages });
                     }
 
-                    const beforeCount = sharedCardList.length;
+                    const beforeCount = allCards.length;
                     const canAdd = limit - beforeCount;
 
                     if (canAdd <= 0) {
@@ -185,15 +180,27 @@ export async function scrapePokemonCardsEn({
 
                     const cardsToAdd = pageData.items.slice(0, canAdd);
                     const startIndex = beforeCount;
-                    sharedCardList.push(...cardsToAdd);
+                    allCards.push(...cardsToAdd);
 
                     logStep(`Worker ${workerId} found ${cardsToAdd.length} cards on page ${p}.`);
 
-                    if (sharedCardList.length >= limit) {
+                    if (allCards.length >= limit) {
                         logStep(`Reached card limit (${limit}). Stopping all workers...`);
                         shouldAbort = true;
                     }
                     reportScraperChunk(send, cardsToAdd, startIndex);
+
+                    // Save this page's cards immediately to get real-time stats
+                    if (collectionId !== undefined && collectionId !== null) {
+                        try {
+                            const result = await saveScrapedCards(cardsToAdd, collectionId);
+                            if (result) {
+                                reportScraperStats(send, "cards", result);
+                            }
+                        } catch (error) {
+                            console.error(`Failed to save page ${p} cards:`, error);
+                        }
+                    }
                 } catch (pageErr) {
                     console.error(`[Scraper En] Worker ${workerId} failed at page ${p}:`, pageErr);
                     logStep(`Worker ${workerId} failed at page ${p}. Retrying...`);
@@ -213,143 +220,81 @@ export async function scrapePokemonCardsEn({
     });
     await Promise.all(paginationWorkers);
 
-    // Deep Scrape Phase
-    if (deepScrape && sharedCardList.length > 0) {
-        const totalCards = sharedCardList.length;
-        logStep(`Starting deep scrape for ${totalCards} cards...`);
+    // Phase 2: Deep Scrape Phase
+    if (deepScrape && allCards.length > 0) {
+        const cardsToDeepScrape = allCards.filter(
+            (c) => c.cardUrl && (!c.isDeepScraped || !c.rarity || !c.cardNo || c.cardNo === "N/A"),
+        );
 
-        const deepWorker = async (workerId: number) => {
-            updateWorkers(1);
-            const workerPage = await context.newPage();
-            try {
-                while (true) {
-                    const cardIndex = sharedCardList.findIndex(
-                        (c) => c.cardUrl && !c.isDeepScraped && !c.isBeingScraped,
-                    );
-                    if (cardIndex === -1) break;
+        if (cardsToDeepScrape.length > 0) {
+            logStep(`Step 2: ${franchise}. Deep scraping ${cardsToDeepScrape.length} cards...`);
 
-                    const card = sharedCardList[cardIndex];
-                    card.isBeingScraped = true;
+            await runDeepScraperWorkers({
+                items: allCards,
+                context,
+                send,
+                logStep,
+                updateWorkers,
+                concurrency: Math.min(concurrency, allCards.length),
+                timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
+                franchiseLabel: "Pokémon",
+                extractFn: () => {
+                    const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "";
+                    const h1 =
+                        document.querySelector("h1") ||
+                        document.querySelector(".p-cardDetail__header h1") ||
+                        document.querySelector(".pageHeader.cardDetail") ||
+                        document.querySelector(".card-description h1");
 
-                    try {
-                        logStep(`Deep scraping card ${cardIndex + 1}/${totalCards}: ${card.name}`);
+                    let name = "";
+                    if (h1) {
+                        const clone = h1.cloneNode(true) as HTMLElement;
+                        clone.querySelectorAll(".evolveMarker").forEach((el) => el.remove());
+                        name = clone.textContent?.trim() || "";
+                    }
 
-                        // Robust goto with retry for English detail pages
-                        let success = false;
-                        for (let attempt = 1; attempt <= 2; attempt++) {
-                            try {
-                                await workerPage.goto(card.cardUrl, {
-                                    waitUntil: "networkidle",
-                                    timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
-                                });
-                                success = true;
-                                break;
-                            } catch (gotoErr) {
-                                if (attempt === 2) throw gotoErr;
-                                logStep(`Worker ${workerId} timeout on card ${cardIndex + 1}. Retrying...`);
-                                await workerPage.waitForTimeout(2000);
-                            }
-                        }
+                    const imgEl = document.querySelector(".card-image img") as HTMLImageElement | null;
+                    const imageUrl = (imgEl as any)?.targetSrc || imgEl?.src || "";
+                    const setEl = document.querySelector(".stats-footer a");
+                    const setName = setEl?.textContent?.trim() || "";
 
-                        if (!success) throw new Error("Failed to navigate after retries");
+                    let collectorNumber = "";
+                    let rarityRaw: string | null = null;
+                    const statsText = getText(".stats-footer span") || "";
+                    if (statsText.includes("/")) {
+                        const parts = statsText.split("/");
+                        collectorNumber = parts[0].trim();
+                        const rest = parts[1].trim();
+                        const rarityMatch = rest.match(/^\d+\s+(.*)$/);
+                        rarityRaw = rarityMatch ? rarityMatch[1].trim() : rest;
+                    } else {
+                        collectorNumber = statsText || "N/A";
+                    }
 
-                        const details = await workerPage.evaluate(() => {
-                            const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "";
+                    if (!collectorNumber || collectorNumber === "N/A") {
+                        const urlMatch = window.location.pathname.match(/\/series\/(.+?)\/(.+?)\//);
+                        if (urlMatch) collectorNumber = urlMatch[2];
+                    }
 
-                            // Identification
-                            const h1 =
-                                document.querySelector("h1") ||
-                                document.querySelector(".p-cardDetail__header h1") ||
-                                document.querySelector(".pageHeader.cardDetail") ||
-                                document.querySelector(".card-description h1");
-
-                            let name = "";
-                            if (h1) {
-                                const clone = h1.cloneNode(true) as HTMLElement;
-                                clone.querySelectorAll(".evolveMarker").forEach((el) => el.remove());
-                                name = clone.textContent?.trim() || "";
-                            }
-
-                            let collectorNumber = "";
-                            let rarity: string | null = null;
-                            const statsText = getText(".stats-footer span") || "";
-                            if (statsText.includes("/")) {
-                                const parts = statsText.split("/");
-                                collectorNumber = parts[0].trim();
-                                const rest = parts[1].trim();
-                                // Pattern: "109 Rare Holo" -> rarity: "Rare Holo"
-                                const rarityMatch = rest.match(/^\d+\s+(.*)$/);
-                                rarity = rarityMatch ? rarityMatch[1].trim() : rest;
-                            } else {
-                                collectorNumber = statsText || "N/A";
-                            }
-
-                            // Final extraction from URL fallback if still empty
-                            if (!collectorNumber || collectorNumber === "N/A") {
-                                const urlMatch = window.location.pathname.match(/\/series\/(.+?)\/(.+?)\//);
-                                if (urlMatch) collectorNumber = urlMatch[2];
-                            }
-
-                            return {
-                                name,
-                                cardNo: collectorNumber,
-                                rarity,
-                                isDeepScraped: true,
-                            };
-                        });
-
-                        // Map rarity to code
-                        if (details.rarity && details.rarity !== "N/A") {
-                            details.rarity = lookupRarity(details.rarity, APP_CONFIG.POKEMON_RARITY_MAP);
-                        } else {
-                            details.rarity = null;
-                        }
-
-                        Object.assign(card, details);
-                        card.isBeingScraped = false;
-                        send({
-                            type: SCRAPER_MESSAGE_TYPE.CARD_UPDATE,
-                            index: cardIndex,
-                            details,
-                        });
-                    } catch (e) {
-                        card.isBeingScraped = false;
-                        console.error(`Failed to deep scrape English card ${cardIndex}:`, e);
+                    return { name, cardNo: collectorNumber, rarityRaw, imageUrl, setName, isDeepScraped: true };
+                },
+                onResult: (details: any) => {
+                    if (details.rarityRaw && details.rarityRaw !== "N/A") {
+                        details.rarity = lookupRarity(details.rarityRaw, APP_CONFIG.POKEMON_RARITY_MAP);
+                    } else {
+                        details.rarity = null;
                     }
                 }
-            } finally {
-                await workerPage.close();
-                updateWorkers(-1);
-            }
-        };
-
-        const workers = Array.from(
-            {
-                length: Math.min(concurrency, sharedCardList.length),
-            },
-            async (_, i) => {
-                const workerId = i + 1;
-                if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
-                return deepWorker(workerId);
-            },
-        );
-        await Promise.all(workers);
-    }
-
-    if (collectionId && sharedCardList.length > 0) {
-        logStep(`Saving ${sharedCardList.length} cards to database...`);
-        try {
-            const result = await saveScrapedCards(sharedCardList, collectionId);
-            if (result) {
-                const { addedItems, matchedItems } = result;
-                reportScraperStats(send, "cards", result);
-                logStep(
-                    `Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
-                );
-            }
-        } catch (error) {
-            console.error("Failed to save English cards:", error);
-            logStep("Warning: Failed to persist cards to database.");
+            });
         }
     }
+
+    await finalizeScraper({
+        allCards,
+        collectionId,
+        franchise,
+        send,
+        logStep,
+        updateWorkers,
+    });
 }

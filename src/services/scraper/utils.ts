@@ -47,20 +47,6 @@ export function reportScraperStats(
     });
 }
 
-export function reportScraperMeta(
-    send: (msg: any) => void,
-    meta: {
-        totalItems?: number;
-        totalPages?: number;
-        totalCards?: number;
-    },
-) {
-    send({
-        type: SCRAPER_MESSAGE_TYPE.META,
-        ...meta,
-    });
-}
-
 export function reportScraperChunk(send: (msg: any) => void, items: any[], startIndex: number = 0) {
     send({
         type: SCRAPER_MESSAGE_TYPE.CHUNK,

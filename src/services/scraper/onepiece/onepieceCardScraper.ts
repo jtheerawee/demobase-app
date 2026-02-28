@@ -152,12 +152,15 @@ export async function scrapeOnepieceCards({ url, context, collectionId, send, ca
             }
 
             const { debugFilename, ...cardDetails } = details;
-            cards.push({
+            const cardObject = {
                 ...cardDetails,
                 cardUrl,
                 isDeepScraped: true,
                 isBeingScraped: false,
-            });
+            };
+            cards.push(cardObject);
+            reportScraperChunk(send, [cardObject], cards.length - 1);
+
             logStep(`[${N}/${totalAnchors}] ${details.cardNo}: ${details.name} | Rarity="${details.rarity}"`);
 
             if (cards.length >= limit) {
@@ -189,7 +192,6 @@ export async function scrapeOnepieceCards({ url, context, collectionId, send, ca
         const variants = cards.length - uniqueCards.length;
 
         logStep(`✅ Scraped ${cards.length} cards (${variants} variants skipped).`);
-        reportScraperChunk(send, uniqueCards, 0);
 
         if (collectionId && uniqueCards.length > 0) {
             logStep(`Final Step: Persisting ${uniqueCards.length} cards to database...`);

@@ -5,7 +5,6 @@ import {
     createWorkerUpdater,
     createStepLogger,
     reportScraperStats,
-    reportScraperMeta,
     reportScraperChunk,
 } from "@/services/scraper/utils";
 
@@ -18,8 +17,8 @@ export async function scrapePokemonCollectionsTh({ url, context, send, franchise
         url.includes("pageNo=")
             ? url.replace(/pageNo=\d+/, `pageNo=${p}`)
             : url.includes("?")
-              ? `${url}&pageNo=${p}`
-              : `${url}?pageNo=${p}`;
+                ? `${url}&pageNo=${p}`
+                : `${url}?pageNo=${p}`;
 
     let shouldAbort = false;
     const concurrency = CARD_SCRAPER_CONFIG.COLLECTION_CONCURRENCY_LIMIT;
@@ -68,8 +67,8 @@ export async function scrapePokemonCollectionsTh({ url, context, send, franchise
                             const collectionCode = expansionCodeMatch
                                 ? expansionCodeMatch[1]
                                 : codeMatch
-                                  ? codeMatch[1]
-                                  : `TH-${name.replace(/\s+/g, "-")}`;
+                                    ? codeMatch[1]
+                                    : `TH-${name.replace(/\s+/g, "-")}`;
 
                             return {
                                 name,
@@ -126,7 +125,6 @@ export async function scrapePokemonCollectionsTh({ url, context, send, franchise
 
     if (franchise && language && sharedCollectionList.length > 0) {
         // Now that we have all items, trigger the UI update (consistency with MTG)
-        reportScraperMeta(send, { totalItems: sharedCollectionList.length });
         logStep(`Scraped ${sharedCollectionList.length} unique collections total.`);
         reportScraperChunk(send, sharedCollectionList, 0);
 

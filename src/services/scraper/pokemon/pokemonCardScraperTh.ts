@@ -7,7 +7,6 @@ import {
     createWorkerUpdater,
     createStepLogger,
     reportScraperStats,
-    reportScraperMeta,
     reportScraperChunk,
     lookupRarity,
 } from "@/services/scraper/utils";
@@ -98,20 +97,14 @@ export async function scrapePokemonCardsTh({
                         if (p === 1) {
                             shouldAbort = true;
                             totalPages = 0;
-                            reportScraperMeta(send, {
-                                totalPages: 0,
-                                totalCards: 0,
-                            });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
-                            reportScraperMeta(send, { totalPages });
                         }
                         break;
                     }
 
                     if (pageData.discoveredTotal > 0 && totalPages === Infinity) {
                         totalPages = pageData.discoveredTotal;
-                        reportScraperMeta(send, { totalPages });
                     }
 
                     const beforeCount = sharedCardList.length;
@@ -131,6 +124,18 @@ export async function scrapePokemonCardsTh({
                         shouldAbort = true;
                     }
                     reportScraperChunk(send, cardsToAdd, startIndex);
+
+                    // Save this page's cards immediately to get real-time stats
+                    if (collectionId !== undefined && collectionId !== null) {
+                        try {
+                            const result = await saveScrapedCards(cardsToAdd, collectionId);
+                            if (result) {
+                                reportScraperStats(send, "cards", result);
+                            }
+                        } catch (error) {
+                            console.error(`Failed to save page ${p} cards:`, error);
+                        }
+                    }
                 } catch (pageErr) {
                     console.error(`[Scraper] Worker ${workerId} failed at page ${p}:`, pageErr);
                     logStep(`Worker ${workerId} failed at page ${p}. Retrying...`);

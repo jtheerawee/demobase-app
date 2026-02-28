@@ -491,6 +491,19 @@ export default function CardScraperPage() {
                                 });
                                 return Array.from(newMap.values());
                             });
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.CARD_UPDATE) {
+                            setCards((prev) => {
+                                const newCards = [...prev];
+                                if (msg.index !== undefined && newCards[msg.index]) {
+                                    newCards[msg.index] = { ...newCards[msg.index], ...msg.details };
+                                } else if (msg.cardUrl) {
+                                    const idx = newCards.findIndex((c) => c.cardUrl === msg.cardUrl);
+                                    if (idx !== -1) {
+                                        newCards[idx] = { ...newCards[idx], ...msg.details };
+                                    }
+                                }
+                                return newCards;
+                            });
                         } else if (msg.type === SCRAPER_MESSAGE_TYPE.SAVED_CARDS) {
                             setCards((prev) => {
                                 // Match by name or URL to update with DB IDs if needed
