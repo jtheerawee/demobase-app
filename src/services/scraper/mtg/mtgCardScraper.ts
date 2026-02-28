@@ -9,15 +9,8 @@ import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
 import { createWorkerUpdater, createStepLogger } from "../utils";
 
-export async function scrapeMTGCards({
-    url,
-    context,
-    send,
-    collectionId,
-    deepScrape,
-    language,
-    cardLimit,
-}: ScraperOptions) {
+export async function scrapeMTGCards(options: ScraperOptions) {
+    const { url, context, send, collectionId, deepScrape, language, cardLimit } = options;
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     console.log(
         `[Scraper] Starting MTG card scrape. collectionId:`,

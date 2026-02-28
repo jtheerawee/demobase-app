@@ -8,14 +8,8 @@ import type { ScraperOptions } from "../types";
 import { SCRAPER_MESSAGE_TYPE } from "../types";
 import { createWorkerUpdater, createStepLogger } from "../utils";
 
-export async function scrapeMTGCollections({
-    url,
-    context,
-    send,
-    franchise,
-    language,
-    skipSave,
-}: ScraperOptions) {
+export async function scrapeMTGCollections(options: ScraperOptions) {
+    const { url, context, send, franchise, language, skipSave } = options;
     const logStep = createStepLogger(send);
     logStep(`Step 1: ${franchise}. Fetching sets...`);
     const updateWorkers = createWorkerUpdater(send);
