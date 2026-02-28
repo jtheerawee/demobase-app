@@ -213,10 +213,10 @@ export async function scrapePokemonCardsEn({
     });
     await Promise.all(paginationWorkers);
 
-    // Deep Scrape Phase (English)
+    // Deep Scrape Phase
     if (deepScrape && sharedCardList.length > 0) {
         const totalCards = sharedCardList.length;
-        logStep(`Starting deep scrape for ${totalCards} English cards...`);
+        logStep(`Starting deep scrape for ${totalCards} cards...`);
 
         const deepWorker = async (workerId: number) => {
             updateWorkers(1);
@@ -337,7 +337,7 @@ export async function scrapePokemonCardsEn({
     }
 
     if (collectionId && sharedCardList.length > 0) {
-        logStep("Saving English cards to database...");
+        logStep(`Saving ${sharedCardList.length} cards to database...`);
         try {
             const result = await saveScrapedCards(sharedCardList, collectionId);
             if (result) {
