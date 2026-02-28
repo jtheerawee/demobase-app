@@ -28,10 +28,16 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
             timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
+        // 0. Handle Cookies
+        const cookieBtn = await page.$("#onetrust-accept-btn-handler");
+        if (cookieBtn) {
+            await cookieBtn.click().catch(() => { });
+            await page.waitForTimeout(500);
+        }
+
         logStep("Step 3: Activating Advanced Search filters...");
         // 1. Click "Show Advanced Search"
-        // Try multiple selectors and wait for it to be visible
-        const advancedBtnSelector = "span.filter-title, #toggleWrapperMainText, .filter-title";
+        const advancedBtnSelector = "#toggleWrapperMainText, span.filter-title, .filter-title";
         await page
             .waitForSelector(advancedBtnSelector, {
                 timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
@@ -40,81 +46,116 @@ export async function scrapePokemonCollectionsEn({ url, context, send, franchise
 
         const advancedBtn = await page.$(advancedBtnSelector);
         if (advancedBtn) {
-            await advancedBtn.click();
-            // Wait for expansion animation
-            await page.waitForTimeout(1000);
+            const isExpanded = await page.evaluate((sel: string) => {
+                const el = document.querySelector(sel);
+                return el?.textContent?.toLowerCase().includes("hide") || false;
+            }, advancedBtnSelector);
+
+            if (!isExpanded) {
+                await advancedBtn.click();
+                await page.waitForTimeout(1000);
+            }
         }
 
-        logStep("Expanding the 'Expansions' section...");
-        // 2. Click "Expansions" header
-        const expansionHeaderSelector =
-            "header:has-text('Expansions'), div.column-12:has-text('Expansions'), .expansion-filter header";
-        logStep("Waiting for Expansions section...");
-        await page
-            .waitForSelector(expansionHeaderSelector, {
-                timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
-            })
-            .catch(() => {
-                console.warn("Expansion header selector timeout");
-            });
-
-        const expansionSection = await page.$(expansionHeaderSelector);
-        if (expansionSection) {
-            logStep("Clicking Expansions section...");
-            await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
-            await expansionSection
-                .click({
-                    force: true,
-                    timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
-                })
-                .catch((e: any) => {
-                    console.warn("Expansion click failed", e);
-                });
+        logStep("Expanding all filters...");
+        // 2. Use "Expand All" if available, else try Expansion header
+        const expandAllSelector = "#expandAll";
+        const hasExpandAll = await page.$(expandAllSelector);
+        if (hasExpandAll) {
+            await hasExpandAll.click().catch(() => { });
             await page.waitForTimeout(1000);
         } else {
-            logStep("Warning: Expansions section not found, proceeding anyway...");
+            const expansionHeaderSelector =
+                "header:has-text('Expansions'), div.column-12:has-text('Expansions'), .expansion-filter header";
+            const expansionSection = await page.$(expansionHeaderSelector);
+            if (expansionSection) {
+                await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
+                await expansionSection.click({ force: true }).catch(() => { });
+                await page.waitForTimeout(1000);
+            }
         }
 
         logStep("Scraping set names from filters...");
-        // Scroll down a bit to ensure lazy-loaded labels are triggered
-        await page.evaluate(() => window.scrollBy(0, 500));
-        await page.waitForTimeout(500);
+        // Ensure the expansion container or labels are present before extracting
+        try {
+            await page.waitForSelector("label.pill-control__label", {
+                timeout: 5000,
+            });
+        } catch (e) {
+            logStep("Warning: Set labels not appearing immediately, attempting extraction anyway...");
+        }
+
+        // Scroll a bit more to trigger any lazy loading
+        await page.evaluate(() => window.scrollBy(0, 1000));
+        await page.waitForTimeout(1000);
 
         // Extract labels
         const mappings = await page.evaluate(() => {
             const results: Record<string, string> = {};
-            const labels = document.querySelectorAll("label.pill-control__label");
+            // The site no longer uses #expansions-container. 
+            // We search for pill labels across the whole filter area.
+            const labels = document.querySelectorAll(".filter-side label.pill-control__label, label.pill-control__label");
 
-            if (labels.length === 0) {
-                // Try a broader search if the specific class failed
-                const altLabels = document.querySelectorAll("label[for]");
-                altLabels.forEach((l) => {
-                    const id = l.getAttribute("for");
-                    const text = l.textContent?.trim();
-                    if (id && text && id.length < 20) results[id] = text;
-                });
-            } else {
-                labels.forEach((label) => {
-                    const id = label.getAttribute("for");
-                    const span = label.querySelector("span");
-                    if (id && span) {
-                        results[id] = span.innerText.trim();
+            labels.forEach((label) => {
+                const id = label.getAttribute("for");
+                if (!id) return;
+
+                // Priority 1: Direct span child
+                let text = label.querySelector("span")?.innerText?.trim();
+
+                // Priority 2: Text nodes (ignoring icons)
+                if (!text) {
+                    text = Array.from(label.childNodes)
+                        .filter(node => node.nodeType === Node.TEXT_NODE)
+                        .map(node => node.textContent?.trim())
+                        .filter(Boolean)
+                        .join(" ");
+                }
+
+                if (text && id) {
+                    // Filter for known set prefixes to avoid capturing other filters (rarity, type, etc)
+                    // Set IDs usually start with generation codes (sv, swsh, sm, xy, bw, hgss, dp, ex, base)
+                    const lowerId = id.toLowerCase();
+                    const isSet = /^(sv|swsh|sm|xy|bw|hgss|dp|ex|base|cel|det|pop|mcd|pwp|tk|si|col|pfe|dc|ru1|promo)/.test(lowerId);
+
+                    if (isSet) {
+                        results[id] = text;
                     }
-                });
-            }
+                }
+            });
+
             return results;
         });
 
         Object.assign(nameMap, mappings);
 
         if (Object.keys(nameMap).length === 0) {
-            throw new Error("No collections found in the DOM.");
+            // Final fallback: Look for any checkable filter labels
+            const fallbackMappings = await page.evaluate(() => {
+                const results: Record<string, string> = {};
+                const labels = document.querySelectorAll("label[for]");
+                labels.forEach(l => {
+                    const id = l.getAttribute("for");
+                    const text = l.textContent?.trim();
+                    if (id && text && id.length < 25 && (id.includes("sv") || id.includes("swsh") || id.includes("sm") || id.includes("xy"))) {
+                        results[id] = text;
+                    }
+                });
+                return results;
+            });
+            Object.assign(nameMap, fallbackMappings);
+        }
+
+        if (Object.keys(nameMap).length === 0) {
+            throw new Error("No collections found in the DOM after expansion.");
         }
     } catch (err) {
         console.error("Failed to fetch name mappings:", err);
         logStep("Error: Could not fetch set list from Pokemon.com.");
     } finally {
-        await page.close();
+        try {
+            if (!page.isClosed()) await page.close();
+        } catch (e) { }
         updateWorkers(-1);
     }
 
