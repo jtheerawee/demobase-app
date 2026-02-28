@@ -12,6 +12,7 @@ import {
 } from "@mantine/core";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useState } from "react";
+import { StatsModal } from "@/components/CardScraper/StatsModal";
 
 export type StatCategory = "added" | "matched" | "missed" | "discarded";
 
@@ -29,8 +30,8 @@ interface StatWidgetProps {
     color: string;
     collections: number;
     cards: number;
-    collectionTooltip?: React.ReactNode;
-    cardTooltip?: React.ReactNode;
+    collectionItems?: any[];
+    cardItems?: any[];
     badgeTooltip?: string;
     onCopy?: () => void;
 }
@@ -40,12 +41,13 @@ function StatWidget({
     color,
     collections,
     cards,
-    collectionTooltip,
-    cardTooltip,
+    collectionItems,
+    cardItems,
     badgeTooltip,
     onCopy,
 }: StatWidgetProps) {
     const [copied, setCopied] = useState(false);
+    const [modalContent, setModalContent] = useState<{ title: string, items: any[] } | null>(null);
 
     const handleCopy = () => {
         onCopy?.();
@@ -54,76 +56,91 @@ function StatWidget({
     };
 
     return (
-        <Card withBorder radius="sm" padding="sm" style={{ position: "relative" }}>
-            <Stack gap={4}>
-                <Group justify="space-between" align="center">
-                    {badgeTooltip ? (
-                        <Tooltip label={badgeTooltip} withArrow position="top" multiline w={220}>
-                            <div style={{ width: "max-content" }}>
-                                <Badge variant="light" color={color} size="xs" radius="sm">
-                                    {label}
-                                </Badge>
-                            </div>
-                        </Tooltip>
-                    ) : (
-                        <Badge variant="light" color={color} size="xs" radius="sm">
-                            {label}
-                        </Badge>
-                    )}
-                    {onCopy && (
-                        <Tooltip
-                            label={collections === 0 && cards === 0 ? "No items to copy" : `Copy ${label.toLowerCase()} items for investigation`}
-                            withArrow
-                        >
-                            <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                size="xs"
-                                disabled={collections === 0 && cards === 0}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleCopy();
-                                }}
+        <>
+            <StatsModal
+                opened={!!modalContent}
+                onClose={() => setModalContent(null)}
+                title={modalContent?.title}
+                items={modalContent?.items}
+            />
+
+            <Card withBorder radius="sm" padding="sm" style={{ position: "relative" }}>
+                <Stack gap={4}>
+                    <Group justify="space-between" align="center">
+                        {badgeTooltip ? (
+                            <Tooltip label={badgeTooltip} withArrow position="top" multiline w={220}>
+                                <div style={{ width: "max-content" }}>
+                                    <Badge variant="light" color={color} size="xs" radius="sm">
+                                        {label}
+                                    </Badge>
+                                </div>
+                            </Tooltip>
+                        ) : (
+                            <Badge variant="light" color={color} size="xs" radius="sm">
+                                {label}
+                            </Badge>
+                        )}
+                        {onCopy && (
+                            <Tooltip
+                                label={collections === 0 && cards === 0 ? "No items to copy" : `Copy ${label.toLowerCase()} items for investigation`}
+                                withArrow
                             >
-                                {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
-                            </ActionIcon>
-                        </Tooltip>
-                    )}
-                </Group>
-                <Group justify="space-between" align="baseline">
-                    <Text size="xs" c="dimmed">
-                        Collections
-                    </Text>
-                    {collectionTooltip ? (
-                        <Tooltip label={collectionTooltip} position="bottom" withArrow multiline w={300}>
-                            <Text size="sm" fw={700} style={{ cursor: "help", borderBottom: "1px dashed var(--mantine-color-gray-4)" }}>
+                                <ActionIcon
+                                    variant="subtle"
+                                    color="gray"
+                                    size="xs"
+                                    disabled={collections === 0 && cards === 0}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCopy();
+                                    }}
+                                >
+                                    {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                                </ActionIcon>
+                            </Tooltip>
+                        )}
+                    </Group>
+                    <Group justify="space-between" align="baseline">
+                        <Text size="xs" c="dimmed">
+                            Collections
+                        </Text>
+                        {collections > 0 && collectionItems && collectionItems.length > 0 ? (
+                            <Text
+                                size="sm"
+                                fw={700}
+                                style={{ cursor: "pointer", borderBottom: `1px dashed var(--mantine-color-${color}-6)`, color: `var(--mantine-color-${color}-6)` }}
+                                onClick={() => setModalContent({ title: `${label} Collections`, items: collectionItems })}
+                            >
                                 {collections}
                             </Text>
-                        </Tooltip>
-                    ) : (
-                        <Text size="sm" fw={700}>
-                            {collections}
+                        ) : (
+                            <Text size="sm" fw={700}>
+                                {collections}
+                            </Text>
+                        )}
+                    </Group>
+                    <Group justify="space-between" align="baseline">
+                        <Text size="xs" c="dimmed">
+                            Cards
                         </Text>
-                    )}
-                </Group>
-                <Group justify="space-between" align="baseline">
-                    <Text size="xs" c="dimmed">
-                        Cards
-                    </Text>
-                    {cardTooltip ? (
-                        <Tooltip label={cardTooltip} position="bottom" withArrow multiline w={300}>
-                            <Text size="sm" fw={700} style={{ cursor: "help", borderBottom: "1px dashed var(--mantine-color-gray-4)" }}>
+                        {cards > 0 && cardItems && cardItems.length > 0 ? (
+                            <Text
+                                size="sm"
+                                fw={700}
+                                style={{ cursor: "pointer", borderBottom: `1px dashed var(--mantine-color-${color}-6)`, color: `var(--mantine-color-${color}-6)` }}
+                                onClick={() => setModalContent({ title: `${label} Cards`, items: cardItems })}
+                            >
                                 {cards}
                             </Text>
-                        </Tooltip>
-                    ) : (
-                        <Text size="sm" fw={700}>
-                            {cards}
-                        </Text>
-                    )}
-                </Group>
-            </Stack>
-        </Card>
+                        ) : (
+                            <Text size="sm" fw={700}>
+                                {cards}
+                            </Text>
+                        )}
+                    </Group>
+                </Stack>
+            </Card>
+        </>
     );
 }
 
@@ -139,27 +156,6 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
             cards: stats.cards[itemKey] ?? [],
         };
         navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-    };
-
-    const renderTooltip = (items: any[], title: string) => {
-        if (!items || items.length === 0) return null;
-        return (
-            <Stack gap={4}>
-                <Text size="xs" fw={700}>
-                    Last {Math.min(10, items.length)} {title}:
-                </Text>
-                {items.slice(-10).map((c, i) => (
-                    <Text key={i} size="xs">
-                        {c.collectionCode || c.cardNo ? `#${c.collectionCode || c.cardNo} ` : ""}{c.name}
-                    </Text>
-                ))}
-                {items.length > 10 && (
-                    <Text size="xs" c="dimmed">
-                        ... and {items.length - 10} more
-                    </Text>
-                )}
-            </Stack>
-        );
     };
 
     const renderStat = (
@@ -179,8 +175,8 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
                 collections={colCount}
                 cards={itemCount}
                 badgeTooltip={badgeTooltip}
-                collectionTooltip={renderTooltip(stats.collections[itemKey] as any[], `${label} Collections`)}
-                cardTooltip={renderTooltip(stats.cards[itemKey] as any[], `${label} Cards`)}
+                collectionItems={stats.collections[itemKey] as any[]}
+                cardItems={stats.cards[itemKey] as any[]}
                 onCopy={() => handleCopyItems(category)}
             />
         );
