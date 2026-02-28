@@ -1,24 +1,8 @@
 "use client";
 
-import {
-    ActionIcon,
-    Box,
-    Code,
-    Collapse,
-    CopyButton,
-    Group,
-    ScrollArea,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Box, Code, Collapse, CopyButton, Group, ScrollArea, Text, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import {
-    IconCheck,
-    IconChevronDown,
-    IconChevronUp,
-    IconCopy,
-    IconExternalLink,
-} from "@tabler/icons-react";
+import { IconCheck, IconChevronDown, IconChevronUp, IconCopy, IconExternalLink } from "@tabler/icons-react";
 
 interface ApiDebugPanelProps {
     data: unknown;
@@ -33,10 +17,7 @@ function extractUrl(data: unknown): string | undefined {
     return typeof url === "string" && url.startsWith("http") ? url : undefined;
 }
 
-export function ApiDebugPanel({
-    data,
-    label = "API Response",
-}: ApiDebugPanelProps) {
+export function ApiDebugPanel({ data, label = "API Response" }: ApiDebugPanelProps) {
     const [opened, { toggle }] = useDisclosure(false);
     const json = JSON.stringify(data, null, 2);
     const linkUrl = extractUrl(data);
@@ -72,10 +53,7 @@ export function ApiDebugPanel({
                 <Group gap={4}>
                     <CopyButton value={json}>
                         {({ copied, copy }) => (
-                            <Tooltip
-                                label={copied ? "Copied!" : "Copy JSON"}
-                                withArrow
-                            >
+                            <Tooltip label={copied ? "Copied!" : "Copy JSON"} withArrow>
                                 <ActionIcon
                                     size="xs"
                                     variant="subtle"
@@ -85,11 +63,7 @@ export function ApiDebugPanel({
                                         copy();
                                     }}
                                 >
-                                    {copied ? (
-                                        <IconCheck size={12} />
-                                    ) : (
-                                        <IconCopy size={12} />
-                                    )}
+                                    {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
                                 </ActionIcon>
                             </Tooltip>
                         )}
@@ -102,11 +76,7 @@ export function ApiDebugPanel({
                                 color="orange"
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    window.open(
-                                        linkUrl,
-                                        "_blank",
-                                        "noopener,noreferrer",
-                                    );
+                                    window.open(linkUrl, "_blank", "noopener,noreferrer");
                                 }}
                             >
                                 <IconExternalLink size={12} />
@@ -114,11 +84,7 @@ export function ApiDebugPanel({
                         </Tooltip>
                     )}
                     <ActionIcon size="xs" variant="subtle" color="orange">
-                        {opened ? (
-                            <IconChevronUp size={14} />
-                        ) : (
-                            <IconChevronDown size={14} />
-                        )}
+                        {opened ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
                     </ActionIcon>
                 </Group>
             </Group>

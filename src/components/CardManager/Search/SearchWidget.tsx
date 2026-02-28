@@ -102,11 +102,7 @@ export function SearchWidget({
                     />
 
                     {searchMode === "text" ? (
-                        <CardManagerTextSearch
-                            query={query}
-                            setQuery={setQuery}
-                            loading={loading}
-                        />
+                        <CardManagerTextSearch query={query} setQuery={setQuery} loading={loading} />
                     ) : (
                         <CardManagerOCR
                             mode="camera"
@@ -125,9 +121,7 @@ export function SearchWidget({
                             loopActive={loopActive}
                             onLoopActiveChange={onLoopActiveChange}
                             manualCaptureDelay={manualCaptureDelay}
-                            onManualCaptureDelayChange={
-                                onManualCaptureDelayChange
-                            }
+                            onManualCaptureDelayChange={onManualCaptureDelayChange}
                             autoCaptureDelay={autoCaptureDelay}
                             onAutoCaptureDelayChange={onAutoCaptureDelayChange}
                             resetTrigger={resetTrigger}

@@ -1,12 +1,8 @@
-import {
-    computeMissedCollections,
-    saveScrapedCollections,
-} from "../persistence";
+import { computeMissedCollections, saveScrapedCollections } from "../persistence";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { FRANCHISES } from "@/constants/franchises";
 import type { ScraperOptions } from "../types";
-import { SCRAPER_MESSAGE_TYPE } from "../types";
-import { createWorkerUpdater, createStepLogger, reportScraperStats } from "../utils";
+import { createWorkerUpdater, createStepLogger, reportScraperStats, reportScraperChunk } from "../utils";
 
 export async function scrapeMTGCollections(options: ScraperOptions) {
     const { url, context, send, franchise, language, skipSave } = options;
@@ -29,12 +25,7 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
 
     try {
         while (true) {
-            const pageUrl =
-                p === 1
-                    ? url
-                    : url.includes("?")
-                        ? `${url}&page=${p}`
-                        : `${url}?page=${p}`;
+            const pageUrl = p === 1 ? url : url.includes("?") ? `${url}&page=${p}` : `${url}?page=${p}`;
             logStep(`Step 2: Navigating to: ${pageUrl} (Unique sets found: ${uniqueCollectionCodes.size})`);
 
             await workerPage.goto(pageUrl, {
@@ -43,10 +34,9 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
             });
 
             try {
-                await workerPage.waitForSelector(
-                    'a[href*="/sets/"], a[href*="set="]',
-                    { timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT },
-                );
+                await workerPage.waitForSelector('a[href*="/sets/"], a[href*="set="]', {
+                    timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
+                });
             } catch (e: any) {
                 // No sets on this page
             }
@@ -60,9 +50,7 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
                     const cells = row.querySelectorAll("td");
                     if (cells.length < 5) return;
 
-                    const setLink = row.querySelector(
-                        'a[href*="/sets/"], a[href*="set="]',
-                    ) as HTMLAnchorElement;
+                    const setLink = row.querySelector('a[href*="/sets/"], a[href*="set="]') as HTMLAnchorElement;
                     if (!setLink) return;
 
                     const name = setLink.textContent?.trim() || "";
@@ -70,9 +58,7 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
 
                     // Release date is typically in td index 4
                     const dateText = cells[4].textContent?.trim() || "";
-                    const releaseYear = dateText.match(/^\d{4}/)
-                        ? parseInt(dateText.slice(0, 4))
-                        : undefined;
+                    const releaseYear = dateText.match(/^\d{4}/) ? parseInt(dateText.slice(0, 4)) : undefined;
 
                     items.push({
                         name,
@@ -94,9 +80,7 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
             const pageSets = rawItems
                 .map((item: any) => {
                     const codeMatch = item.href.match(/\/sets\/([^/&?]+)/);
-                    const collectionCode = codeMatch
-                        ? codeMatch[1].toUpperCase()
-                        : "";
+                    const collectionCode = codeMatch ? codeMatch[1].toUpperCase() : "";
 
                     return {
                         name: item.name,
@@ -106,30 +90,20 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
                         releaseYear: item.releaseYear,
                     };
                 })
-                .filter(
-                    (s: any) => s.name && s.name !== "Sets" && s.collectionCode,
-                );
+                .filter((s: any) => s.name && s.name !== "Sets" && s.collectionCode);
 
-            const newSets = pageSets.filter(
-                (s: any) => !uniqueCollectionCodes.has(s.collectionCode),
-            );
+            const newSets = pageSets.filter((s: any) => !uniqueCollectionCodes.has(s.collectionCode));
 
             if (newSets.length === 0) {
                 logStep(`Page ${p} returned only duplicate sets. Extraction complete.`);
                 break;
             }
 
-            newSets.forEach((s: any) =>
-                uniqueCollectionCodes.add(s.collectionCode),
-            );
+            newSets.forEach((s: any) => uniqueCollectionCodes.add(s.collectionCode));
 
             logStep(`Step 4: Page ${p}: Discovered ${newSets.length} new sets.`);
 
-            send({
-                type: SCRAPER_MESSAGE_TYPE.CHUNK,
-                items: newSets,
-                startIndex: allDiscoveredSets.length,
-            });
+            reportScraperChunk(send, newSets, allDiscoveredSets.length);
             allDiscoveredSets.push(...newSets);
 
             if (!skipSave && franchise && language && newSets.length > 0) {
@@ -143,13 +117,12 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
                         totalAdded += addedItems.length;
                         totalMatched += matchedItems.length;
                         reportScraperStats(send, "collections", result);
-                        logStep(`Step 5: Page ${p}: Saved ${newSets.length} sets — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
+                        logStep(
+                            `Step 5: Page ${p}: Saved ${newSets.length} sets — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
+                        );
                     }
                 } catch (error) {
-                    console.error(
-                        `Failed to save collections for page ${p}:`,
-                        error,
-                    );
+                    console.error(`Failed to save collections for page ${p}:`, error);
                     logStep(`Warning: Failed to persist collections for page ${p}.`);
                 }
             }
@@ -157,13 +130,11 @@ export async function scrapeMTGCollections(options: ScraperOptions) {
             p++;
             if (p > 50) break;
         }
-        logStep(`Step 6: Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`);
+        logStep(
+            `Step 6: Summary: ${allDiscoveredSets.length} total sets scraped — ✅ ${totalAdded} newly added, 🔁 ${totalMatched} already in DB.`,
+        );
         if (!skipSave && franchise && language) {
-            const allCollectionUrls = new Set(
-                allDiscoveredSets
-                    .map((s: any) => s.collectionUrl)
-                    .filter(Boolean),
-            );
+            const allCollectionUrls = new Set(allDiscoveredSets.map((s: any) => s.collectionUrl).filter(Boolean));
             const missedResult = await computeMissedCollections(allCollectionUrls, {
                 franchise,
                 language,

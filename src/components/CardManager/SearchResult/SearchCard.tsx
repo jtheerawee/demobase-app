@@ -13,13 +13,7 @@ interface SearchCardProps {
     onImageClick: (url: string) => void;
 }
 
-export function SearchCard({
-    card,
-    addingId,
-    collectedCardIds,
-    onAddToCollection,
-    onImageClick,
-}: SearchCardProps) {
+export function SearchCard({ card, addingId, collectedCardIds, onAddToCollection, onImageClick }: SearchCardProps) {
     const isCollected = collectedCardIds.has(card.id);
 
     return (
@@ -47,11 +41,7 @@ export function SearchCard({
                         <IconExternalLink size={14} />
                     </ActionIcon>
                     <Tooltip
-                        label={
-                            isCollected
-                                ? "Already in your collection"
-                                : "Add to collection"
-                        }
+                        label={isCollected ? "Already in your collection" : "Add to collection"}
                         position="left"
                         withArrow
                     >

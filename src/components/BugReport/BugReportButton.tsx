@@ -32,8 +32,7 @@ export function BugReportButton() {
             console.error("Failed to capture screenshot:", error);
             notifications.show({
                 title: "Capture Failed",
-                message:
-                    "Could not capture a screenshot, but you can still report the bug.",
+                message: "Could not capture a screenshot, but you can still report the bug.",
                 color: "orange",
             });
             setScreenshot(null);
@@ -58,11 +57,7 @@ export function BugReportButton() {
                 </ActionIcon>
             </Tooltip>
 
-            <BugReportModal
-                opened={opened}
-                onClose={() => setOpened(false)}
-                screenshot={screenshot}
-            />
+            <BugReportModal opened={opened} onClose={() => setOpened(false)} screenshot={screenshot} />
         </>
     );
 }

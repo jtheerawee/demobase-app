@@ -34,17 +34,11 @@ export async function DELETE(request: Request) {
 
         if (error) {
             console.error("Delete error:", error);
-            return NextResponse.json(
-                { success: false, error: error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, count });
     } catch (error: any) {
-        return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

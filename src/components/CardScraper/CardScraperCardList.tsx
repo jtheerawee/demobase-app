@@ -1,20 +1,7 @@
 "use client";
 
-import {
-    ActionIcon,
-    Badge,
-    Card,
-    Flex,
-    Image,
-    ScrollArea,
-    SimpleGrid,
-    Stack,
-    Text,
-} from "@mantine/core";
-import {
-    IconExternalLink,
-    IconTrash,
-} from "@tabler/icons-react";
+import { ActionIcon, Badge, Card, Flex, Image, ScrollArea, SimpleGrid, Stack, Text } from "@mantine/core";
+import { IconExternalLink, IconTrash } from "@tabler/icons-react";
 import JSZip from "jszip";
 import { useMemo, useState } from "react";
 import { ListSearchInput } from "./ListSearchInput";
@@ -76,16 +63,13 @@ export function CardScraperCardList({
                 (c) =>
                     c.name.toLowerCase().includes(query) ||
                     (c.cardNo && c.cardNo.toLowerCase().includes(query)) ||
-                    (c.rarity && c.rarity.toLowerCase().includes(query))
+                    (c.rarity && c.rarity.toLowerCase().includes(query)),
             );
         }
         return result;
     }, [cards, filterInvalid, search]);
 
-    const invalidCount = useMemo(
-        () => cards.filter((c) => !c.rarity).length,
-        [cards],
-    );
+    const invalidCount = useMemo(() => cards.filter((c) => !c.rarity).length, [cards]);
 
     const downloadImage = async (card: CardItem) => {
         try {
@@ -175,9 +159,7 @@ export function CardScraperCardList({
                         onRefresh={onRefresh}
                         onDeleteAllCards={onDeleteAllCards}
                         filterInvalid={filterInvalid}
-                        onFilterInvalidToggle={() =>
-                            setFilterInvalid(!filterInvalid)
-                        }
+                        onFilterInvalidToggle={() => setFilterInvalid(!filterInvalid)}
                         loading={loading}
                         bulkDownloading={bulkDownloading}
                         downloadProgress={downloadProgress}
@@ -188,7 +170,6 @@ export function CardScraperCardList({
                 }
             />
             <Stack gap="md" style={{ flex: 1, minHeight: 0 }} p="sm">
-
                 <ListSearchInput
                     placeholder="Search by name, number, or rarity..."
                     value={search}
@@ -222,8 +203,7 @@ export function CardScraperCardList({
                                         top: 2,
                                         right: 2,
                                         zIndex: 10,
-                                        backgroundColor:
-                                            "rgba(255,255,255,0.8)",
+                                        backgroundColor: "rgba(255,255,255,0.8)",
                                     }}
                                     title="Delete Card"
                                 >
@@ -243,8 +223,7 @@ export function CardScraperCardList({
                                             top: 2,
                                             right: 22,
                                             zIndex: 10,
-                                            backgroundColor:
-                                                "rgba(255,255,255,0.8)",
+                                            backgroundColor: "rgba(255,255,255,0.8)",
                                         }}
                                         title="View Source"
                                     >
@@ -276,24 +255,10 @@ export function CardScraperCardList({
                                             {card.name}
                                         </Text>
                                         <Flex gap={2} wrap="wrap" justify="center">
-                                            <Badge
-                                                size="8px"
-                                                variant="light"
-                                                color="blue"
-                                                radius="xs"
-                                                px={2}
-                                                h={12}
-                                            >
+                                            <Badge size="8px" variant="light" color="blue" radius="xs" px={2} h={12}>
                                                 {card.cardNo || "---"}
                                             </Badge>
-                                            <Badge
-                                                size="8px"
-                                                variant="outline"
-                                                color="gray"
-                                                radius="xs"
-                                                px={2}
-                                                h={12}
-                                            >
+                                            <Badge size="8px" variant="outline" color="gray" radius="xs" px={2} h={12}>
                                                 {card.rarity || "---"}
                                             </Badge>
                                         </Flex>
@@ -304,9 +269,7 @@ export function CardScraperCardList({
                     </SimpleGrid>
                     {cards.length === 0 && !loading && (
                         <Text size="sm" c="dimmed" ta="center" py="xl">
-                            {canDownload
-                                ? "Download items to see cards."
-                                : "Select a collection first."}
+                            {canDownload ? "Download items to see cards." : "Select a collection first."}
                         </Text>
                     )}
                     {loading && (

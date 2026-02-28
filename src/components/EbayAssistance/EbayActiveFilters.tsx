@@ -91,24 +91,11 @@ export function EbayActiveFilters({
         ...(onlyUs ? { onlyUs: true } : {}),
     });
 
-    const ApiPopover = ({
-        label,
-        color,
-        params,
-    }: {
-        label: string;
-        color: string;
-        params: object;
-    }) => (
+    const ApiPopover = ({ label, color, params }: { label: string; color: string; params: object }) => (
         <Popover width={360} position="bottom-end" withArrow shadow="md">
             <Popover.Target>
                 <Tooltip label={`${label} API params`} withArrow>
-                    <ActionIcon
-                        variant="light"
-                        color={color}
-                        size="sm"
-                        radius="sm"
-                    >
+                    <ActionIcon variant="light" color={color} size="sm" radius="sm">
                         <IconCode size={14} />
                     </ActionIcon>
                 </Tooltip>
@@ -143,16 +130,8 @@ export function EbayActiveFilters({
         >
             <Stack gap="md">
                 <Group justify="flex-end" gap="xs">
-                    <ApiPopover
-                        label="ACTIVE"
-                        color="orange"
-                        params={buildActiveParams()}
-                    />
-                    <ApiPopover
-                        label="SOLD"
-                        color="blue"
-                        params={buildSoldParams()}
-                    />
+                    <ApiPopover label="ACTIVE" color="orange" params={buildActiveParams()} />
+                    <ApiPopover label="SOLD" color="blue" params={buildSoldParams()} />
                 </Group>
                 <SimpleGrid cols={1} spacing="md">
                     <TextInput
@@ -187,9 +166,7 @@ export function EbayActiveFilters({
                                 },
                             ]}
                             value={service}
-                            onChange={(value) =>
-                                onServiceChange(value || "psa")
-                            }
+                            onChange={(value) => onServiceChange(value || "psa")}
                             styles={{
                                 input: {
                                     borderRadius: "8px",
@@ -199,18 +176,7 @@ export function EbayActiveFilters({
                         <Select
                             label={t("grade")}
                             disabled={service === "---"}
-                            data={[
-                                "10",
-                                "9",
-                                "8",
-                                "7",
-                                "6",
-                                "5",
-                                "4",
-                                "3",
-                                "2",
-                                "1",
-                            ]}
+                            data={["10", "9", "8", "7", "6", "5", "4", "3", "2", "1"]}
                             value={psa}
                             onChange={(value) => onPsaChange(value || "")}
                             styles={{
@@ -248,17 +214,13 @@ export function EbayActiveFilters({
                         <Checkbox
                             label={t("excludeJp")}
                             checked={excludeJp}
-                            onChange={(e) =>
-                                onExcludeJpChange(e.currentTarget.checked)
-                            }
+                            onChange={(e) => onExcludeJpChange(e.currentTarget.checked)}
                             color="orange"
                         />
                         <Checkbox
                             label={t("onlyUs")}
                             checked={onlyUs}
-                            onChange={(e) =>
-                                onOnlyUsChange(e.currentTarget.checked)
-                            }
+                            onChange={(e) => onOnlyUsChange(e.currentTarget.checked)}
                             color="orange"
                         />
                     </Group>

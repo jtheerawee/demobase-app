@@ -9,12 +9,7 @@ interface CameraStatusProps {
     loopActive?: boolean;
 }
 
-export function CameraStatus({
-    autoCapture = false,
-    countdown,
-    paused,
-    loopActive,
-}: CameraStatusProps) {
+export function CameraStatus({ autoCapture = false, countdown, paused, loopActive }: CameraStatusProps) {
     if (!autoCapture || (countdown === null && !paused) || !loopActive) {
         return null;
     }
@@ -29,9 +24,7 @@ export function CameraStatus({
             color={paused ? "orange" : "blue"}
             style={{ zIndex: 11 }}
         >
-            {paused
-                ? "Waiting for response..."
-                : `Auto-capturing in ${countdown}s...`}
+            {paused ? "Waiting for response..." : `Auto-capturing in ${countdown}s...`}
         </Badge>
     );
 }

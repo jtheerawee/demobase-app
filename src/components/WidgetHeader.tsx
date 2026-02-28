@@ -11,13 +11,7 @@ interface WidgetHeaderProps {
     actions?: ReactNode;
 }
 
-export function WidgetHeader({
-    title,
-    count,
-    loading,
-    badgeColor = "blue",
-    actions,
-}: WidgetHeaderProps) {
+export function WidgetHeader({ title, count, loading, badgeColor = "blue", actions }: WidgetHeaderProps) {
     return (
         <Stack gap={0}>
             <Group justify="space-between" align="center" px="sm" py="xs">

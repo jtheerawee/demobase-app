@@ -7,19 +7,9 @@ interface CardScraperSettingsModalProps {
     onLimitChange: (val: number) => void;
 }
 
-export function CardScraperSettingsModal({
-    opened,
-    onClose,
-    limit,
-    onLimitChange,
-}: CardScraperSettingsModalProps) {
+export function CardScraperSettingsModal({ opened, onClose, limit, onLimitChange }: CardScraperSettingsModalProps) {
     return (
-        <Modal
-            opened={opened}
-            onClose={onClose}
-            title={<Text fw={700}>Scraper Settings</Text>}
-            radius="md"
-        >
+        <Modal opened={opened} onClose={onClose} title={<Text fw={700}>Scraper Settings</Text>} radius="md">
             <Stack gap="md">
                 <NumberInput
                     label="Max cards per collection"
@@ -28,10 +18,7 @@ export function CardScraperSettingsModal({
                     onChange={(val) => {
                         const num = Number(val);
                         onLimitChange(num);
-                        localStorage.setItem(
-                            "scraper_card_limit",
-                            num.toString(),
-                        );
+                        localStorage.setItem("scraper_card_limit", num.toString());
                     }}
                     min={1}
                     max={1000}

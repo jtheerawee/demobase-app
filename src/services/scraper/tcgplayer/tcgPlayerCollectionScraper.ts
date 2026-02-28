@@ -2,8 +2,7 @@ import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCollections } from "@/services/scraper/persistence";
 import type { ScraperOptions } from "@/services/scraper/types";
-import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import { createStepLogger, reportScraperStats } from "@/services/scraper/utils";
+import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
 
 export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
     const { url, context, send, franchise, language } = options;
@@ -70,20 +69,15 @@ export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
 
             // Try specific container first, then fall back to ANY facets if it's somehow different
             const container =
-                document.querySelector(
-                    ".hfb-popover .search-filter__facets.scrollable",
-                ) ||
+                document.querySelector(".hfb-popover .search-filter__facets.scrollable") ||
                 document.querySelector(".hfb-popover") ||
                 document;
 
-            const items = container.querySelectorAll(
-                ".search-filter__facet, .search-filter__facet__facet-name",
-            );
+            const items = container.querySelectorAll(".search-filter__facet, .search-filter__facet__facet-name");
 
             items.forEach((item) => {
                 // Try label first, then just take innerText of the whole facet item
-                const label =
-                    item.querySelector(".tcg-input-checkbox__label") || item;
+                const label = item.querySelector(".tcg-input-checkbox__label") || item;
 
                 // Get name from spans or textContent
                 const spans = label.querySelectorAll("span");
@@ -113,10 +107,7 @@ export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
 
         for (const col of collections) {
             // Map the slug to a set number if available, otherwise fallback to slug
-            const setMap =
-                franchise === "pokemon"
-                    ? APP_CONFIG.POKEMON_SET_MAP
-                    : APP_CONFIG.LORCANA_SET_MAP;
+            const setMap = franchise === "pokemon" ? APP_CONFIG.POKEMON_SET_MAP : APP_CONFIG.LORCANA_SET_MAP;
             const setCode = setMap[col.slug] || col.slug.toUpperCase();
 
             // Construct URL dynamically from the base url
@@ -135,26 +126,25 @@ export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
             });
         }
 
-        logStep(`Found ${sharedCollectionList.length} collections: ${sharedCollectionList
-            .map((c) => c.name)
-            .slice(0, 3)
-            .join(", ")}...`);
+        logStep(
+            `Found ${sharedCollectionList.length} collections: ${sharedCollectionList
+                .map((c) => c.name)
+                .slice(0, 3)
+                .join(", ")}...`,
+        );
 
         await page.close();
     } catch (err) {
         console.error(`Failed to fetch ${franchise} collections:`, err);
-        logStep("Error: Could not fetch set list from TCGPlayer. " +
-            (err instanceof Error ? err.message : String(err)));
+        logStep(
+            "Error: Could not fetch set list from TCGPlayer. " + (err instanceof Error ? err.message : String(err)),
+        );
         return;
     }
 
     if (franchise && language && sharedCollectionList.length > 0) {
         // Send to UI immediately for feedback
-        send({
-            type: SCRAPER_MESSAGE_TYPE.CHUNK,
-            items: sharedCollectionList,
-            startIndex: 0,
-        });
+        reportScraperChunk(send, sharedCollectionList, 0);
 
         logStep(`Scraped ${sharedCollectionList.length} collections from TCGPlayer. Registering...`);
 
@@ -166,7 +156,9 @@ export async function scrapeTCGPlayerCollections(options: ScraperOptions) {
             if (result) {
                 const { saved, addedItems, matchedItems } = result;
                 reportScraperStats(send, "collections", result);
-                logStep(`Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
+                logStep(
+                    `Successfully registered ${sharedCollectionList.length} ${franchise} collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
+                );
             }
         } catch (error) {
             console.error(`Failed to save ${franchise} sets:`, error);

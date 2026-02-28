@@ -1,13 +1,4 @@
-import {
-    Avatar,
-    Badge,
-    Box,
-    Button,
-    Container,
-    Group,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { Avatar, Badge, Box, Button, Container, Group, Text, Tooltip } from "@mantine/core";
 import { IconNetwork, IconWorld } from "@tabler/icons-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -43,9 +34,7 @@ import { BugReportButton } from "./BugReport/BugReportButton";
 export async function Navbar() {
     const headerList = await headers();
     const forwarded = headerList.get("x-forwarded-for");
-    const clientIp = forwarded
-        ? forwarded.split(",")[0].trim()
-        : headerList.get("x-real-ip") || "127.0.0.1";
+    const clientIp = forwarded ? forwarded.split(",")[0].trim() : headerList.get("x-real-ip") || "127.0.0.1";
 
     const localIp = getLocalIp();
     const supabase = await createClient();
@@ -129,11 +118,7 @@ export async function Navbar() {
                         {user && (
                             <Avatar
                                 src={user.user_metadata?.avatar_url}
-                                alt={
-                                    user.user_metadata?.full_name ??
-                                    user.email ??
-                                    ""
-                                }
+                                alt={user.user_metadata?.full_name ?? user.email ?? ""}
                                 radius="xl"
                                 size="sm"
                             />
@@ -141,12 +126,7 @@ export async function Navbar() {
 
                         {user ? (
                             <form action={signOut}>
-                                <Button
-                                    type="submit"
-                                    variant="light"
-                                    color="red"
-                                    size="sm"
-                                >
+                                <Button type="submit" variant="light" color="red" size="sm">
                                     {t("signOut")}
                                 </Button>
                             </form>

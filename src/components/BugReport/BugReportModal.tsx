@@ -1,17 +1,6 @@
 "use client";
 
-import {
-    Box,
-    Button,
-    Group,
-    Image,
-    LoadingOverlay,
-    Modal,
-    Stack,
-    Text,
-    Textarea,
-    TextInput,
-} from "@mantine/core";
+import { Box, Button, Group, Image, LoadingOverlay, Modal, Stack, Text, Textarea, TextInput } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconBug, IconCheck } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -23,11 +12,7 @@ interface BugReportModalProps {
     screenshot: string | null;
 }
 
-export function BugReportModal({
-    opened,
-    onClose,
-    screenshot,
-}: BugReportModalProps) {
+export function BugReportModal({ opened, onClose, screenshot }: BugReportModalProps) {
     const [description, setDescription] = useState("");
     const [email, setEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,15 +74,11 @@ export function BugReportModal({
             size="lg"
         >
             <Box pos="relative">
-                <LoadingOverlay
-                    visible={isSubmitting}
-                    overlayProps={{ blur: 2 }}
-                />
+                <LoadingOverlay visible={isSubmitting} overlayProps={{ blur: 2 }} />
 
                 <Stack gap="md">
                     <Text size="sm" c="dimmed">
-                        Tell us what went wrong. A screenshot of the current
-                        page has been captured to help us debug.
+                        Tell us what went wrong. A screenshot of the current page has been captured to help us debug.
                     </Text>
 
                     <TextInput

@@ -15,6 +15,5 @@ export const OCR_CONFIG = {
 
     // OCR_TEXT_API_URL: "http://localhost:8000/ocr/text-only",
 
-    OCR_TEXT_API_URL:
-        "https://ocr-api-production-3bfa.up.railway.app/ocr/text-only",
+    OCR_TEXT_API_URL: "https://ocr-api-production-3bfa.up.railway.app/ocr/text-only",
 };

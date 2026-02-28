@@ -3,13 +3,7 @@ import { saveScrapedCards } from "@/services/scraper/persistence";
 import { type ScraperOptions } from "@/services/scraper/types";
 import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
 
-export async function scrapeOnepieceCards({
-    url,
-    context,
-    collectionId,
-    send,
-    cardLimit,
-}: ScraperOptions) {
+export async function scrapeOnepieceCards({ url, context, collectionId, send, cardLimit }: ScraperOptions) {
     const logStep = createStepLogger(send);
     const limit = cardLimit ?? CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION;
     const cards: any[] = [];
@@ -29,14 +23,8 @@ export async function scrapeOnepieceCards({
         // Discover total card count using a cascade of fancybox selector patterns
         const totalAnchors = await page.evaluate(() => {
             const candidates: [string, number][] = [
-                [
-                    "a[data-fancybox]",
-                    document.querySelectorAll("a[data-fancybox]").length,
-                ],
-                [
-                    'a[data-src^="#"]',
-                    document.querySelectorAll('a[data-src^="#"]').length,
-                ],
+                ["a[data-fancybox]", document.querySelectorAll("a[data-fancybox]").length],
+                ['a[data-src^="#"]', document.querySelectorAll('a[data-src^="#"]').length],
                 ["dl a", document.querySelectorAll("dl a").length],
             ];
             const [, count] = candidates.find(([, n]) => n > 0) ?? ["", 0];
@@ -55,13 +43,7 @@ export async function scrapeOnepieceCards({
 
             // Click the Nth anchor to trigger fancybox
             const clicked = await page.evaluate(
-                ({
-                    idx,
-                    candidates,
-                }: {
-                    idx: number;
-                    candidates: string[];
-                }) => {
+                ({ idx, candidates }: { idx: number; candidates: string[] }) => {
                     for (const sel of candidates) {
                         const anchors = document.querySelectorAll(sel);
                         const el = anchors[idx] as HTMLElement | undefined;
@@ -74,11 +56,7 @@ export async function scrapeOnepieceCards({
                 },
                 {
                     idx: N - 1,
-                    candidates: [
-                        "a[data-fancybox]",
-                        'a[data-src^="#"]',
-                        "dl a",
-                    ],
+                    candidates: ["a[data-fancybox]", 'a[data-src^="#"]', "dl a"],
                 },
             );
 
@@ -89,10 +67,10 @@ export async function scrapeOnepieceCards({
 
             // Wait for modal to be visible
             try {
-                await page.waitForSelector(
-                    ".fancybox-slide--current .cardDetail, .fancybox-content, .fancybox-inner",
-                    { state: "visible", timeout: 10000 },
-                );
+                await page.waitForSelector(".fancybox-slide--current .cardDetail, .fancybox-content, .fancybox-inner", {
+                    state: "visible",
+                    timeout: 10000,
+                });
             } catch {
                 logStep(`[${N}] No modal appeared — stopping.`);
                 break;
@@ -104,7 +82,7 @@ export async function scrapeOnepieceCards({
                     () => {
                         const info = document.querySelector(
                             ".fancybox-slide--current .infoCol, .fancybox-slide--current .info_col," +
-                            ".fancybox-content .infoCol, .fancybox-content .info_col",
+                                ".fancybox-content .infoCol, .fancybox-content .info_col",
                         );
                         return !!info?.textContent?.includes("|");
                     },
@@ -117,40 +95,28 @@ export async function scrapeOnepieceCards({
             // Scrape card data from the open modal
             const details = await page.evaluate(() => {
                 const modal =
-                    document.querySelector(
-                        ".fancybox-slide--current .cardDetail",
-                    ) ||
+                    document.querySelector(".fancybox-slide--current .cardDetail") ||
                     document.querySelector(".fancybox-content") ||
                     document.querySelector(".fancybox-inner");
                 if (!modal) return null;
 
-                const name =
-                    modal
-                        .querySelector(".cardName, .name, h2, h3")
-                        ?.textContent?.trim() || "";
+                const name = modal.querySelector(".cardName, .name, h2, h3")?.textContent?.trim() || "";
 
                 // Rarity from pipe-separated infoCol
                 let rarity = "";
                 const infoCol = modal.querySelector(".infoCol, .info_col");
                 if (infoCol) {
-                    const parts = (infoCol.textContent || "")
-                        .split("|")
-                        .map((p: string) => p.trim());
+                    const parts = (infoCol.textContent || "").split("|").map((p: string) => p.trim());
                     if (parts.length >= 2) rarity = parts[1];
                 }
                 if (!rarity) {
-                    const m = (modal.textContent || "").match(
-                        /\b(L|SEC|SR|R|UC|C|P)\b/,
-                    );
+                    const m = (modal.textContent || "").match(/\b(L|SEC|SR|R|UC|C|P)\b/);
                     if (m) rarity = m[1];
                 }
 
                 // Image URL → cardNo
-                const imgEl = modal.querySelector(
-                    "img",
-                ) as HTMLImageElement | null;
-                const rawSrc =
-                    imgEl?.getAttribute("data-src") || imgEl?.src || "";
+                const imgEl = modal.querySelector("img") as HTMLImageElement | null;
+                const rawSrc = imgEl?.getAttribute("data-src") || imgEl?.src || "";
                 let imageUrl = "";
                 if (rawSrc) {
                     try {
@@ -162,9 +128,7 @@ export async function scrapeOnepieceCards({
                 }
 
                 let cardNo = "N/A";
-                const filename = imageUrl
-                    ? imageUrl.split("/").pop()?.split("?")[0] || ""
-                    : "";
+                const filename = imageUrl ? imageUrl.split("/").pop()?.split("?")[0] || "" : "";
                 if (filename) {
                     const m = filename.match(/[A-Z]{1,4}\d*-(\d+)/i);
                     if (m) cardNo = m[1];
@@ -181,7 +145,9 @@ export async function scrapeOnepieceCards({
 
             // Stop when modal has no valid card data
             if (!details || details.cardNo === "N/A" || !details.rarity) {
-                logStep(`[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}", file="${details?.debugFilename}")`);
+                logStep(
+                    `[${N}] Invalid data — stopping. (cardNo="${details?.cardNo}", rarity="${details?.rarity}", file="${details?.debugFilename}")`,
+                );
                 break;
             }
 
@@ -231,7 +197,9 @@ export async function scrapeOnepieceCards({
             if (result) {
                 const { addedItems, matchedItems } = result;
                 reportScraperStats(send, "cards", result);
-                logStep(`✨ Scrape Complete! Saved ${uniqueCards.length} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
+                logStep(
+                    `✨ Scrape Complete! Saved ${uniqueCards.length} cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
+                );
             }
         } else if (cards.length === 0) {
             logStep("Scrape finished with 0 cards.");

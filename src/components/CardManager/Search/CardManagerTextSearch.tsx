@@ -10,11 +10,7 @@ interface CardManagerTextSearchProps {
     loading: boolean;
 }
 
-export function CardManagerTextSearch({
-    query,
-    setQuery,
-    loading,
-}: CardManagerTextSearchProps) {
+export function CardManagerTextSearch({ query, setQuery, loading }: CardManagerTextSearchProps) {
     return (
         <TextInput
             placeholder={`Type card name (min ${CARD_MANAGER_CONFIG.SEARCH.MIN_CHARS} chars)...`}
@@ -22,11 +18,7 @@ export function CardManagerTextSearch({
             w="100%"
             leftSection={<IconSearch size={18} />}
             rightSection={
-                loading ? (
-                    <Loader size="xs" />
-                ) : query !== "" ? (
-                    <CloseButton onClick={() => setQuery("")} />
-                ) : null
+                loading ? <Loader size="xs" /> : query !== "" ? <CloseButton onClick={() => setQuery("")} /> : null
             }
             value={query}
             onChange={(e) => setQuery(e.currentTarget.value)}

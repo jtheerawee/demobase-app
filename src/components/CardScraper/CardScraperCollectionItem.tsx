@@ -22,20 +22,13 @@ interface CardScraperCollectionItemProps {
     onDelete?: () => void;
 }
 
-export function CardScraperCollectionItem({
-    item,
-    selected,
-    onSelect,
-    onDelete,
-}: CardScraperCollectionItemProps) {
+export function CardScraperCollectionItem({ item, selected, onSelect, onDelete }: CardScraperCollectionItemProps) {
     const mappedCode = (() => {
         if (item.franchise === "pokemon" && item.collectionCode) {
             const map = APP_CONFIG.POKEMON_SET_MAP as Record<string, string>;
             const code = item.collectionCode.toLowerCase();
             // Try to find the key by value (case-insensitive)
-            const keyByValue = Object.keys(map).find(
-                (key) => map[key].toLowerCase() === code,
-            );
+            const keyByValue = Object.keys(map).find((key) => map[key].toLowerCase() === code);
             return keyByValue ?? item.collectionCode;
         }
         return item.collectionCode;
@@ -48,12 +41,8 @@ export function CardScraperCollectionItem({
             radius="sm"
             style={{
                 cursor: "pointer",
-                borderColor: selected
-                    ? "var(--mantine-color-blue-filled)"
-                    : undefined,
-                backgroundColor: selected
-                    ? "var(--mantine-color-blue-light)"
-                    : undefined,
+                borderColor: selected ? "var(--mantine-color-blue-filled)" : undefined,
+                backgroundColor: selected ? "var(--mantine-color-blue-light)" : undefined,
             }}
             onClick={onSelect}
         >
@@ -64,25 +53,13 @@ export function CardScraperCollectionItem({
                             {item.name}
                         </Text>
                         {item.collectionCode && (
-                            <Badge
-                                size="xs"
-                                variant="outline"
-                                color="gray"
-                                style={{ flexShrink: 0 }}
-                            >
+                            <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
                                 {item.collectionCode}
-                                {mappedCode &&
-                                    mappedCode !== item.collectionCode &&
-                                    ` (${mappedCode})`}
+                                {mappedCode && mappedCode !== item.collectionCode && ` (${mappedCode})`}
                             </Badge>
                         )}
                         {item.releaseYear && (
-                            <Badge
-                                size="xs"
-                                variant="light"
-                                color="orange"
-                                style={{ flexShrink: 0 }}
-                            >
+                            <Badge size="xs" variant="light" color="orange" style={{ flexShrink: 0 }}>
                                 {item.releaseYear}
                             </Badge>
                         )}

@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    Box,
-    Center,
-    Loader,
-    LoadingOverlay,
-    Stack,
-    Text,
-} from "@mantine/core";
+import { Box, Center, Loader, LoadingOverlay, Stack, Text } from "@mantine/core";
 import type { FileWithPath } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -103,13 +96,7 @@ export function CameraView({
     setPreview,
 }: CameraViewProps) {
     const [cameraActive, setCameraActive] = useState(false);
-    const {
-        devices,
-        selectedDeviceId,
-        setSelectedDeviceId,
-        loadDevices,
-        getSavedDeviceId,
-    } = useCameraDevices();
+    const { devices, selectedDeviceId, setSelectedDeviceId, loadDevices, getSavedDeviceId } = useCameraDevices();
     const [isEnlarged, setIsEnlarged] = useState(false);
 
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -130,13 +117,10 @@ export function CameraView({
         stopCamera();
         try {
             const constraints: MediaStreamConstraints = {
-                video: deviceId
-                    ? { deviceId: { exact: deviceId } }
-                    : { facingMode: "environment" },
+                video: deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" },
             };
 
-            const stream =
-                await navigator.mediaDevices.getUserMedia(constraints);
+            const stream = await navigator.mediaDevices.getUserMedia(constraints);
             streamRef.current = stream;
             setCameraActive(true);
             loadDevices();
@@ -207,11 +191,9 @@ export function CameraView({
             canvas.toBlob(
                 (blob) => {
                     if (blob) {
-                        const capturedFile = new File(
-                            [blob],
-                            `capture-${Date.now()}.jpg`,
-                            { type: "image/jpeg" },
-                        ) as FileWithPath;
+                        const capturedFile = new File([blob], `capture-${Date.now()}.jpg`, {
+                            type: "image/jpeg",
+                        }) as FileWithPath;
                         const url = URL.createObjectURL(capturedFile);
                         setPreview(url);
                         onCapture(capturedFile);
@@ -221,15 +203,7 @@ export function CameraView({
                 0.9,
             );
         }
-    }, [
-        autoCapture,
-        onLoopActiveChange,
-        preview,
-        setPreview,
-        onScanStart,
-        onCapture,
-        playShutterSound,
-    ]);
+    }, [autoCapture, onLoopActiveChange, preview, setPreview, onScanStart, onCapture, playShutterSound]);
 
     const handleDeviceChange = (deviceId: string | null) => {
         if (deviceId) {
@@ -298,11 +272,7 @@ export function CameraView({
                     backgroundColor: "#000",
                 }}
             >
-                <LoadingOverlay
-                    visible={loading}
-                    overlayProps={{ blur: 2 }}
-                    loaderProps={{ size: "md" }}
-                />
+                <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} loaderProps={{ size: "md" }} />
 
                 {!cameraActive ? (
                     <Center h="100%" bg="var(--mantine-color-gray-0)">
@@ -349,9 +319,7 @@ export function CameraView({
                                 color: "#fff",
                                 lineHeight: 1,
                                 textShadow: "0 0 40px rgba(0,0,0,0.8)",
-                                transition: fading
-                                    ? "opacity 0.65s ease-out, transform 0.65s ease-out"
-                                    : "none",
+                                transition: fading ? "opacity 0.65s ease-out, transform 0.65s ease-out" : "none",
                                 opacity: fading ? 0 : 1,
                                 transform: fading ? "scale(1.5)" : "scale(1)",
                             }}
@@ -373,10 +341,7 @@ export function CameraView({
                     onClear={onClear}
                 />
 
-                <ImageThumbnail
-                    preview={preview || null}
-                    onEnlarge={() => setIsEnlarged(true)}
-                />
+                <ImageThumbnail preview={preview || null} onEnlarge={() => setIsEnlarged(true)} />
             </Box>
 
             <ImagePreviewModal

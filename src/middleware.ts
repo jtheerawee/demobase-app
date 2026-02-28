@@ -39,18 +39,13 @@ export async function middleware(request: NextRequest) {
 
     // Restricted routes check
     const { pathname } = request.nextUrl;
-    const isRestrictedTarget =
-        pathname.includes("/card-scraper") || pathname.includes("/ebay");
+    const isRestrictedTarget = pathname.includes("/card-scraper") || pathname.includes("/ebay");
 
     if (isRestrictedTarget) {
         let isAdmin = false;
 
         if (user) {
-            const { data: profile } = await supabase
-                .from("users")
-                .select("role")
-                .eq("id", user.id)
-                .single();
+            const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single();
 
             if (profile?.role === 2) {
                 isAdmin = true;

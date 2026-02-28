@@ -22,8 +22,7 @@ export function WidgetCard({ title, href, icon }: WidgetCardProps) {
                 }}
                 styles={{
                     root: {
-                        transition:
-                            "box-shadow 150ms ease, transform 150ms ease",
+                        transition: "box-shadow 150ms ease, transform 150ms ease",
                         "&:hover": {
                             boxShadow: "var(--mantine-shadow-md)",
                             transform: "translateY(-2px)",

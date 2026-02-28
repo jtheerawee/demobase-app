@@ -26,10 +26,7 @@ export async function GET(request: Request) {
 
         if (error) {
             console.error("[API] Error fetching cards:", error);
-            return NextResponse.json(
-                { success: false, error: error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         const cards = data.map((card) => ({
@@ -47,10 +44,7 @@ export async function GET(request: Request) {
         });
     } catch (err: any) {
         console.error("[API] Unexpected error fetching cards:", err);
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
 
@@ -82,17 +76,11 @@ export async function DELETE(request: Request) {
         const { error } = await query;
 
         if (error) {
-            return NextResponse.json(
-                { success: false, error: error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

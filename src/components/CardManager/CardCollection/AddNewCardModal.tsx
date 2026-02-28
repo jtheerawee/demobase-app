@@ -1,14 +1,6 @@
 "use client";
 
-import {
-    Button,
-    Group,
-    Image,
-    Modal,
-    Select,
-    Stack,
-    Text,
-} from "@mantine/core";
+import { Button, Group, Image, Modal, Select, Stack, Text } from "@mantine/core";
 import { CONDITIONS, DEFAULT_CONDITION } from "@/constants/conditions";
 import { VARIANTS, DEFAULT_VARIANT } from "@/constants/variants";
 import type { CollectedCard } from "./CollectedCard";
@@ -115,12 +107,7 @@ export function AddNewCardModal({
                         <Button variant="default" size="sm" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button
-                            size="sm"
-                            color="green"
-                            loading={adding}
-                            onClick={onAdd}
-                        >
+                        <Button size="sm" color="green" loading={adding} onClick={onAdd}>
                             Add Entry
                         </Button>
                     </Group>

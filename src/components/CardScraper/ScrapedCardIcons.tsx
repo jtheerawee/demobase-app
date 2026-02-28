@@ -1,13 +1,7 @@
 "use client";
 
 import { ActionIcon, Group, Tooltip } from "@mantine/core";
-import {
-    IconDownload,
-    IconFilter,
-    IconFilterOff,
-    IconRefresh,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconDownload, IconFilter, IconFilterOff, IconRefresh, IconTrash } from "@tabler/icons-react";
 
 interface ScrapedCardIconsProps {
     onDownloadCards?: () => void;
@@ -83,14 +77,7 @@ export function ScrapedCardIcons({
                     <IconDownload size={14} />
                 </ActionIcon>
             </Tooltip>
-            <Tooltip
-                label={
-                    filterInvalid
-                        ? "Show all cards"
-                        : "Filter invalid cards (no rarity)"
-                }
-                withArrow
-            >
+            <Tooltip label={filterInvalid ? "Show all cards" : "Filter invalid cards (no rarity)"} withArrow>
                 <ActionIcon
                     variant={filterInvalid ? "filled" : "light"}
                     color={filterInvalid ? "orange" : "gray"}
@@ -98,11 +85,7 @@ export function ScrapedCardIcons({
                     onClick={onFilterInvalidToggle}
                     disabled={invalidCount === 0 && !filterInvalid}
                 >
-                    {filterInvalid ? (
-                        <IconFilterOff size={14} />
-                    ) : (
-                        <IconFilter size={14} />
-                    )}
+                    {filterInvalid ? <IconFilterOff size={14} /> : <IconFilter size={14} />}
                 </ActionIcon>
             </Tooltip>
             <Tooltip label="Delete all cards in this collection" withArrow>

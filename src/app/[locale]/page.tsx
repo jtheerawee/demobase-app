@@ -1,9 +1,5 @@
 import { Container, SimpleGrid, Stack } from "@mantine/core";
-import {
-    IconDatabaseExport,
-    IconLayoutDashboard,
-    IconShoppingCart,
-} from "@tabler/icons-react";
+import { IconDatabaseExport, IconLayoutDashboard, IconShoppingCart } from "@tabler/icons-react";
 import { WidgetCard } from "@/components/WidgetCard";
 import { isAdmin as checkIsAdmin } from "@/utils/auth";
 
@@ -13,20 +9,12 @@ export default async function HomePage() {
     return (
         <Container size="xl" py="xl">
             <Stack gap="xl">
-                <SimpleGrid
-                    cols={{ base: 1, sm: 2, md: 3, lg: 4 }}
-                    spacing="md"
-                >
+                <SimpleGrid cols={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing="md">
                     {isAdmin && (
                         <WidgetCard
                             title="eBay Assistance"
                             href="/ebay/assistance"
-                            icon={
-                                <IconShoppingCart
-                                    size={24}
-                                    color="var(--mantine-color-orange-6)"
-                                />
-                            }
+                            icon={<IconShoppingCart size={24} color="var(--mantine-color-orange-6)" />}
                         />
                     )}
 
@@ -34,24 +22,14 @@ export default async function HomePage() {
                         <WidgetCard
                             title="Card Scraper"
                             href="/card-scraper"
-                            icon={
-                                <IconDatabaseExport
-                                    size={24}
-                                    color="var(--mantine-color-blue-6)"
-                                />
-                            }
+                            icon={<IconDatabaseExport size={24} color="var(--mantine-color-blue-6)" />}
                         />
                     )}
 
                     <WidgetCard
                         title="Card Manager"
                         href="/card-manager"
-                        icon={
-                            <IconLayoutDashboard
-                                size={24}
-                                color="var(--mantine-color-grape-6)"
-                            />
-                        }
+                        icon={<IconLayoutDashboard size={24} color="var(--mantine-color-grape-6)" />}
                     />
                 </SimpleGrid>
             </Stack>

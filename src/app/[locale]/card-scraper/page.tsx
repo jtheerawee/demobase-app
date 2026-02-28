@@ -16,13 +16,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import {
-    IconAlertCircle,
-    IconCheck,
-    IconDatabaseExport,
-    IconSettings,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconAlertCircle, IconCheck, IconDatabaseExport, IconSettings, IconTrash } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardList";
 import { CardScraperCollectionList } from "@/components/CardScraper/CardScraperCollectionList";
@@ -31,10 +25,7 @@ import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRun
 import { CardScraperSettingsModal } from "@/components/CardScraper/CardScraperSettingsModal";
 import { CardScraperPageHeaderIcons } from "@/components/CardScraper/CardScraperPageHeaderIcons";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import {
-    CardScraperStats,
-    type ScraperStats,
-} from "@/components/CardScraper/CardScraperStats";
+import { CardScraperStats, type ScraperStats } from "@/components/CardScraper/CardScraperStats";
 import { PageHeader } from "@/components/PageHeader";
 import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
@@ -55,29 +46,21 @@ const DEFAULT_STATS: ScraperStats = {
 };
 
 export default function CardScraperPage() {
-    const [selectedFranchise, setSelectedFranchise] = useState<string | null>(
-        null,
-    );
-    const [selectedLanguage, setSelectedLanguage] = useState<string | null>(
-        null,
-    );
+    const [selectedFranchise, setSelectedFranchise] = useState<string | null>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
     const [collections, setCollections] = useState<any[]>([]);
     const [cards, setCards] = useState<any[]>([]);
     const [steps, setSteps] = useState<any[]>([]);
-    const [scraperStats, setScraperStats] =
-        useState<ScraperStats>(DEFAULT_STATS);
+    const [scraperStats, setScraperStats] = useState<ScraperStats>(DEFAULT_STATS);
     const [collectionLoading, setCollectionLoading] = useState(false);
     const [cardLoading, setCardLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [selectedCollection, setSelectedCollection] = useState<any | null>(
-        null,
-    );
+    const [selectedCollection, setSelectedCollection] = useState<any | null>(null);
     const [workerCount, setWorkerCount] = useState(0);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const pendingActionRef = useRef<(() => void) | null>(null);
-    const [confirmOpened, { open: openConfirm, close: closeConfirm }] =
-        useDisclosure(false);
+    const [confirmOpened, { open: openConfirm, close: closeConfirm }] = useDisclosure(false);
     const [confirmConfig, setConfirmConfig] = useState<{
         title: string;
         message: string;
@@ -86,8 +69,7 @@ export default function CardScraperPage() {
         message: "",
     });
 
-    const [settingsOpened, { open: openSettings, close: closeSettings }] =
-        useDisclosure(false);
+    const [settingsOpened, { open: openSettings, close: closeSettings }] = useDisclosure(false);
     const [cardScraperLimit, setCardScraperLimit] = useState<number>(
         CARD_SCRAPER_CONFIG.NUM_SCRAPED_CARDS_PER_COLLECTION,
     );
@@ -106,10 +88,8 @@ export default function CardScraperPage() {
 
     // 1. Load from localStorage on mount
     useEffect(() => {
-        const savedFranchise =
-            localStorage.getItem("scraper_selected_franchise") || "mtg";
-        const savedLanguage =
-            localStorage.getItem("scraper_selected_language") || "en";
+        const savedFranchise = localStorage.getItem("scraper_selected_franchise") || "mtg";
+        const savedLanguage = localStorage.getItem("scraper_selected_language") || "en";
         const savedLimit = localStorage.getItem("scraper_card_limit");
 
         setSelectedFranchise(savedFranchise);
@@ -122,32 +102,18 @@ export default function CardScraperPage() {
     // 2. Save to localStorage and fetch collections when selections change
     useEffect(() => {
         if (selectedFranchise) {
-            localStorage.setItem(
-                "scraper_selected_franchise",
-                selectedFranchise,
-            );
+            localStorage.setItem("scraper_selected_franchise", selectedFranchise);
             if (selectedLanguage) {
-                localStorage.setItem(
-                    "scraper_selected_language",
-                    selectedLanguage,
-                );
+                localStorage.setItem("scraper_selected_language", selectedLanguage);
             }
-            fetchExistingCollections(
-                selectedFranchise,
-                selectedLanguage ?? "en",
-            );
+            fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
         }
     }, [selectedFranchise, selectedLanguage]);
 
-    const fetchExistingCollections = async (
-        franchise: string,
-        language: string,
-    ) => {
+    const fetchExistingCollections = async (franchise: string, language: string) => {
         setCollectionLoading(true);
         try {
-            const res = await fetch(
-                `/api/scraper/collections?franchise=${franchise}&language=${language}`,
-            );
+            const res = await fetch(`/api/scraper/collections?franchise=${franchise}&language=${language}`);
             const data = await res.json();
             if (data.success) {
                 setCollections(data.collections);
@@ -164,9 +130,7 @@ export default function CardScraperPage() {
     const fetchCards = async (collectionId: number | string) => {
         setCardLoading(true);
         try {
-            const res = await fetch(
-                `/api/scraper/cards?collectionId=${collectionId}`,
-            );
+            const res = await fetch(`/api/scraper/cards?collectionId=${collectionId}`);
             const data = await res.json();
             if (data.success) {
                 setCards(data.cards);
@@ -203,10 +167,7 @@ export default function CardScraperPage() {
                         setError(data.error || "Failed to delete collections");
                     }
                 } catch (err: any) {
-                    setError(
-                        err.message ||
-                        "An unexpected error occurred during deletion",
-                    );
+                    setError(err.message || "An unexpected error occurred during deletion");
                 } finally {
                     setCollectionLoading(false);
                 }
@@ -251,7 +212,6 @@ export default function CardScraperPage() {
         );
     };
 
-
     const handleDeleteCollection = async (id: string | number) => {
         const collection = collections.find((c) => c.id === id);
         if (!collection) return;
@@ -262,17 +222,12 @@ export default function CardScraperPage() {
             async () => {
                 setCollectionLoading(true);
                 try {
-                    const res = await fetch(
-                        `/api/scraper/collections?id=${id}`,
-                        {
-                            method: "DELETE",
-                        },
-                    );
+                    const res = await fetch(`/api/scraper/collections?id=${id}`, {
+                        method: "DELETE",
+                    });
                     const data = await res.json();
                     if (data.success) {
-                        setCollections((prev) =>
-                            prev.filter((c) => c.id !== id),
-                        );
+                        setCollections((prev) => prev.filter((c) => c.id !== id));
                         if (selectedCollection?.id === id) {
                             setSelectedCollection(null);
                             setCards([]);
@@ -281,10 +236,7 @@ export default function CardScraperPage() {
                         setError(data.error || "Failed to delete collection");
                     }
                 } catch (err: any) {
-                    setError(
-                        err.message ||
-                        "An unexpected error occurred during deletion",
-                    );
+                    setError(err.message || "An unexpected error occurred during deletion");
                 } finally {
                     setCollectionLoading(false);
                 }
@@ -337,25 +289,16 @@ export default function CardScraperPage() {
 
             // After each collection is finished, refresh the collection list to see updated card counts
             if (selectedFranchise) {
-                const updatedCols = await fetchExistingCollections(
-                    selectedFranchise,
-                    selectedLanguage ?? "en",
-                );
+                const updatedCols = await fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
                 if (updatedCols) {
-                    const freshCol = updatedCols.find(
-                        (c: any) => c.id === col.id,
-                    );
+                    const freshCol = updatedCols.find((c: any) => c.id === col.id);
                     if (freshCol) setSelectedCollection(freshCol);
                 }
             }
         }
 
         setCardLoading(false);
-        if (selectedFranchise)
-            fetchExistingCollections(
-                selectedFranchise,
-                selectedLanguage ?? "en",
-            );
+        if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
 
         notifications.show({
             title: "Bulk Scraping Complete",
@@ -373,8 +316,7 @@ export default function CardScraperPage() {
         setError(null);
         setScraperStats(DEFAULT_STATS);
 
-        const targetUrl =
-            selectedFranchise === "mtg" ? APP_CONFIG.MTG_URL_EN : "";
+        const targetUrl = selectedFranchise === "mtg" ? APP_CONFIG.MTG_URL_EN : "";
 
         const requestData = {
             url: targetUrl,
@@ -387,12 +329,8 @@ export default function CardScraperPage() {
         await runScraperStream(requestData, (items) => {
             setCollections((prev) => {
                 // When streaming new collections, we merge them but avoid duplicates if they were already saved
-                const existingCodes = new Set(
-                    prev.map((c) => c.collectionCode),
-                );
-                const newItems = items.filter(
-                    (it) => !existingCodes.has(it.collectionCode),
-                );
+                const existingCodes = new Set(prev.map((c) => c.collectionCode));
+                const newItems = items.filter((it) => !existingCodes.has(it.collectionCode));
                 return [...prev, ...newItems];
             });
         });
@@ -440,14 +378,9 @@ export default function CardScraperPage() {
         if (targetCollection.id) await fetchCards(targetCollection.id);
         setCardLoading(false);
         if (selectedFranchise) {
-            const updatedCols = await fetchExistingCollections(
-                selectedFranchise,
-                selectedLanguage ?? "en",
-            );
+            const updatedCols = await fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
             if (updatedCols) {
-                const freshCol = updatedCols.find(
-                    (c: any) => c.id === targetCollection.id,
-                );
+                const freshCol = updatedCols.find((c: any) => c.id === targetCollection.id);
                 if (freshCol) setSelectedCollection(freshCol);
             }
         }
@@ -472,10 +405,7 @@ export default function CardScraperPage() {
                 setError(data.error || "Failed to delete card");
             }
         } catch (err: any) {
-            setError(
-                err.message ||
-                "An unexpected error occurred during card deletion",
-            );
+            setError(err.message || "An unexpected error occurred during card deletion");
         }
     };
 
@@ -486,37 +416,24 @@ export default function CardScraperPage() {
             `This will permanently delete all scraped cards for the ${selectedCollection.collectionCode} collection. This cannot be undone.`,
             async () => {
                 try {
-                    const res = await fetch(
-                        `/api/scraper/cards?collectionId=${selectedCollection.id}`,
-                        {
-                            method: "DELETE",
-                        },
-                    );
+                    const res = await fetch(`/api/scraper/cards?collectionId=${selectedCollection.id}`, {
+                        method: "DELETE",
+                    });
                     const data = await res.json();
                     if (data.success) {
                         setCards([]);
-                        if (selectedFranchise)
-                            fetchExistingCollections(
-                                selectedFranchise,
-                                selectedLanguage ?? "en",
-                            );
+                        if (selectedFranchise) fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
                     } else {
                         setError(data.error || "Failed to delete cards");
                     }
                 } catch (err: any) {
-                    setError(
-                        err.message ||
-                        "An unexpected error occurred during bulk card deletion",
-                    );
+                    setError(err.message || "An unexpected error occurred during bulk card deletion");
                 }
             },
         );
     };
 
-    const runScraperStream = async (
-        requestData: any,
-        onItems: (items: any[]) => void,
-    ) => {
+    const runScraperStream = async (requestData: any, onItems: (items: any[]) => void) => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
         }
@@ -565,17 +482,11 @@ export default function CardScraperPage() {
 
                         if (msg.type === SCRAPER_MESSAGE_TYPE.CHUNK) {
                             onItems(msg.items);
-                        } else if (
-                            msg.type === SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS
-                        ) {
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.SAVED_COLLECTIONS) {
                             setCollections((prev) => {
-                                const newMap = new Map(
-                                    prev.map((c) => [c.collectionCode, c]),
-                                );
+                                const newMap = new Map(prev.map((c) => [c.collectionCode, c]));
                                 msg.items.forEach((saved: any) => {
-                                    const existing = newMap.get(
-                                        saved.collectionCode,
-                                    );
+                                    const existing = newMap.get(saved.collectionCode);
                                     newMap.set(saved.collectionCode, {
                                         ...existing,
                                         ...saved,
@@ -583,9 +494,7 @@ export default function CardScraperPage() {
                                 });
                                 return Array.from(newMap.values());
                             });
-                        } else if (
-                            msg.type === SCRAPER_MESSAGE_TYPE.SAVED_CARDS
-                        ) {
+                        } else if (msg.type === SCRAPER_MESSAGE_TYPE.SAVED_CARDS) {
                             setCards((prev) => {
                                 // Match by name or URL to update with DB IDs if needed
                                 return prev;
@@ -593,26 +502,16 @@ export default function CardScraperPage() {
                         } else if (msg.type === SCRAPER_MESSAGE_TYPE.STATS) {
                             console.log(`[Frontend] Received stats:`, msg);
                             setScraperStats((prev) => {
-                                const category =
-                                    msg.category as keyof ScraperStats;
+                                const category = msg.category as keyof ScraperStats;
                                 const current = prev[category];
 
                                 return {
                                     ...prev,
                                     [category]: {
                                         ...current,
-                                        addedItems: [
-                                            ...(current?.addedItems ?? []),
-                                            ...(msg.addedItems ?? []),
-                                        ],
-                                        matchedItems: [
-                                            ...(current?.matchedItems ?? []),
-                                            ...(msg.matchedItems ?? []),
-                                        ],
-                                        missedItems: [
-                                            ...(current?.missedItems ?? []),
-                                            ...(msg.missedItems ?? []),
-                                        ],
+                                        addedItems: [...(current?.addedItems ?? []), ...(msg.addedItems ?? [])],
+                                        matchedItems: [...(current?.matchedItems ?? []), ...(msg.matchedItems ?? [])],
+                                        missedItems: [...(current?.missedItems ?? []), ...(msg.missedItems ?? [])],
                                         discardedItems: [
                                             ...(current?.discardedItems ?? []),
                                             ...(msg.discardedItems ?? []),
@@ -634,8 +533,7 @@ export default function CardScraperPage() {
                                         id: Date.now() + Math.random(),
                                         message: msg.message,
                                         status: "running" as const,
-                                        timestamp:
-                                            new Date().toLocaleTimeString(),
+                                        timestamp: new Date().toLocaleTimeString(),
                                     },
                                 ];
                             });
@@ -702,11 +600,7 @@ export default function CardScraperPage() {
                         {confirmConfig.message}
                     </Text>
                     <Group justify="flex-end" gap="sm">
-                        <Button
-                            variant="default"
-                            size="sm"
-                            onClick={closeConfirm}
-                        >
+                        <Button variant="default" size="sm" onClick={closeConfirm}>
                             Cancel
                         </Button>
                         <Button color="red" size="sm" onClick={handleConfirmed}>
@@ -727,12 +621,7 @@ export default function CardScraperPage() {
                 <PageHeader
                     title="Card Scraper"
                     description="Scrape and import cards from various sources"
-                    icon={
-                        <IconDatabaseExport
-                            size={32}
-                            color="var(--mantine-color-blue-6)"
-                        />
-                    }
+                    icon={<IconDatabaseExport size={32} color="var(--mantine-color-blue-6)" />}
                     actions={
                         <CardScraperPageHeaderIcons
                             onDeleteAllDatabaseCollections={handleDeleteAllDatabaseCollections}
@@ -743,13 +632,7 @@ export default function CardScraperPage() {
                 />
 
                 {error && (
-                    <Alert
-                        variant="light"
-                        color="red"
-                        title="Scraping Error"
-                        icon={<IconAlertCircle />}
-                        radius="md"
-                    >
+                    <Alert variant="light" color="red" title="Scraping Error" icon={<IconAlertCircle />} radius="md">
                         {error}
                     </Alert>
                 )}
@@ -837,20 +720,13 @@ export default function CardScraperPage() {
                                 onRefresh={() => {
                                     setScraperStats(DEFAULT_STATS);
                                     if (selectedFranchise) {
-                                        fetchExistingCollections(
-                                            selectedFranchise,
-                                            selectedLanguage ?? "en",
-                                        );
+                                        fetchExistingCollections(selectedFranchise, selectedLanguage ?? "en");
                                     }
                                 }}
-                                onDownloadAllCollections={
-                                    handleDownloadCollections
-                                }
+                                onDownloadAllCollections={handleDownloadCollections}
                                 onDownloadAllCards={handleDownloadAllCards}
                                 onSelect={async (id) => {
-                                    const col = collections.find(
-                                        (c) => c.id === id,
-                                    );
+                                    const col = collections.find((c) => c.id === id);
                                     setSelectedCollection(col);
                                     setCards([]);
                                     if (id) fetchCards(id);
@@ -873,9 +749,7 @@ export default function CardScraperPage() {
                             <CardScraperCardList
                                 franchise={selectedFranchise}
                                 cards={cards}
-                                collectionCode={
-                                    selectedCollection?.collectionCode
-                                }
+                                collectionCode={selectedCollection?.collectionCode}
                                 loading={cardLoading}
                                 onDeleteCard={handleDeleteCard}
                                 onDeleteAllCards={handleDeleteAllCards}

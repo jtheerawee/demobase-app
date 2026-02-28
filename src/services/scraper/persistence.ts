@@ -16,9 +16,7 @@ export async function saveScrapedCollections(
         };
 
     const supabase = await createClient();
-    const scrapedUrls = new Set(
-        collections.map((col) => col.collectionUrl).filter(Boolean),
-    );
+    const scrapedUrls = new Set(collections.map((col) => col.collectionUrl).filter(Boolean));
 
     // Fetch ALL existing collections for this franchise from DB
     const { data: allExisting } = await supabase
@@ -27,21 +25,13 @@ export async function saveScrapedCollections(
         .eq("franchise", context.franchise)
         .eq("language", context.language);
 
-    const allExistingUrls = new Set(
-        (allExisting || []).map((e: any) => e.collection_url),
-    );
+    const allExistingUrls = new Set((allExisting || []).map((e: any) => e.collection_url));
 
     // added: scraped but NOT yet in DB
-    const addedItems = collections.filter(
-        (c) => !allExistingUrls.has(c.collectionUrl),
-    );
+    const addedItems = collections.filter((c) => !allExistingUrls.has(c.collectionUrl));
 
     // matched: scraped AND already in DB
-    const matchedItems = collections.filter((c) =>
-        allExistingUrls.has(c.collectionUrl),
-    );
-
-
+    const matchedItems = collections.filter((c) => allExistingUrls.has(c.collectionUrl));
 
     const dataToInsert = collections.map((col) => ({
         name: col.name,
@@ -74,9 +64,7 @@ export async function saveScrapedCollections(
         releaseYear: d.release_year,
     }));
 
-    console.log(
-        `[Persistence] Saving ${collections.length} collections for ${context.franchise}...`,
-    );
+    console.log(`[Persistence] Saving ${collections.length} collections for ${context.franchise}...`);
     return {
         saved,
         addedItems,
@@ -84,25 +72,16 @@ export async function saveScrapedCollections(
     };
 }
 
-export async function updateScrapedCollectionYear(
-    id: number | string,
-    year: number,
-) {
+export async function updateScrapedCollectionYear(id: number | string, year: number) {
     const supabase = await createClient();
-    const { error } = await supabase
-        .from("scraped_collections")
-        .update({ release_year: year })
-        .eq("id", id);
+    const { error } = await supabase.from("scraped_collections").update({ release_year: year }).eq("id", id);
 
     if (error) {
         console.error("[Persistence] Error updating collection year:", error);
     }
 }
 
-export async function saveScrapedCards(
-    cards: ScrapedCard[],
-    collectionId: number | string,
-) {
+export async function saveScrapedCards(cards: ScrapedCard[], collectionId: number | string) {
     if (cards.length === 0)
         return {
             addedItems: [],
@@ -112,10 +91,7 @@ export async function saveScrapedCards(
     const supabase = await createClient();
     const scrapedUrls = new Set(cards.map((c) => c.cardUrl).filter(Boolean));
 
-    const colId =
-        typeof collectionId === "string"
-            ? parseInt(collectionId, 10)
-            : collectionId;
+    const colId = typeof collectionId === "string" ? parseInt(collectionId, 10) : collectionId;
 
     // Fetch ALL existing cards for this collection from DB
     const { data: allExisting } = await supabase
@@ -158,8 +134,6 @@ export async function saveScrapedCards(
         return urlExists || nameNoExists;
     });
 
-
-
     if (cardsToUpsert.length > 0) {
         const dataToInsert = cardsToUpsert.map((card) => ({
             collection_id: colId,
@@ -171,11 +145,9 @@ export async function saveScrapedCards(
             rarity: card.rarity || "",
         }));
 
-        const { error } = await supabase
-            .from("scraped_cards")
-            .upsert(dataToInsert, {
-                onConflict: "card_url",
-            });
+        const { error } = await supabase.from("scraped_cards").upsert(dataToInsert, {
+            onConflict: "card_url",
+        });
 
         if (error) {
             console.error("[Persistence] Error saving cards:", {
@@ -196,57 +168,41 @@ export async function saveScrapedCards(
 }
 
 /** For tcgUrlOnly mode: Update existing cards with their TCG URL if matched by name/cardNo */
-export async function updateTcgUrls(
-    cards: ScrapedCard[],
-    collectionId: number | string,
-) {
+export async function updateTcgUrls(cards: ScrapedCard[], collectionId: number | string) {
     if (cards.length === 0) return { matched: 0 };
 
     const supabase = await createClient();
-    const colId =
-        typeof collectionId === "string"
-            ? parseInt(collectionId, 10)
-            : collectionId;
+    const colId = typeof collectionId === "string" ? parseInt(collectionId, 10) : collectionId;
 
     const { data: dbCards } = await supabase
         .from("scraped_cards")
         .select("id, name, card_no")
         .eq("collection_id", colId);
 
-    if (!dbCards || dbCards.length === 0)
-        return { matchedItems: [] };
+    if (!dbCards || dbCards.length === 0) return { matchedItems: [] };
     const matchedItems: any[] = [];
 
     for (const card of cards) {
         if (!card.cardUrl) continue;
 
-        let match = dbCards.find(
-            (d: any) => d.card_no === card.cardNo && d.name === card.name,
-        );
+        let match = dbCards.find((d: any) => d.card_no === card.cardNo && d.name === card.name);
 
         if (!match) {
             match = dbCards.find((d: any) => d.card_no === card.cardNo);
         }
 
         if (!match) {
-            match = dbCards.find(
-                (d: any) => d.name.toLowerCase() === card.name.toLowerCase(),
-            );
+            match = dbCards.find((d: any) => d.name.toLowerCase() === card.name.toLowerCase());
         }
 
         if (match) {
-            const { error } = await supabase
-                .from("scraped_cards")
-                .update({ tcg_url: card.cardUrl })
-                .eq("id", match.id);
+            const { error } = await supabase.from("scraped_cards").update({ tcg_url: card.cardUrl }).eq("id", match.id);
 
             if (!error) matchedItems.push(card);
         }
     }
 
-    console.log(
-        `[Persistence] Mapped ${matchedItems.length} cards to TCGPlayer URLs for collection ${collectionId}.`,
-    );
+    console.log(`[Persistence] Mapped ${matchedItems.length} cards to TCGPlayer URLs for collection ${collectionId}.`);
     return {
         matchedItems,
     };
@@ -278,24 +234,15 @@ export async function computeMissedCollections(
 
     return {
         count: formattedMissed.length,
-        items: formattedMissed
+        items: formattedMissed,
     };
 }
 
 /** Call once after all cards scraped to get real missed count for a collection */
-export async function computeMissedCards(
-    allScrapedUrls: Set<string>,
-    collectionId: number | string,
-) {
+export async function computeMissedCards(allScrapedUrls: Set<string>, collectionId: number | string) {
     const supabase = await createClient();
-    const colId =
-        typeof collectionId === "string"
-            ? parseInt(collectionId, 10)
-            : collectionId;
-    const { data } = await supabase
-        .from("scraped_cards")
-        .select("*")
-        .eq("collection_id", colId);
+    const colId = typeof collectionId === "string" ? parseInt(collectionId, 10) : collectionId;
+    const { data } = await supabase.from("scraped_cards").select("*").eq("collection_id", colId);
 
     const dbItems = data || [];
     const missedItems = dbItems.filter((item: any) => !allScrapedUrls.has(item.card_url));
@@ -311,6 +258,6 @@ export async function computeMissedCards(
 
     return {
         count: formattedMissed.length,
-        items: formattedMissed
+        items: formattedMissed,
     };
 }

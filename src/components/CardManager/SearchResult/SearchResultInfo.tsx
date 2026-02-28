@@ -9,11 +9,7 @@ interface SearchResultInfoProps {
     info: string;
 }
 
-export function SearchResultInfo({
-    loading,
-    resultsCount,
-    info,
-}: SearchResultInfoProps) {
+export function SearchResultInfo({ loading, resultsCount, info }: SearchResultInfoProps) {
     if (resultsCount > 0) return null;
 
     return (

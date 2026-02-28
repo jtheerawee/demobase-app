@@ -23,8 +23,8 @@ export function ScrapedCardSummary({ cards, franchise }: ScrapedCardSummaryProps
         if (!config?.RARITY_MAP) return new Set<string>();
 
         const validParams = new Set<string>();
-        Object.keys(config.RARITY_MAP).forEach(k => validParams.add(k.toLowerCase()));
-        Object.values(config.RARITY_MAP).forEach(v => validParams.add(v.toLowerCase()));
+        Object.keys(config.RARITY_MAP).forEach((k) => validParams.add(k.toLowerCase()));
+        Object.values(config.RARITY_MAP).forEach((v) => validParams.add(v.toLowerCase()));
         return validParams;
     }, [franchise]);
 
@@ -50,7 +50,7 @@ export function ScrapedCardSummary({ cards, franchise }: ScrapedCardSummaryProps
                     const remaining = groupCards.length - 15;
                     const isUnknown = rarity === "Unknown";
                     const isMapped = isUnknown || validRarities.size === 0 || validRarities.has(rarity.toLowerCase());
-                    const badgeColor = isUnknown ? "gray" : (isMapped ? "blue" : "red");
+                    const badgeColor = isUnknown ? "gray" : isMapped ? "blue" : "red";
 
                     return (
                         <Tooltip
@@ -62,14 +62,24 @@ export function ScrapedCardSummary({ cards, franchise }: ScrapedCardSummaryProps
                                 <Stack gap={2}>
                                     <Text size="xs" fw={700}>
                                         {rarity} Cards ({groupCards.length})
-                                        {!isMapped && <Text span c="red"> (Not in Franchise config)</Text>}
+                                        {!isMapped && (
+                                            <Text span c="red">
+                                                {" "}
+                                                (Not in Franchise config)
+                                            </Text>
+                                        )}
                                     </Text>
                                     {displayCards.map((c, i) => (
                                         <Text key={i} size="xs" maw={250} truncate>
-                                            {c.cardNo ? `#${c.cardNo} ` : ""}{c.name}
+                                            {c.cardNo ? `#${c.cardNo} ` : ""}
+                                            {c.name}
                                         </Text>
                                     ))}
-                                    {remaining > 0 && <Text size="xs" c="dimmed">... {remaining} more</Text>}
+                                    {remaining > 0 && (
+                                        <Text size="xs" c="dimmed">
+                                            ... {remaining} more
+                                        </Text>
+                                    )}
                                 </Stack>
                             }
                         >

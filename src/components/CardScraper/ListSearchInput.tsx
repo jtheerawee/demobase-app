@@ -7,23 +7,14 @@ interface ListSearchInputProps {
     onChange: (value: string) => void;
 }
 
-export function ListSearchInput({
-    placeholder,
-    value,
-    onChange,
-}: ListSearchInputProps) {
+export function ListSearchInput({ placeholder, value, onChange }: ListSearchInputProps) {
     return (
         <TextInput
             placeholder={placeholder}
             leftSection={<IconSearch size={14} />}
             rightSection={
                 value ? (
-                    <ActionIcon
-                        size="xs"
-                        color="gray"
-                        variant="subtle"
-                        onClick={() => onChange("")}
-                    >
+                    <ActionIcon size="xs" color="gray" variant="subtle" onClick={() => onChange("")}>
                         <IconX size={12} />
                     </ActionIcon>
                 ) : null

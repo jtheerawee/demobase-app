@@ -1,11 +1,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
 
-import {
-    ColorSchemeScript,
-    MantineProvider,
-    mantineHtmlProps,
-} from "@mantine/core";
+import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
@@ -35,11 +31,7 @@ export default async function LocaleLayout({
             <head>
                 <ColorSchemeScript />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link
-                    rel="preconnect"
-                    href="https://fonts.gstatic.com"
-                    crossOrigin=""
-                />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
                 <link href={fontUrl} rel="stylesheet" />
             </head>
             <body>

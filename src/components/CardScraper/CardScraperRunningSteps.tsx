@@ -1,17 +1,6 @@
 "use client";
 
-import {
-    ActionIcon,
-    Badge,
-    Box,
-    Card,
-    CopyButton,
-    Group,
-    ScrollArea,
-    Stack,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Badge, Box, Card, CopyButton, Group, ScrollArea, Stack, Text, Tooltip } from "@mantine/core";
 import {
     IconAlertCircle,
     IconCheck,
@@ -22,11 +11,7 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 
-import {
-    CARD_SCRAPER_CONFIG,
-    SCRAPER_STEP_STATUS,
-    type ScraperStepStatus,
-} from "@/constants/card_scraper";
+import { CARD_SCRAPER_CONFIG, SCRAPER_STEP_STATUS, type ScraperStepStatus } from "@/constants/card_scraper";
 import { RunningStepIcons } from "./RunningStepIcons";
 import { CopyStepsButton } from "./CopyStepsButton";
 import { WidgetHeader } from "../WidgetHeader";
@@ -45,11 +30,7 @@ interface CardScraperRunningStepsProps {
     onStop?: () => void;
 }
 
-export function CardScraperRunningSteps({
-    steps = [],
-    workerCount = 0,
-    onStop,
-}: CardScraperRunningStepsProps) {
+export function CardScraperRunningSteps({ steps = [], workerCount = 0, onStop }: CardScraperRunningStepsProps) {
     const [copiedId, setCopiedId] = useState<string | number | null>(null);
 
     const handleCopy = (step: Step) => {
@@ -75,9 +56,7 @@ export function CardScraperRunningSteps({
         })
         .slice(-CARD_SCRAPER_CONFIG.RUNNING_STEPS_LIMIT);
 
-    const isRunning = filteredSteps.some(
-        (s) => s.status === SCRAPER_STEP_STATUS.RUNNING,
-    );
+    const isRunning = filteredSteps.some((s) => s.status === SCRAPER_STEP_STATUS.RUNNING);
 
     return (
         <Card
@@ -116,28 +95,17 @@ export function CardScraperRunningSteps({
             />
             <Stack gap="xs" style={{ flex: 1, minHeight: 0 }} p="sm">
                 <Group justify="flex-end">
-                    <RunningStepIcons
-                        isActive={isRunning}
-                        workerCount={workerCount}
-                    />
+                    <RunningStepIcons isActive={isRunning} workerCount={workerCount} />
                 </Group>
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} offsetScrollbars>
                     <Stack gap="xs">
                         {filteredSteps.length > 0 ? (
                             [...filteredSteps].reverse().map((step) => (
-                                <Group
-                                    key={step.id}
-                                    gap="sm"
-                                    align="flex-start"
-                                    wrap="nowrap"
-                                >
+                                <Group key={step.id} gap="sm" align="flex-start" wrap="nowrap">
                                     <Box mt={2}>
                                         {step.status === SCRAPER_STEP_STATUS.COMPLETED && (
-                                            <IconCircleCheck
-                                                size={16}
-                                                color="var(--mantine-color-green-6)"
-                                            />
+                                            <IconCircleCheck size={16} color="var(--mantine-color-green-6)" />
                                         )}
                                         {step.status === SCRAPER_STEP_STATUS.RUNNING && (
                                             <IconLoader2
@@ -145,22 +113,15 @@ export function CardScraperRunningSteps({
                                                 color="var(--mantine-color-blue-6)"
                                                 className="animate-spin"
                                                 style={{
-                                                    animation:
-                                                        "spin 2s linear infinite",
+                                                    animation: "spin 2s linear infinite",
                                                 }}
                                             />
                                         )}
                                         {step.status === SCRAPER_STEP_STATUS.PENDING && (
-                                            <IconCircleDashed
-                                                size={16}
-                                                color="var(--mantine-color-gray-4)"
-                                            />
+                                            <IconCircleDashed size={16} color="var(--mantine-color-gray-4)" />
                                         )}
                                         {step.status === SCRAPER_STEP_STATUS.ERROR && (
-                                            <IconAlertCircle
-                                                size={16}
-                                                color="var(--mantine-color-red-6)"
-                                            />
+                                            <IconAlertCircle size={16} color="var(--mantine-color-red-6)" />
                                         )}
                                     </Box>
                                     <Stack
@@ -176,41 +137,20 @@ export function CardScraperRunningSteps({
                                             {step.timestamp}
                                         </Text>
                                     </Stack>
-                                    <Tooltip
-                                        label={
-                                            copiedId === step.id
-                                                ? "Copied!"
-                                                : "Copy"
-                                        }
-                                        position="left"
-                                    >
+                                    <Tooltip label={copiedId === step.id ? "Copied!" : "Copy"} position="left">
                                         <ActionIcon
                                             variant="subtle"
-                                            color={
-                                                copiedId === step.id
-                                                    ? "green"
-                                                    : "gray"
-                                            }
+                                            color={copiedId === step.id ? "green" : "gray"}
                                             size="xs"
                                             onClick={() => handleCopy(step)}
                                             style={{
                                                 opacity: 0.5,
                                                 flexShrink: 0,
                                             }}
-                                            onMouseEnter={(e) =>
-                                            (e.currentTarget.style.opacity =
-                                                "1")
-                                            }
-                                            onMouseLeave={(e) =>
-                                            (e.currentTarget.style.opacity =
-                                                "0.5")
-                                            }
+                                            onMouseEnter={(e) => (e.currentTarget.style.opacity = "1")}
+                                            onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.5")}
                                         >
-                                            {copiedId === step.id ? (
-                                                <IconCheck size={12} />
-                                            ) : (
-                                                <IconCopy size={12} />
-                                            )}
+                                            {copiedId === step.id ? <IconCheck size={12} /> : <IconCopy size={12} />}
                                         </ActionIcon>
                                     </Tooltip>
                                 </Group>

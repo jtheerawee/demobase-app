@@ -3,10 +3,7 @@ import { scrapePokemonCardsEn } from "./pokemonCardScraperEn";
 import { scrapePokemonCardsTh } from "./pokemonCardScraperTh";
 import { scrapePokemonCollectionsEn } from "./pokemonCollectionScraperEn";
 import { scrapePokemonCollectionsTh } from "./pokemonCollectionScraperTh";
-import {
-    scrapeTCGPlayerCards,
-    scrapeTCGPlayerCollections,
-} from "../tcgplayer/tcgPlayerScraper";
+import { scrapeTCGPlayerCards, scrapeTCGPlayerCollections } from "../tcgplayer/tcgPlayerScraper";
 
 /**
  * ENTRY POINT: Scrape Pokemon Cards

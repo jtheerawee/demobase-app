@@ -24,13 +24,9 @@ export const CollectedCardWidget = forwardRef(
         },
         ref,
     ) => {
-        const [collectedCards, setCollectedCards] = useState<CollectedCard[]>(
-            [],
-        );
+        const [collectedCards, setCollectedCards] = useState<CollectedCard[]>([]);
         const [loading, setLoading] = useState(true);
-        const [addEntryCard, setAddEntryCard] = useState<CollectedCard | null>(
-            null,
-        );
+        const [addEntryCard, setAddEntryCard] = useState<CollectedCard | null>(null);
         const [addVariant, setAddVariant] = useState<string>(DEFAULT_VARIANT);
         const [addCondition, setAddCondition] = useState<string>(DEFAULT_CONDITION);
         const [addingEntry, setAddingEntry] = useState(false);
@@ -43,9 +39,7 @@ export const CollectedCardWidget = forwardRef(
                 const data = await res.json();
                 if (data.success) {
                     setCollectedCards(data.cards);
-                    onCollectionChange?.(
-                        new Set(data.cards.map((c: CollectedCard) => c.cardId)),
-                    );
+                    onCollectionChange?.(new Set(data.cards.map((c: CollectedCard) => c.cardId)));
                 }
             } catch (err) {
                 console.error("Failed to fetch collection:", err);
@@ -56,28 +50,18 @@ export const CollectedCardWidget = forwardRef(
 
         const handleDelete = async (id: number) => {
             try {
-                const res = await fetch(
-                    `/api/card-manager/collected?id=${id}`,
-                    { method: "DELETE" },
-                );
+                const res = await fetch(`/api/card-manager/collected?id=${id}`, { method: "DELETE" });
                 if (res.ok) fetchCollection();
             } catch (err) {
                 console.error("Delete failed:", err);
             }
         };
 
-        const handleUpdateQuantity = async (
-            id: number,
-            newQuantity: number,
-        ) => {
+        const handleUpdateQuantity = async (id: number, newQuantity: number) => {
             if (newQuantity < 1) return;
 
             // Optimistic update
-            setCollectedCards((prev) =>
-                prev.map((c) =>
-                    c.id === id ? { ...c, quantity: newQuantity } : c,
-                ),
-            );
+            setCollectedCards((prev) => prev.map((c) => (c.id === id ? { ...c, quantity: newQuantity } : c)));
 
             try {
                 const res = await fetch("/api/card-manager/collected", {
@@ -97,16 +81,9 @@ export const CollectedCardWidget = forwardRef(
             }
         };
 
-        const handleUpdateCondition = async (
-            id: number,
-            newCondition: string,
-        ) => {
+        const handleUpdateCondition = async (id: number, newCondition: string) => {
             // Optimistic update
-            setCollectedCards((prev) =>
-                prev.map((c) =>
-                    c.id === id ? { ...c, condition: newCondition } : c,
-                ),
-            );
+            setCollectedCards((prev) => prev.map((c) => (c.id === id ? { ...c, condition: newCondition } : c)));
 
             try {
                 const res = await fetch("/api/card-manager/collected", {
@@ -128,11 +105,7 @@ export const CollectedCardWidget = forwardRef(
 
         const handleUpdateVariant = async (id: number, newVariant: string) => {
             // Optimistic update
-            setCollectedCards((prev) =>
-                prev.map((c) =>
-                    c.id === id ? { ...c, variant: newVariant } : c,
-                ),
-            );
+            setCollectedCards((prev) => prev.map((c) => (c.id === id ? { ...c, variant: newVariant } : c)));
 
             try {
                 const res = await fetch("/api/card-manager/collected", {
@@ -180,19 +153,14 @@ export const CollectedCardWidget = forwardRef(
                 c.condition || DEFAULT_CONDITION,
             ]);
 
-            const csvContent = [headers, ...rows]
-                .map((e) => e.join(","))
-                .join("\n");
+            const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
             const blob = new Blob([csvContent], {
                 type: "text/csv;charset=utf-8;",
             });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute(
-                "download",
-                `my_collection_${new Date().toISOString().split("T")[0]}.csv`,
-            );
+            link.setAttribute("download", `my_collection_${new Date().toISOString().split("T")[0]}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -313,12 +281,8 @@ export const CollectedCardWidget = forwardRef(
                     onClose={() => setPreviewImage(null)}
                     src={previewImage}
                     title={(() => {
-                        const card = collectedCards.find(
-                            (c) => c.imageUrl === previewImage,
-                        );
-                        return card
-                            ? `${card.name} (${card.collectionName} #${card.cardNo})`
-                            : undefined;
+                        const card = collectedCards.find((c) => c.imageUrl === previewImage);
+                        return card ? `${card.name} (${card.collectionName} #${card.cardNo})` : undefined;
                     })()}
                 />
             </Stack>

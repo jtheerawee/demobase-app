@@ -58,12 +58,7 @@ export function SearchResultWidget({
                         size="sm"
                         title="Clear results and snapshot"
                         onClick={onReset}
-                        disabled={
-                            loading ||
-                            (results.length === 0 &&
-                                info === "" &&
-                                !waitingForSelection)
-                        }
+                        disabled={loading || (results.length === 0 && info === "" && !waitingForSelection)}
                     >
                         <IconTrash size={16} />
                     </ActionIcon>
@@ -84,11 +79,7 @@ export function SearchResultWidget({
                         }}
                     />
 
-                    <SearchResultInfo
-                        loading={loading}
-                        resultsCount={results.length}
-                        info={info}
-                    />
+                    <SearchResultInfo loading={loading} resultsCount={results.length} info={info} />
                 </ScrollArea>
             </Box>
 
@@ -97,12 +88,8 @@ export function SearchResultWidget({
                 onClose={() => setPreviewImage(null)}
                 src={previewImage}
                 title={(() => {
-                    const card = results.find(
-                        (c) => c.imageUrl === previewImage,
-                    );
-                    return card
-                        ? `${card.name} (${card.collectionCode} #${card.cardNo})`
-                        : undefined;
+                    const card = results.find((c) => c.imageUrl === previewImage);
+                    return card ? `${card.name} (${card.collectionCode} #${card.cardNo})` : undefined;
                 })()}
             />
         </Stack>

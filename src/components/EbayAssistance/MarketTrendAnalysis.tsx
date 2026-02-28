@@ -1,30 +1,10 @@
 "use client";
 
-import {
-    Badge,
-    Card,
-    Center,
-    Grid,
-    Group,
-    Paper,
-    SimpleGrid,
-    Stack,
-    Text,
-    Title,
-} from "@mantine/core";
+import { Badge, Card, Center, Grid, Group, Paper, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { IconTrendingUp } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
-import {
-    CartesianGrid,
-    Line,
-    LineChart,
-    ReferenceLine,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from "recharts";
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { EbayItem } from "@/services/ebayService";
 import { MarketTrendAnalysisHeader } from "./MarketTrendAnalysisHeader";
 
@@ -32,20 +12,14 @@ function calculateMedian(values: number[]): number {
     if (values.length === 0) return 0;
     const sorted = [...values].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 function filterByDays(items: EbayItem[], days: number): EbayItem[] {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     return items.filter((item) => {
-        const dateStr =
-            item.endDate ||
-            (item as any).soldTime ||
-            (item as any).soldDate ||
-            (item as any).timestamp;
+        const dateStr = item.endDate || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
         if (!dateStr) return false;
         const date = new Date(dateStr);
         return !Number.isNaN(date.getTime()) && date >= cutoff;
@@ -84,39 +58,12 @@ const CustomDot = (props: CustomDotProps) => {
     }
 
     if (payload.price === maxPrice) {
-        return (
-            <circle
-                cx={cx}
-                cy={cy}
-                r={6}
-                fill="#fa5252"
-                stroke="#fff"
-                strokeWidth={2}
-            />
-        );
+        return <circle cx={cx} cy={cy} r={6} fill="#fa5252" stroke="#fff" strokeWidth={2} />;
     }
     if (payload.price === minPrice) {
-        return (
-            <circle
-                cx={cx}
-                cy={cy}
-                r={6}
-                fill="#40c057"
-                stroke="#fff"
-                strokeWidth={2}
-            />
-        );
+        return <circle cx={cx} cy={cy} r={6} fill="#40c057" stroke="#fff" strokeWidth={2} />;
     }
-    return (
-        <circle
-            cx={cx}
-            cy={cy}
-            r={4}
-            fill="#228be6"
-            stroke="#fff"
-            strokeWidth={2}
-        />
-    );
+    return <circle cx={cx} cy={cy} r={4} fill="#228be6" stroke="#fff" strokeWidth={2} />;
 };
 
 interface MarketTrendAnalysisProps {
@@ -154,9 +101,7 @@ export function MarketTrendAnalysis({
         if (safeResults.length === 0) return "$";
         const firstWithCurrency = safeResults.find((item) => item.currency);
         if (!firstWithCurrency) return "$";
-        return firstWithCurrency.currency === "USD"
-            ? "$"
-            : firstWithCurrency.currency;
+        return firstWithCurrency.currency === "USD" ? "$" : firstWithCurrency.currency;
     }, [safeResults]);
 
     const stats = useMemo(() => {
@@ -195,10 +140,7 @@ export function MarketTrendAnalysis({
             })
             .filter((p) => !Number.isNaN(p));
         const median14 = calculateMedian(prices14);
-        const avg14 =
-            prices14.length > 0
-                ? prices14.reduce((a, b) => a + b, 0) / prices14.length
-                : 0;
+        const avg14 = prices14.length > 0 ? prices14.reduce((a, b) => a + b, 0) / prices14.length : 0;
 
         const items30 = filterByDays(safeResults, 30);
         const prices30 = items30
@@ -208,10 +150,7 @@ export function MarketTrendAnalysis({
             })
             .filter((p) => !Number.isNaN(p));
         const median30 = calculateMedian(prices30);
-        const avg30 =
-            prices30.length > 0
-                ? prices30.reduce((a, b) => a + b, 0) / prices30.length
-                : 0;
+        const avg30 = prices30.length > 0 ? prices30.reduce((a, b) => a + b, 0) / prices30.length : 0;
 
         return {
             min,
@@ -232,11 +171,7 @@ export function MarketTrendAnalysis({
         const groupedByDate: Record<string, number[]> = {};
 
         safeResults.forEach((item) => {
-            const dateStr =
-                item.endDate ||
-                (item as any).soldTime ||
-                (item as any).soldDate ||
-                (item as any).timestamp;
+            const dateStr = item.endDate || (item as any).soldTime || (item as any).soldDate || (item as any).timestamp;
             if (!dateStr) return;
             const date = new Date(dateStr);
             if (Number.isNaN(date.getTime())) return;
@@ -360,13 +295,10 @@ export function MarketTrendAnalysis({
                                     </Text>
                                     <Text size="sm" fw={700} color="teal.6">
                                         {currencySymbol}
-                                        {stats.median30.toLocaleString(
-                                            undefined,
-                                            {
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 0,
-                                            },
-                                        )}
+                                        {stats.median30.toLocaleString(undefined, {
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        })}
                                     </Text>
                                 </Stack>
                                 <Stack gap={0}>
@@ -375,13 +307,10 @@ export function MarketTrendAnalysis({
                                     </Text>
                                     <Text size="sm" fw={700} color="teal.6">
                                         {currencySymbol}
-                                        {stats.median14.toLocaleString(
-                                            undefined,
-                                            {
-                                                minimumFractionDigits: 0,
-                                                maximumFractionDigits: 0,
-                                            },
-                                        )}
+                                        {stats.median14.toLocaleString(undefined, {
+                                            minimumFractionDigits: 0,
+                                            maximumFractionDigits: 0,
+                                        })}
                                     </Text>
                                 </Stack>
                             </SimpleGrid>
@@ -444,11 +373,7 @@ export function MarketTrendAnalysis({
                                         bottom: 5,
                                     }}
                                 >
-                                    <CartesianGrid
-                                        strokeDasharray="3 3"
-                                        vertical={false}
-                                        stroke="#e9ecef"
-                                    />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e9ecef" />
                                     <XAxis
                                         dataKey="fullDate"
                                         tick={{
@@ -461,13 +386,10 @@ export function MarketTrendAnalysis({
                                         }}
                                         tickFormatter={(val) => {
                                             const d = new Date(val);
-                                            return d.toLocaleDateString(
-                                                undefined,
-                                                {
-                                                    month: "short",
-                                                    day: "numeric",
-                                                },
-                                            );
+                                            return d.toLocaleDateString(undefined, {
+                                                month: "short",
+                                                day: "numeric",
+                                            });
                                         }}
                                     />
                                     <YAxis
@@ -477,9 +399,7 @@ export function MarketTrendAnalysis({
                                         }}
                                         tickLine={false}
                                         axisLine={false}
-                                        tickFormatter={(value) =>
-                                            `${currencySymbol}${value}`
-                                        }
+                                        tickFormatter={(value) => `${currencySymbol}${value}`}
                                         domain={["auto", "auto"]}
                                     />
                                     <Tooltip
@@ -488,64 +408,24 @@ export function MarketTrendAnalysis({
                                             strokeWidth: 1,
                                             strokeDasharray: "4 4",
                                         }}
-                                        content={({
-                                            active,
-                                            payload,
-                                            label,
-                                        }) => {
-                                            if (
-                                                active &&
-                                                payload &&
-                                                payload.length
-                                            ) {
+                                        content={({ active, payload, label }) => {
+                                            if (active && payload && payload.length) {
                                                 return (
-                                                    <Paper
-                                                        withBorder
-                                                        p="xs"
-                                                        radius="sm"
-                                                        bg="gray.1"
-                                                        shadow="xs"
-                                                    >
+                                                    <Paper withBorder p="xs" radius="sm" bg="gray.1" shadow="xs">
                                                         <Stack gap={2}>
-                                                            <Text
-                                                                size="xs"
-                                                                c="dimmed"
-                                                                fw={700}
-                                                            >
+                                                            <Text size="xs" c="dimmed" fw={700}>
                                                                 {label}
                                                             </Text>
-                                                            <Group
-                                                                gap={4}
-                                                                align="baseline"
-                                                            >
-                                                                <Text
-                                                                    size="xs"
-                                                                    fw={700}
-                                                                    c="dimmed"
-                                                                >
+                                                            <Group gap={4} align="baseline">
+                                                                <Text size="xs" fw={700} c="dimmed">
                                                                     Max:
                                                                 </Text>
-                                                                <Text
-                                                                    size="sm"
-                                                                    fw={800}
-                                                                    c="blue.7"
-                                                                >
-                                                                    {
-                                                                        currencySymbol
-                                                                    }
+                                                                <Text size="sm" fw={800} c="blue.7">
+                                                                    {currencySymbol}
                                                                     {payload[0].value?.toLocaleString()}
                                                                 </Text>
-                                                                <Text
-                                                                    size="10px"
-                                                                    c="dimmed"
-                                                                >
-                                                                    (
-                                                                    {
-                                                                        payload[0]
-                                                                            .payload
-                                                                            .count
-                                                                    }{" "}
-                                                                    listings)
+                                                                <Text size="10px" c="dimmed">
+                                                                    ({payload[0].payload.count} listings)
                                                                 </Text>
                                                             </Group>
                                                         </Stack>
@@ -556,11 +436,7 @@ export function MarketTrendAnalysis({
                                         }}
                                     />
                                     {highlightedDate && (
-                                        <ReferenceLine
-                                            x={highlightedDate}
-                                            stroke="#fa5252"
-                                            strokeDasharray="3 3"
-                                        />
+                                        <ReferenceLine x={highlightedDate} stroke="#fa5252" strokeDasharray="3 3" />
                                     )}
                                     <Line
                                         type="monotone"
@@ -576,9 +452,7 @@ export function MarketTrendAnalysis({
                                                 {...props}
                                                 minPrice={chartMinPrice}
                                                 maxPrice={chartMaxPrice}
-                                                highlightedDate={
-                                                    highlightedDate
-                                                }
+                                                highlightedDate={highlightedDate}
                                             />
                                         )}
                                     />

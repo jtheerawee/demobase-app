@@ -9,10 +9,7 @@ export async function GET() {
         } = await supabase.auth.getUser();
 
         if (!user) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized" },
-                { status: 401 },
-            );
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const { data, error } = await supabase
@@ -54,8 +51,7 @@ export async function GET() {
             cardNo: item.scraped_cards?.card_no,
             rarity: item.scraped_cards?.rarity,
             collectionName: item.scraped_cards?.scraped_collections?.name,
-            collectionCode:
-                item.scraped_cards?.scraped_collections?.collection_code,
+            collectionCode: item.scraped_cards?.scraped_collections?.collection_code,
             franchise: item.scraped_cards?.scraped_collections?.franchise,
             quantity: item.quantity,
             variant: item.variant,
@@ -64,10 +60,7 @@ export async function GET() {
 
         return NextResponse.json({ success: true, cards });
     } catch (err: any) {
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
 
@@ -79,14 +72,10 @@ export async function POST(request: Request) {
         } = await supabase.auth.getUser();
 
         if (!user) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized" },
-                { status: 401 },
-            );
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        const { cardId, variant, condition, checkVariantCondition } =
-            await request.json();
+        const { cardId, variant, condition, checkVariantCondition } = await request.json();
 
         const variantValue = variant || null;
         const conditionValue = condition || "NM";
@@ -109,15 +98,13 @@ export async function POST(request: Request) {
         if (existing) {
             // already in collection — do nothing
         } else {
-            const { error: insertError } = await supabase
-                .from("collected_cards")
-                .insert({
-                    user_id: user.id,
-                    card_id: cardId,
-                    quantity: 1,
-                    variant: variant || null,
-                    condition: condition || "NM",
-                });
+            const { error: insertError } = await supabase.from("collected_cards").insert({
+                user_id: user.id,
+                card_id: cardId,
+                quantity: 1,
+                variant: variant || null,
+                condition: condition || "NM",
+            });
 
             if (insertError) throw insertError;
         }
@@ -127,10 +114,7 @@ export async function POST(request: Request) {
             alreadyInCollection: !!existing,
         });
     } catch (err: any) {
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
 
@@ -153,19 +137,12 @@ export async function DELETE(request: Request) {
             );
         }
 
-        const { error } = await supabase
-            .from("collected_cards")
-            .delete()
-            .eq("id", id)
-            .eq("user_id", user.id);
+        const { error } = await supabase.from("collected_cards").delete().eq("id", id).eq("user_id", user.id);
 
         if (error) throw error;
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
 
@@ -177,39 +154,25 @@ export async function PATCH(request: Request) {
         } = await supabase.auth.getUser();
 
         if (!user) {
-            return NextResponse.json(
-                { success: false, error: "Unauthorized" },
-                { status: 401 },
-            );
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
         const { id, quantity, condition, variant } = await request.json();
 
         if (!id) {
-            return NextResponse.json(
-                { success: false, error: "Invalid data" },
-                { status: 400 },
-            );
+            return NextResponse.json({ success: false, error: "Invalid data" }, { status: 400 });
         }
 
         const updateData: any = {};
-        if (quantity !== undefined && quantity >= 1)
-            updateData.quantity = quantity;
+        if (quantity !== undefined && quantity >= 1) updateData.quantity = quantity;
         if (condition !== undefined) updateData.condition = condition;
         if (variant !== undefined) updateData.variant = variant;
 
-        const { error } = await supabase
-            .from("collected_cards")
-            .update(updateData)
-            .eq("id", id)
-            .eq("user_id", user.id);
+        const { error } = await supabase.from("collected_cards").update(updateData).eq("id", id).eq("user_id", user.id);
 
         if (error) throw error;
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

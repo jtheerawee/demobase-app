@@ -27,10 +27,7 @@ export async function GET(request: Request) {
 
         if (error) {
             console.error("[API] Error fetching collections:", error);
-            return NextResponse.json(
-                { success: false, error: error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         const collections = data.map((col: any) => ({
@@ -50,10 +47,7 @@ export async function GET(request: Request) {
         });
     } catch (err: any) {
         console.error("[API] Unexpected error fetching collections:", err);
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }
 
@@ -94,10 +88,7 @@ export async function DELETE(request: Request) {
 
         if (error) {
             console.error("[API] Error deleting collections:", error);
-            return NextResponse.json(
-                { success: false, error: error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         return NextResponse.json({
@@ -106,9 +97,6 @@ export async function DELETE(request: Request) {
         });
     } catch (err: any) {
         console.error("[API] Unexpected error deleting collections:", err);
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

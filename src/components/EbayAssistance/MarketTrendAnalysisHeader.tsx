@@ -67,9 +67,7 @@ export function MarketTrendAnalysisHeader({
                 )}
                 {listingType && (
                     <Badge variant="light" color="orange" size="sm" radius="sm">
-                        {listingType === "auction"
-                            ? t("auctions")
-                            : t("fixedPrice")}
+                        {listingType === "auction" ? t("auctions") : t("fixedPrice")}
                     </Badge>
                 )}
             </Title>

@@ -21,13 +21,7 @@ export interface BaseCardProps {
     bottomLeftActions?: ReactNode;
 }
 
-export function BaseCard({
-    card,
-    onImageClick,
-    topRightActions,
-    rightActions,
-    bottomLeftActions,
-}: BaseCardProps) {
+export function BaseCard({ card, onImageClick, topRightActions, rightActions, bottomLeftActions }: BaseCardProps) {
     return (
         <Card
             shadow="none"
@@ -73,23 +67,14 @@ export function BaseCard({
                     }}
                 >
                     <Group justify="space-between" wrap="nowrap" gap={4}>
-                        <Text
-                            size="xs"
-                            fw={700}
-                            lineClamp={1}
-                            style={{ lineHeight: 1.2 }}
-                        >
+                        <Text size="xs" fw={700} lineClamp={1} style={{ lineHeight: 1.2 }}>
                             {card.name}
                         </Text>
-                        {topRightActions && (
-                            <Group gap={2}>{topRightActions}</Group>
-                        )}
+                        {topRightActions && <Group gap={2}>{topRightActions}</Group>}
                     </Group>
 
                     <Text size="10px" c="dimmed" lineClamp={1}>
-                        {card.franchise
-                            ? `${card.franchise.toUpperCase()} • `
-                            : ""}
+                        {card.franchise ? `${card.franchise.toUpperCase()} • ` : ""}
                         {card.collectionName}
                     </Text>
 
@@ -108,23 +93,10 @@ export function BaseCard({
                                 {card.collectionCode}
                             </Text>
                         )}
-                        <Text
-                            size="10px"
-                            fw={600}
-                            c="blue.7"
-                            bg="blue.0"
-                            px={4}
-                            style={{ borderRadius: "2px" }}
-                        >
+                        <Text size="10px" fw={600} c="blue.7" bg="blue.0" px={4} style={{ borderRadius: "2px" }}>
                             #{card.cardNo || "---"}
                         </Text>
-                        <Text
-                            size="10px"
-                            fw={500}
-                            bg="gray.1"
-                            px={4}
-                            style={{ borderRadius: "2px" }}
-                        >
+                        <Text size="10px" fw={500} bg="gray.1" px={4} style={{ borderRadius: "2px" }}>
                             {card.rarity || "---"}
                         </Text>
                     </Group>

@@ -12,11 +12,7 @@ interface MainLayoutProps {
 
 export function MainLayout({ collection, results, controls }: MainLayoutProps) {
     return (
-        <Grid
-            gutter="md"
-            align="flex-start"
-            style={{ height: "calc(100vh - 180px)" }}
-        >
+        <Grid gutter="md" align="flex-start" style={{ height: "calc(100vh - 180px)" }}>
             <Grid.Col
                 span={{
                     base: 12,

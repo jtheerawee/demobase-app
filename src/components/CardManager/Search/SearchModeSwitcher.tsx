@@ -1,9 +1,5 @@
 import { ActionIcon, Box, Center, SegmentedControl } from "@mantine/core";
-import {
-    IconAlphabetLatin,
-    IconCamera,
-    IconInfoCircle,
-} from "@tabler/icons-react";
+import { IconAlphabetLatin, IconCamera, IconInfoCircle } from "@tabler/icons-react";
 
 export type SearchMode = "text" | "camera";
 
@@ -13,11 +9,7 @@ interface SearchModeSwitcherProps {
     onInfoClick?: () => void;
 }
 
-export function SearchModeSwitcher({
-    value,
-    onChange,
-    onInfoClick,
-}: SearchModeSwitcherProps) {
+export function SearchModeSwitcher({ value, onChange, onInfoClick }: SearchModeSwitcherProps) {
     return (
         <Box pos="relative" w="100%">
             <Center>

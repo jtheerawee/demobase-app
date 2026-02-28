@@ -12,13 +12,7 @@ interface EbayActiveResultsProps {
     onHover?: (date: string | null) => void;
 }
 
-export function EbayActiveResults({
-    results,
-    loadingMore,
-    onLoadMore,
-    cols = 4,
-    onHover,
-}: EbayActiveResultsProps) {
+export function EbayActiveResults({ results, loadingMore, onLoadMore, cols = 4, onHover }: EbayActiveResultsProps) {
     if (results.length === 0) return null;
 
     return (

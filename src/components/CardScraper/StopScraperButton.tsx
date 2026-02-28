@@ -13,13 +13,7 @@ export function StopScraperButton({ onStop, loading }: StopScraperButtonProps) {
 
     return (
         <Tooltip label="Stop Scraping">
-            <ActionIcon
-                color="red"
-                variant="light"
-                size="sm"
-                onClick={onStop}
-                loading={loading}
-            >
+            <ActionIcon color="red" variant="light" size="sm" onClick={onStop} loading={loading}>
                 <IconPlayerStop size={14} />
             </ActionIcon>
         </Tooltip>

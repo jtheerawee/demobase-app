@@ -9,12 +9,7 @@ interface CardScraperCountProps {
     color?: string;
 }
 
-export function CardScraperCount({
-    label,
-    count,
-    subLabel,
-    color = "blue"
-}: CardScraperCountProps) {
+export function CardScraperCount({ label, count, subLabel, color = "blue" }: CardScraperCountProps) {
     return (
         <Group gap="xs" align="center">
             <Text fw={700} size="sm">

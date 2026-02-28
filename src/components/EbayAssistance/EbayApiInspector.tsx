@@ -8,20 +8,11 @@ interface EbayApiInspectorProps {
     soldRaw: any;
 }
 
-export function EbayApiInspector({
-    activeRaw,
-    soldRaw,
-}: EbayApiInspectorProps) {
+export function EbayApiInspector({ activeRaw, soldRaw }: EbayApiInspectorProps) {
     if (!activeRaw && !soldRaw) return null;
 
     return (
-        <Paper
-            withBorder
-            radius="md"
-            p="md"
-            bg="rgba(0, 0, 0, 0.02)"
-            style={{ backdropFilter: "blur(10px)" }}
-        >
+        <Paper withBorder radius="md" p="md" bg="rgba(0, 0, 0, 0.02)" style={{ backdropFilter: "blur(10px)" }}>
             <Stack gap="xs">
                 <Text
                     size="xs"
@@ -49,18 +40,10 @@ export function EbayApiInspector({
                 >
                     <Tabs.List>
                         <Tabs.Tab value="active">
-                            Active (
-                            {Array.isArray(activeRaw)
-                                ? activeRaw.length
-                                : activeRaw?.items?.length || 0}
-                            )
+                            Active ({Array.isArray(activeRaw) ? activeRaw.length : activeRaw?.items?.length || 0})
                         </Tabs.Tab>
                         <Tabs.Tab value="sold">
-                            Sold (
-                            {Array.isArray(soldRaw)
-                                ? soldRaw.length
-                                : soldRaw?.items?.length || 0}
-                            )
+                            Sold ({Array.isArray(soldRaw) ? soldRaw.length : soldRaw?.items?.length || 0})
                         </Tabs.Tab>
                     </Tabs.List>
 

@@ -8,10 +8,7 @@ interface RunningStepIconsProps {
     workerCount: number;
 }
 
-export function RunningStepIcons({
-    isActive,
-    workerCount,
-}: RunningStepIconsProps) {
+export function RunningStepIcons({ isActive, workerCount }: RunningStepIconsProps) {
     if (!isActive) return null;
 
     return (

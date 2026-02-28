@@ -11,12 +11,7 @@ interface ImagePreviewModalProps {
     title?: React.ReactNode;
 }
 
-export function ImagePreviewModal({
-    opened,
-    onClose,
-    src,
-    title,
-}: ImagePreviewModalProps) {
+export function ImagePreviewModal({ opened, onClose, src, title }: ImagePreviewModalProps) {
     const [imgDimensions, setImgDimensions] = useState<{
         w: number;
         h: number;

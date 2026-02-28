@@ -1,18 +1,10 @@
 "use client";
 
-import {
-    Card,
-    ScrollArea,
-    Stack,
-    Text,
-} from "@mantine/core";
+import { Card, ScrollArea, Stack, Text } from "@mantine/core";
 import { useState } from "react";
 import { WidgetHeader } from "../WidgetHeader";
 import { ListSearchInput } from "./ListSearchInput";
-import {
-    CardScraperCollectionItem,
-    type CollectionItem,
-} from "./CardScraperCollectionItem";
+import { CardScraperCollectionItem, type CollectionItem } from "./CardScraperCollectionItem";
 import { CollectionIcons } from "./CollectionIcons";
 
 interface CardScraperCollectionListProps {
@@ -62,15 +54,12 @@ export function CardScraperCollectionList({
             const query = search.toLowerCase();
             return (
                 item.name.toLowerCase().includes(query) ||
-                (item.collectionCode &&
-                    item.collectionCode.toLowerCase().includes(query))
+                (item.collectionCode && item.collectionCode.toLowerCase().includes(query))
             );
         })
         .sort((a, b) => {
             if (sortBy === "name") {
-                return sortAsc
-                    ? a.name.localeCompare(b.name)
-                    : b.name.localeCompare(a.name);
+                return sortAsc ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
             } else if (sortBy === "cards") {
                 const ca = a.cardCount ?? 0;
                 const cb = b.cardCount ?? 0;
@@ -112,12 +101,7 @@ export function CardScraperCollectionList({
                 }
             />
             <Stack gap="md" style={{ flex: 1, minHeight: 0 }} p="sm">
-
-                <ListSearchInput
-                    placeholder="Search by name or code..."
-                    value={search}
-                    onChange={setSearch}
-                />
+                <ListSearchInput placeholder="Search by name or code..." value={search} onChange={setSearch} />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }}>
                     <Stack gap="xs">
@@ -132,8 +116,7 @@ export function CardScraperCollectionList({
                         ))}
                         {totalCount === 0 && !loading && (
                             <Text size="sm" c="dimmed" ta="center" py="xl">
-                                No collections found. Click &quot;Download&quot;
-                                to fetch.
+                                No collections found. Click &quot;Download&quot; to fetch.
                             </Text>
                         )}
                         {loading && (

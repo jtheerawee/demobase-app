@@ -153,9 +153,7 @@ export const FRANCHISE_OPTIONS = FRANCHISES.map((f) => ({
 }));
 
 // Helper to get languages for a specific franchise
-export const getLanguagesForFranchise = (
-    franchiseValue: string | null | undefined,
-): FranchiseLanguage[] => {
+export const getLanguagesForFranchise = (franchiseValue: string | null | undefined): FranchiseLanguage[] => {
     if (!franchiseValue || franchiseValue === "all") return [];
     return FRANCHISES.find((f) => f.value === franchiseValue)?.languages || [];
 };

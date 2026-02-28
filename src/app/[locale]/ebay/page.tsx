@@ -111,10 +111,7 @@ export default function EbayPage() {
                 )}
 
                 {item && process.env.NEXT_PUBLIC_DEVELOPER_MODE === "true" && (
-                    <ApiDebugPanel
-                        data={item}
-                        label={`GET /api/ebay/${item.itemId}`}
-                    />
+                    <ApiDebugPanel data={item} label={`GET /api/ebay/${item.itemId}`} />
                 )}
 
                 {item && (
@@ -131,23 +128,15 @@ export default function EbayPage() {
 
                             <Grid.Col span={{ base: 12, sm: 8 }}>
                                 <Stack gap="sm">
-                                    <Anchor
-                                        href={item.itemWebUrl}
-                                        target="_blank"
-                                        size="lg"
-                                        fw={600}
-                                    >
+                                    <Anchor href={item.itemWebUrl} target="_blank" size="lg" fw={600}>
                                         {item.title}
                                     </Anchor>
 
                                     <Group gap="sm">
                                         <Text size="xl" fw={700}>
-                                            {item.price.currency}{" "}
-                                            {item.price.value}
+                                            {item.price.currency} {item.price.value}
                                         </Text>
-                                        <Badge variant="light">
-                                            {item.condition}
-                                        </Badge>
+                                        <Badge variant="light">{item.condition}</Badge>
                                     </Group>
 
                                     <Stack gap={4}>
@@ -155,11 +144,8 @@ export default function EbayPage() {
                                             Seller
                                         </Text>
                                         <Text size="sm">
-                                            {item.seller.username} ·{" "}
-                                            {item.seller.feedbackPercentage}%
-                                            positive (
-                                            {item.seller.feedbackScore.toLocaleString()}{" "}
-                                            feedback)
+                                            {item.seller.username} · {item.seller.feedbackPercentage}% positive (
+                                            {item.seller.feedbackScore.toLocaleString()} feedback)
                                         </Text>
                                     </Stack>
 
@@ -170,9 +156,7 @@ export default function EbayPage() {
                                             </Text>
                                             <Text size="sm">
                                                 {shipping.shippingServiceCode} ·{" "}
-                                                {Number(
-                                                    shipping.shippingCost.value,
-                                                ) === 0
+                                                {Number(shipping.shippingCost.value) === 0
                                                     ? "Free"
                                                     : `${shipping.shippingCost.currency} ${shipping.shippingCost.value}`}
                                             </Text>

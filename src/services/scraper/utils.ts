@@ -28,7 +28,7 @@ interface ScraperStatsResult {
 export function reportScraperStats(
     send: (msg: any) => void,
     category: "collections" | "cards",
-    result: ScraperStatsResult
+    result: ScraperStatsResult,
 ) {
     if (category === "collections" && result.saved) {
         send({
@@ -53,7 +53,7 @@ export function reportScraperMeta(
         totalItems?: number;
         totalPages?: number;
         totalCards?: number;
-    }
+    },
 ) {
     send({
         type: SCRAPER_MESSAGE_TYPE.META,
@@ -61,11 +61,7 @@ export function reportScraperMeta(
     });
 }
 
-export function reportScraperChunk(
-    send: (msg: any) => void,
-    items: any[],
-    startIndex: number = 0
-) {
+export function reportScraperChunk(send: (msg: any) => void, items: any[], startIndex: number = 0) {
     send({
         type: SCRAPER_MESSAGE_TYPE.CHUNK,
         items,

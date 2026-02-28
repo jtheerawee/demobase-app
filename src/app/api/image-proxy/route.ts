@@ -5,10 +5,7 @@ export async function GET(request: Request) {
     const url = searchParams.get("url");
 
     if (!url) {
-        return NextResponse.json(
-            { error: "Missing url parameter" },
-            { status: 400 },
-        );
+        return NextResponse.json({ error: "Missing url parameter" }, { status: 400 });
     }
 
     try {
@@ -21,10 +18,7 @@ export async function GET(request: Request) {
         });
 
         if (!response.ok) {
-            return NextResponse.json(
-                { error: "Failed to fetch image" },
-                { status: response.status },
-            );
+            return NextResponse.json({ error: "Failed to fetch image" }, { status: response.status });
         }
 
         const contentType = response.headers.get("content-type") || "image/png";

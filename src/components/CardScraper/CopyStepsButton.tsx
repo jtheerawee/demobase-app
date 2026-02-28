@@ -15,17 +15,8 @@ export function CopyStepsButton({ value, hasSteps }: CopyStepsButtonProps) {
         <CopyButton value={value}>
             {({ copied, copy }) => (
                 <Tooltip label={copied ? "Copied all!" : "Copy all steps"}>
-                    <ActionIcon
-                        variant="subtle"
-                        color={copied ? "green" : "gray"}
-                        size="sm"
-                        onClick={copy}
-                    >
-                        {copied ? (
-                            <IconCheck size={14} />
-                        ) : (
-                            <IconCopy size={14} />
-                        )}
+                    <ActionIcon variant="subtle" color={copied ? "green" : "gray"} size="sm" onClick={copy}>
+                        {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
                     </ActionIcon>
                 </Tooltip>
             )}

@@ -1,20 +1,7 @@
 "use client";
 
-import {
-    Box,
-    Button,
-    Center,
-    Group,
-    Image,
-    LoadingOverlay,
-    Stack,
-    Text,
-} from "@mantine/core";
-import {
-    Dropzone,
-    type FileWithPath,
-    IMAGE_MIME_TYPE,
-} from "@mantine/dropzone";
+import { Box, Button, Center, Group, Image, LoadingOverlay, Stack, Text } from "@mantine/core";
+import { Dropzone, type FileWithPath, IMAGE_MIME_TYPE } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
 import { IconPhoto, IconRefresh, IconScan, IconX } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
@@ -87,10 +74,7 @@ export function CardManagerOCR({
             if (mode === "vision") {
                 formData.append("fileA", fileToUse);
                 formData.append("model", OCR_CONFIG.OCR_MODEL);
-                formData.append(
-                    "score",
-                    OCR_CONFIG.OCR_SCORE_THRESHOLD.toString(),
-                );
+                formData.append("score", OCR_CONFIG.OCR_SCORE_THRESHOLD.toString());
                 formData.append("limit", OCR_CONFIG.OCR_LIMIT.toString());
                 formData.append("workers", OCR_CONFIG.OCR_WORKERS.toString());
 
@@ -127,8 +111,7 @@ export function CardManagerOCR({
                 const matches = data.results || [];
                 const scanIds = matches
                     .map((m: any) => {
-                        const filename =
-                            m.path.split("/").pop()?.split(".").shift() || "";
+                        const filename = m.path.split("/").pop()?.split(".").shift() || "";
                         const match = filename.match(/\[(.*?)\]-([^-]+)/);
                         if (match) return `${match[1]}:${match[2]}`;
                         return null;
@@ -168,15 +151,10 @@ export function CardManagerOCR({
             }
         } catch (err: any) {
             console.error("OCR Precise Error:", err);
-            const isNoMatch =
-                err.message === APP_MESSAGES.NO_MATCH_FOUND ||
-                err.message === APP_MESSAGES.NO_TEXT_FOUND;
+            const isNoMatch = err.message === APP_MESSAGES.NO_MATCH_FOUND || err.message === APP_MESSAGES.NO_TEXT_FOUND;
             if (!isNoMatch) {
                 notifications.show({
-                    title:
-                        err.name === "AbortError"
-                            ? "Request Timed Out"
-                            : "Scan Failed",
+                    title: err.name === "AbortError" ? "Request Timed Out" : "Scan Failed",
                     message: err.message || "Failed to process image",
                     color: "red",
                     icon: <IconX size={18} />,
@@ -245,16 +223,10 @@ export function CardManagerOCR({
                     position: "relative",
                     height: OCR_CONFIG.CAMERA_VIEW_HEIGHT,
                     backgroundColor: preview ? "#000" : "transparent",
-                    border: preview
-                        ? "none"
-                        : "2px dashed var(--mantine-color-gray-3)",
+                    border: preview ? "none" : "2px dashed var(--mantine-color-gray-3)",
                 }}
             >
-                <LoadingOverlay
-                    visible={loading}
-                    overlayProps={{ blur: 2 }}
-                    loaderProps={{ size: "md" }}
-                />
+                <LoadingOverlay visible={loading} overlayProps={{ blur: 2 }} loaderProps={{ size: "md" }} />
 
                 {!preview ? (
                     <Dropzone
@@ -272,8 +244,7 @@ export function CardManagerOCR({
                                 transition: "all 0.2s ease",
                                 cursor: "pointer",
                                 "&:hover": {
-                                    backgroundColor:
-                                        "var(--mantine-color-gray-1)",
+                                    backgroundColor: "var(--mantine-color-gray-1)",
                                 },
                             },
                         }}
@@ -287,22 +258,12 @@ export function CardManagerOCR({
                                 }}
                             >
                                 {mode === "vision" ? (
-                                    <IconScan
-                                        size={48}
-                                        color="var(--mantine-color-blue-6)"
-                                        stroke={1.5}
-                                    />
+                                    <IconScan size={48} color="var(--mantine-color-blue-6)" stroke={1.5} />
                                 ) : (
-                                    <IconPhoto
-                                        size={48}
-                                        color="var(--mantine-color-blue-6)"
-                                        stroke={1.5}
-                                    />
+                                    <IconPhoto size={48} color="var(--mantine-color-blue-6)" stroke={1.5} />
                                 )}
                                 <Text size="lg" inline fw={700}>
-                                    {mode === "vision"
-                                        ? "Drop for Vision Scan"
-                                        : "Drop for Text OCR"}
+                                    {mode === "vision" ? "Drop for Vision Scan" : "Drop for Text OCR"}
                                 </Text>
                                 <Text size="xs" c="dimmed" inline mt={7}>
                                     Click or drag image here
@@ -353,8 +314,7 @@ function parseOcrText(text: string) {
     // 1. Try MTG Pattern (ABC-EN)
     const mtgSetMatch = text.match(/\b([A-Z0-9]{3,5})-(?:[A-Z]{2,})\b/i);
     const mtgNoMatch =
-        text.match(/\b[A-Z]?0*([1-9][0-9]{2,3})\b/) ||
-        text.match(/(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/);
+        text.match(/\b[A-Z]?0*([1-9][0-9]{2,3})\b/) || text.match(/(?<!\/)\b[A-Z]?0*([1-9][0-9]{0,1})\b(?!\/)/);
 
     if (mtgSetMatch && mtgNoMatch) {
         return {
@@ -367,11 +327,9 @@ function parseOcrText(text: string) {
     // 2. Try Pokemon Pattern (MEWEN 067/165 or SVP 001 or 123/456)
     // Matches MEWEN, SV1EN, etc. and extracts the code part
     const pokemonSetMatch =
-        text.match(/\b([A-Z0-9]{2,4})(?:EN|JP|CN|KR|TW|FR|DE|IT|ES|PT)\b/i) ||
-        text.match(/\b([A-Z0-9]{2,4})\b/i);
+        text.match(/\b([A-Z0-9]{2,4})(?:EN|JP|CN|KR|TW|FR|DE|IT|ES|PT)\b/i) || text.match(/\b([A-Z0-9]{2,4})\b/i);
 
-    const pokemonCardNoMatch =
-        text.match(/\b(\d{1,3})\/\d{2,3}\b/) || text.match(/\b(\d{1,3})\b/);
+    const pokemonCardNoMatch = text.match(/\b(\d{1,3})\/\d{2,3}\b/) || text.match(/\b(\d{1,3})\b/);
 
     if (pokemonSetMatch && pokemonCardNoMatch) {
         let sc = pokemonSetMatch[1].toUpperCase();

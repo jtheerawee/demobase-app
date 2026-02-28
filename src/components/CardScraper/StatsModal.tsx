@@ -19,12 +19,15 @@ export function StatsModal({ opened, onClose, title, items }: StatsModalProps) {
                 <Stack gap={4}>
                     {items.map((c, i) => (
                         <Text key={i} size="xs">
-                            {c.collectionCode || c.cardNo ? `#${c.collectionCode || c.cardNo} ` : ""}{c.name}
+                            {c.collectionCode || c.cardNo ? `#${c.collectionCode || c.cardNo} ` : ""}
+                            {c.name}
                         </Text>
                     ))}
                 </Stack>
             ) : (
-                <Text size="sm" c="dimmed">No items.</Text>
+                <Text size="sm" c="dimmed">
+                    No items.
+                </Text>
             )}
         </Modal>
     );

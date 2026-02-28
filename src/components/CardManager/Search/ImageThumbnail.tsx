@@ -12,12 +12,7 @@ export function ImageThumbnail({ preview, onEnlarge }: ImageThumbnailProps) {
     if (!preview) return null;
 
     return (
-        <Box
-            pos="absolute"
-            right={0}
-            top="50%"
-            style={{ transform: "translateY(-50%)" }}
-        >
+        <Box pos="absolute" right={0} top="50%" style={{ transform: "translateY(-50%)" }}>
             <Tooltip label="Click to enlarge last snapshot" position="top">
                 <Box
                     pos="relative"

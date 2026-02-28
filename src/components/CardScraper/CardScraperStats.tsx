@@ -1,15 +1,6 @@
 "use client";
 
-import {
-    ActionIcon,
-    Badge,
-    Card,
-    Group,
-    SimpleGrid,
-    Stack,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Badge, Card, Group, SimpleGrid, Stack, Text, Tooltip } from "@mantine/core";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { useState } from "react";
 import { StatsModal } from "@/components/CardScraper/StatsModal";
@@ -47,7 +38,10 @@ function StatWidget({
     onCopy,
 }: StatWidgetProps) {
     const [copied, setCopied] = useState(false);
-    const [modalContent, setModalContent] = useState<{ title: string, items: any[] } | null>(null);
+    const [modalContent, setModalContent] = useState<{
+        title: string;
+        items: any[];
+    } | null>(null);
 
     const handleCopy = () => {
         onCopy?.();
@@ -82,7 +76,11 @@ function StatWidget({
                         )}
                         {onCopy && (
                             <Tooltip
-                                label={collections === 0 && cards === 0 ? "No items to copy" : `Copy ${label.toLowerCase()} items for investigation`}
+                                label={
+                                    collections === 0 && cards === 0
+                                        ? "No items to copy"
+                                        : `Copy ${label.toLowerCase()} items for investigation`
+                                }
                                 withArrow
                             >
                                 <ActionIcon
@@ -108,8 +106,17 @@ function StatWidget({
                             <Text
                                 size="sm"
                                 fw={700}
-                                style={{ cursor: "pointer", borderBottom: `1px dashed var(--mantine-color-${color}-6)`, color: `var(--mantine-color-${color}-6)` }}
-                                onClick={() => setModalContent({ title: `${label} Collections`, items: collectionItems })}
+                                style={{
+                                    cursor: "pointer",
+                                    borderBottom: `1px dashed var(--mantine-color-${color}-6)`,
+                                    color: `var(--mantine-color-${color}-6)`,
+                                }}
+                                onClick={() =>
+                                    setModalContent({
+                                        title: `${label} Collections`,
+                                        items: collectionItems,
+                                    })
+                                }
                             >
                                 {collections}
                             </Text>
@@ -127,8 +134,17 @@ function StatWidget({
                             <Text
                                 size="sm"
                                 fw={700}
-                                style={{ cursor: "pointer", borderBottom: `1px dashed var(--mantine-color-${color}-6)`, color: `var(--mantine-color-${color}-6)` }}
-                                onClick={() => setModalContent({ title: `${label} Cards`, items: cardItems })}
+                                style={{
+                                    cursor: "pointer",
+                                    borderBottom: `1px dashed var(--mantine-color-${color}-6)`,
+                                    color: `var(--mantine-color-${color}-6)`,
+                                }}
+                                onClick={() =>
+                                    setModalContent({
+                                        title: `${label} Cards`,
+                                        items: cardItems,
+                                    })
+                                }
                             >
                                 {cards}
                             </Text>
@@ -158,12 +174,7 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
         navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     };
 
-    const renderStat = (
-        label: string,
-        category: StatCategory,
-        color: string,
-        badgeTooltip: string
-    ) => {
+    const renderStat = (label: string, category: StatCategory, color: string, badgeTooltip: string) => {
         const itemKey = `${category}Items` as keyof CategoryStats;
         const itemCount = ((stats.cards[itemKey] as any[])?.length ?? 0) || (stats.cards[category] ?? 0);
         const colCount = ((stats.collections[itemKey] as any[])?.length ?? 0) || (stats.collections[category] ?? 0);
@@ -185,7 +196,12 @@ export function CardScraperStats({ stats }: CardScraperStatsProps) {
     return (
         <SimpleGrid cols={2} spacing="xs">
             {renderStat("Added", "added", "green", "New items successfully scraped and saved to the database")}
-            {renderStat("Matched", "matched", "blue", "Items that already exist in the database (skipped to prevent duplicates)")}
+            {renderStat(
+                "Matched",
+                "matched",
+                "blue",
+                "Items that already exist in the database (skipped to prevent duplicates)",
+            )}
             {renderStat("Missed", "missed", "orange", "Items that failed during scraping or were missed due to errors")}
             {renderStat("Discarded", "discarded", "red", "Items explicitly skipped based on rules or limits")}
         </SimpleGrid>

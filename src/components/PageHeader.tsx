@@ -13,24 +13,11 @@ interface PageHeaderProps {
     actions?: ReactNode;
 }
 
-export function PageHeader({
-    title,
-    description,
-    icon,
-    backHref = "/",
-    actions,
-}: PageHeaderProps) {
+export function PageHeader({ title, description, icon, backHref = "/", actions }: PageHeaderProps) {
     return (
         <Group justify="space-between" align="flex-start">
             <Group align="center" gap="sm">
-                <ActionIcon
-                    component={Link}
-                    href={backHref}
-                    variant="subtle"
-                    color="gray"
-                    size="lg"
-                    radius="md"
-                >
+                <ActionIcon component={Link} href={backHref} variant="subtle" color="gray" size="lg" radius="md">
                     <IconArrowLeft size={24} />
                 </ActionIcon>
 

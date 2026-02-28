@@ -1,13 +1,6 @@
 "use client";
 
-import {
-    ActionIcon,
-    Checkbox,
-    Group,
-    Stack,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Checkbox, Group, Stack, Text, Tooltip } from "@mantine/core";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { OCR_CONFIG } from "@/constants/ocr";
 
@@ -65,13 +58,7 @@ function DelayStepper({
                     >
                         <IconMinus size={10} stroke={3} />
                     </ActionIcon>
-                    <Text
-                        size="11px"
-                        fw={700}
-                        w={20}
-                        ta="center"
-                        c={disabled ? "dimmed" : "blue.7"}
-                    >
+                    <Text size="11px" fw={700} w={20} ta="center" c={disabled ? "dimmed" : "blue.7"}>
                         {value}s
                     </Text>
                     <ActionIcon
@@ -136,24 +123,15 @@ export function AutoOptions({
                         <Checkbox
                             label="Auto-capture"
                             checked={autoCapture}
-                            onChange={(e) =>
-                                onAutoCaptureChange(e.currentTarget.checked)
-                            }
+                            onChange={(e) => onAutoCaptureChange(e.currentTarget.checked)}
                             size="sm"
                             color="blue"
                         />
                     </Tooltip>
                     {onAutoCaptureDelayChange && (
-                        <Tooltip
-                            label="Wait time between each auto-capture cycle"
-                            position="top"
-                            withArrow
-                        >
+                        <Tooltip label="Wait time between each auto-capture cycle" position="top" withArrow>
                             <Stack gap={2} align="center">
-                                <Text
-                                    size="xs"
-                                    c={!autoCapture ? "dimmed" : "dark"}
-                                >
+                                <Text size="xs" c={!autoCapture ? "dimmed" : "dark"}>
                                     Auto delay
                                 </Text>
                                 <Group
@@ -166,9 +144,7 @@ export function AutoOptions({
                                         borderRadius: "4px",
                                         border: `1px solid ${!autoCapture ? "var(--mantine-color-gray-3)" : "var(--mantine-color-gray-2)"}`,
                                         opacity: !autoCapture ? 0.6 : 1,
-                                        pointerEvents: !autoCapture
-                                            ? "none"
-                                            : "all",
+                                        pointerEvents: !autoCapture ? "none" : "all",
                                     }}
                                 >
                                     <ActionIcon
@@ -177,17 +153,10 @@ export function AutoOptions({
                                         size="xs"
                                         onClick={() =>
                                             onAutoCaptureDelayChange(
-                                                Math.max(
-                                                    OCR_CONFIG.AUTO_CAPTURE_DELAY,
-                                                    autoCaptureDelay - 1,
-                                                ),
+                                                Math.max(OCR_CONFIG.AUTO_CAPTURE_DELAY, autoCaptureDelay - 1),
                                             )
                                         }
-                                        disabled={
-                                            !autoCapture ||
-                                            autoCaptureDelay <=
-                                                OCR_CONFIG.AUTO_CAPTURE_DELAY
-                                        }
+                                        disabled={!autoCapture || autoCaptureDelay <= OCR_CONFIG.AUTO_CAPTURE_DELAY}
                                     >
                                         <IconMinus size={10} stroke={3} />
                                     </ActionIcon>
@@ -204,11 +173,7 @@ export function AutoOptions({
                                         variant="subtle"
                                         color="blue"
                                         size="xs"
-                                        onClick={() =>
-                                            onAutoCaptureDelayChange(
-                                                autoCaptureDelay + 1,
-                                            )
-                                        }
+                                        onClick={() => onAutoCaptureDelayChange(autoCaptureDelay + 1)}
                                         disabled={!autoCapture}
                                     >
                                         <IconPlus size={10} stroke={3} />

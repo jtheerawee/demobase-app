@@ -1,12 +1,7 @@
 "use client";
 
 import { ActionIcon, Badge, Group, Menu, Text, Tooltip } from "@mantine/core";
-import {
-    IconExternalLink,
-    IconMinus,
-    IconPlus,
-    IconTrash,
-} from "@tabler/icons-react";
+import { IconExternalLink, IconMinus, IconPlus, IconTrash } from "@tabler/icons-react";
 import { CONDITIONS, getConditionAbbr } from "@/constants/conditions";
 import { VARIANTS, getVariantAbbr } from "@/constants/variants";
 import { BaseCard } from "../BaseCard";
@@ -61,21 +56,12 @@ export function CollectedCard({
             onImageClick={onImageClick}
             bottomLeftActions={
                 <>
-                    <Group
-                        gap={2}
-                        wrap="nowrap"
-                        bg="gray.1"
-                        px={4}
-                        py={2}
-                        style={{ borderRadius: "4px" }}
-                    >
+                    <Group gap={2} wrap="nowrap" bg="gray.1" px={4} py={2} style={{ borderRadius: "4px" }}>
                         <ActionIcon
                             size="xs"
                             variant="subtle"
                             color="gray"
-                            onClick={() =>
-                                onUpdateQuantity(card.id, card.quantity - 1)
-                            }
+                            onClick={() => onUpdateQuantity(card.id, card.quantity - 1)}
                             disabled={card.quantity <= 1}
                         >
                             <IconMinus size={10} />
@@ -87,9 +73,7 @@ export function CollectedCard({
                             size="xs"
                             variant="subtle"
                             color="gray"
-                            onClick={() =>
-                                onUpdateQuantity(card.id, card.quantity + 1)
-                            }
+                            onClick={() => onUpdateQuantity(card.id, card.quantity + 1)}
                         >
                             <IconPlus size={10} />
                         </ActionIcon>
@@ -115,9 +99,7 @@ export function CollectedCard({
                             {VARIANTS.map((v) => (
                                 <Menu.Item
                                     key={v.value}
-                                    onClick={() =>
-                                        onUpdateVariant(card.id, v.value)
-                                    }
+                                    onClick={() => onUpdateVariant(card.id, v.value)}
                                     style={{
                                         fontSize: "10px",
                                     }}
@@ -148,9 +130,7 @@ export function CollectedCard({
                             {CONDITIONS.map((cond) => (
                                 <Menu.Item
                                     key={cond.value}
-                                    onClick={() =>
-                                        onUpdateCondition(card.id, cond.value)
-                                    }
+                                    onClick={() => onUpdateCondition(card.id, cond.value)}
                                     style={{
                                         fontSize: "10px",
                                     }}
@@ -176,26 +156,12 @@ export function CollectedCard({
                             <IconExternalLink size={14} />
                         </ActionIcon>
                     )}
-                    <Tooltip
-                        label="Add new variant/condition entry"
-                        position="left"
-                        withArrow
-                    >
-                        <ActionIcon
-                            variant="subtle"
-                            color="green"
-                            size="sm"
-                            onClick={() => onAddEntry(card)}
-                        >
+                    <Tooltip label="Add new variant/condition entry" position="left" withArrow>
+                        <ActionIcon variant="subtle" color="green" size="sm" onClick={() => onAddEntry(card)}>
                             <IconPlus size={14} />
                         </ActionIcon>
                     </Tooltip>
-                    <ActionIcon
-                        variant="subtle"
-                        color="red"
-                        size="sm"
-                        onClick={() => onDelete(card.id)}
-                    >
+                    <ActionIcon variant="subtle" color="red" size="sm" onClick={() => onDelete(card.id)}>
                         <IconTrash size={14} />
                     </ActionIcon>
                 </>

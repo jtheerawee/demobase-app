@@ -43,13 +43,7 @@ export function CollectionIcons({
     return (
         <Group gap="xs">
             <Tooltip label="Refresh from database" withArrow>
-                <ActionIcon
-                    variant="light"
-                    color="blue"
-                    size="sm"
-                    onClick={() => onRefresh?.()}
-                    loading={loading}
-                >
+                <ActionIcon variant="light" color="blue" size="sm" onClick={() => onRefresh?.()} loading={loading}>
                     <IconRefresh size={16} />
                 </ActionIcon>
             </Tooltip>
@@ -79,10 +73,7 @@ export function CollectionIcons({
                     <IconTrash size={16} />
                 </ActionIcon>
             </Tooltip>
-            <Tooltip
-                label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`}
-                withArrow
-            >
+            <Tooltip label={`Sort by name (${sortBy === "name" ? (sortAsc ? "A→Z" : "Z→A") : "A→Z"})`} withArrow>
                 <ActionIcon
                     variant={sortBy === "name" ? "light" : "subtle"}
                     color={sortBy === "name" ? "blue" : "gray"}
@@ -90,11 +81,7 @@ export function CollectionIcons({
                     onClick={() => onSortChange("name")}
                     disabled={totalCount === 0}
                 >
-                    {sortBy === "name" && !sortAsc ? (
-                        <IconSortZA size={14} />
-                    ) : (
-                        <IconSortAZ size={14} />
-                    )}
+                    {sortBy === "name" && !sortAsc ? <IconSortZA size={14} /> : <IconSortAZ size={14} />}
                 </ActionIcon>
             </Tooltip>
             <Tooltip

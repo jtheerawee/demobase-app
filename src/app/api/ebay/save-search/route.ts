@@ -13,22 +13,10 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const {
-            query,
-            service,
-            psaGrade,
-            minPrice,
-            maxPrice,
-            listingType,
-            excludeJp,
-            onlyUs,
-        } = body;
+        const { query, service, psaGrade, minPrice, maxPrice, listingType, excludeJp, onlyUs } = body;
 
         if (!query) {
-            return NextResponse.json(
-                { error: "Query is required" },
-                { status: 400 },
-            );
+            return NextResponse.json({ error: "Query is required" }, { status: 400 });
         }
 
         // Ensure user exists in public.users and user_statuses (fallback for session mismatch after DB reset)
@@ -55,10 +43,7 @@ export async function POST(req: NextRequest) {
                     user_id: user.id,
                     keyword: query,
                     service: service && service !== "---" ? service : "---",
-                    grade:
-                        psaGrade && service !== "---"
-                            ? parseInt(psaGrade, 10)
-                            : null,
+                    grade: psaGrade && service !== "---" ? parseInt(psaGrade, 10) : null,
                     min_price: minPrice ? parseFloat(String(minPrice)) : null,
                     max_price: maxPrice ? parseFloat(String(maxPrice)) : null,
                     listing_type: listingType || "auction",

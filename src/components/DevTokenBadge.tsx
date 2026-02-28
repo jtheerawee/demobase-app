@@ -31,21 +31,9 @@ export function DevTokenBadge({ token }: { token: string }) {
             </Text>
             <CopyButton value={token}>
                 {({ copied, copy }) => (
-                    <Tooltip
-                        label={copied ? "Copied!" : "Copy token"}
-                        withArrow
-                    >
-                        <ActionIcon
-                            size="xs"
-                            variant="subtle"
-                            color={copied ? "teal" : "orange"}
-                            onClick={copy}
-                        >
-                            {copied ? (
-                                <IconCheck size={12} />
-                            ) : (
-                                <IconCopy size={12} />
-                            )}
+                    <Tooltip label={copied ? "Copied!" : "Copy token"} withArrow>
+                        <ActionIcon size="xs" variant="subtle" color={copied ? "teal" : "orange"} onClick={copy}>
+                            {copied ? <IconCheck size={12} /> : <IconCopy size={12} />}
                         </ActionIcon>
                     </Tooltip>
                 )}

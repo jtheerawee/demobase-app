@@ -1,16 +1,9 @@
 import { saveScrapedCollections } from "@/services/scraper/persistence";
-import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 import type { ScraperOptions } from "@/services/scraper/types";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
-import { createStepLogger, reportScraperStats } from "@/services/scraper/utils";
+import { createStepLogger, reportScraperStats, reportScraperChunk } from "@/services/scraper/utils";
 
-export async function scrapePokemonCollectionsEn({
-    url,
-    context,
-    send,
-    franchise,
-    language,
-}: ScraperOptions) {
+export async function scrapePokemonCollectionsEn({ url, context, send, franchise, language }: ScraperOptions) {
     const logStep = createStepLogger(send);
 
     logStep(`Step 1: ${franchise}. Fetching sets...`);
@@ -32,13 +25,12 @@ export async function scrapePokemonCollectionsEn({
         logStep("Step 3: Activating Advanced Search filters...");
         // 1. Click "Show Advanced Search"
         // Try multiple selectors and wait for it to be visible
-        const advancedBtnSelector =
-            "span.filter-title, #toggleWrapperMainText, .filter-title";
+        const advancedBtnSelector = "span.filter-title, #toggleWrapperMainText, .filter-title";
         await page
             .waitForSelector(advancedBtnSelector, {
                 timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
             })
-            .catch(() => { });
+            .catch(() => {});
 
         const advancedBtn = await page.$(advancedBtnSelector);
         if (advancedBtn) {
@@ -63,9 +55,12 @@ export async function scrapePokemonCollectionsEn({
         const expansionSection = await page.$(expansionHeaderSelector);
         if (expansionSection) {
             logStep("Clicking Expansions section...");
-            await expansionSection.scrollIntoViewIfNeeded().catch(() => { });
+            await expansionSection.scrollIntoViewIfNeeded().catch(() => {});
             await expansionSection
-                .click({ force: true, timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT })
+                .click({
+                    force: true,
+                    timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
+                })
                 .catch((e: any) => {
                     console.warn("Expansion click failed", e);
                 });
@@ -82,9 +77,7 @@ export async function scrapePokemonCollectionsEn({
         // Extract labels
         const mappings = await page.evaluate(() => {
             const results: Record<string, string> = {};
-            const labels = document.querySelectorAll(
-                "label.pill-control__label",
-            );
+            const labels = document.querySelectorAll("label.pill-control__label");
 
             if (labels.length === 0) {
                 // Try a broader search if the specific class failed
@@ -129,12 +122,7 @@ export async function scrapePokemonCollectionsEn({
     }
 
     if (franchise && language && sharedCollectionList.length > 0) {
-        // Send to UI immediately for feedback
-        send({
-            type: SCRAPER_MESSAGE_TYPE.CHUNK,
-            items: sharedCollectionList,
-            startIndex: 0,
-        });
+        reportScraperChunk(send, sharedCollectionList, 0);
 
         logStep(`Scraped ${sharedCollectionList.length} collections...`);
         try {
@@ -145,7 +133,9 @@ export async function scrapePokemonCollectionsEn({
             if (result) {
                 const { addedItems, matchedItems } = result;
                 reportScraperStats(send, "collections", result);
-                logStep(`Successfully registered ${sharedCollectionList.length} English collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
+                logStep(
+                    `Successfully registered ${sharedCollectionList.length} English collections — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
+                );
             }
         } catch (error) {
             console.error("Failed to save English sets:", error);

@@ -2,7 +2,13 @@ import { APP_CONFIG } from "@/constants/app";
 import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 import { saveScrapedCards } from "@/services/scraper/persistence";
 import { type ScraperOptions, SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-import { createWorkerUpdater, createStepLogger, reportScraperStats } from "@/services/scraper/utils";
+import {
+    createWorkerUpdater,
+    createStepLogger,
+    reportScraperStats,
+    reportScraperMeta,
+    reportScraperChunk,
+} from "@/services/scraper/utils";
 
 export async function scrapePokemonCardsEn({
     url,
@@ -50,9 +56,7 @@ export async function scrapePokemonCardsEn({
                     });
                     if (shouldAbort || p > totalPages) break;
 
-                    await workerPage.evaluate(() =>
-                        window.scrollTo(0, document.body.scrollHeight),
-                    );
+                    await workerPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
                     await workerPage.waitForTimeout(2000);
 
                     // Extraction with retry for navigation/destruction errors
@@ -75,45 +79,32 @@ export async function scrapePokemonCardsEn({
                         }
 
                         if (cardElements.length === 0) {
-                            const allLinks = Array.from(
-                                document.querySelectorAll("a"),
-                            );
+                            const allLinks = Array.from(document.querySelectorAll("a"));
                             cardElements = allLinks.filter(
-                                (a) =>
-                                    a.querySelector("img") &&
-                                    a.href.includes("/pokemon-cards/"),
+                                (a) => a.querySelector("img") && a.href.includes("/pokemon-cards/"),
                             );
                         }
 
                         const items = cardElements.map((el) => {
                             const img = el.querySelector("img");
-                            const anchor = (
-                                el.tagName === "A" ? el : el.querySelector("a")
-                            ) as HTMLAnchorElement;
+                            const anchor = (el.tagName === "A" ? el : el.querySelector("a")) as HTMLAnchorElement;
                             const imageUrl = img?.src || "";
                             const absoluteImageUrl = imageUrl.startsWith("http")
                                 ? imageUrl
-                                : window.location.origin +
-                                (imageUrl.startsWith("/") ? "" : "/") +
-                                imageUrl;
+                                : window.location.origin + (imageUrl.startsWith("/") ? "" : "/") + imageUrl;
                             const link = anchor?.getAttribute("href") || "";
                             const absoluteLink = link.startsWith("http")
                                 ? link
-                                : window.location.origin +
-                                (link.startsWith("/") ? "" : "/") +
-                                link;
+                                : window.location.origin + (link.startsWith("/") ? "" : "/") + link;
 
                             // Extract set/number from URL: .../series/ex1/13/
                             let cardNo = "";
-                            const urlMatch = absoluteLink.match(
-                                /\/series\/(.+?)\/(.+?)\//,
-                            );
+                            const urlMatch = absoluteLink.match(/\/series\/(.+?)\/(.+?)\//);
                             if (urlMatch) {
                                 cardNo = urlMatch[2];
                             } else {
                                 // Fallback: try extract from filename if e.g. EX1_EN_1.png
-                                const fileMatch =
-                                    absoluteImageUrl.match(/_(\d+)\.png$/);
+                                const fileMatch = absoluteImageUrl.match(/_(\d+)\.png$/);
                                 if (fileMatch) cardNo = fileMatch[1];
                             }
 
@@ -130,10 +121,7 @@ export async function scrapePokemonCardsEn({
                         const pageText = document.body.innerText;
 
                         if (items.length === 0) {
-                            if (
-                                pageText.includes("Request unsuccessful") ||
-                                document.title.includes("Access Denied")
-                            ) {
+                            if (pageText.includes("Request unsuccessful") || document.title.includes("Access Denied")) {
                                 return {
                                     items: [],
                                     discoveredTotal: 0,
@@ -142,9 +130,7 @@ export async function scrapePokemonCardsEn({
                             }
                         }
 
-                        const match =
-                            pageText.match(/Page \d+ of (\d+)/i) ||
-                            pageText.match(/of (\d+) results/i);
+                        const match = pageText.match(/Page \d+ of (\d+)/i) || pageText.match(/of (\d+) results/i);
                         if (match) discoveredTotal = parseInt(match[1], 10);
 
                         return { items, discoveredTotal };
@@ -153,11 +139,7 @@ export async function scrapePokemonCardsEn({
                     try {
                         pageData = await workerPage.evaluate(extractFn);
                     } catch (evalErr: any) {
-                        if (
-                            evalErr.message.includes(
-                                "Execution context was destroyed",
-                            )
-                        ) {
+                        if (evalErr.message.includes("Execution context was destroyed")) {
                             logStep(`Worker ${workerId} context destroyed. Retrying...`);
                             await workerPage.waitForTimeout(2000);
                             pageData = await workerPage.evaluate(extractFn);
@@ -176,27 +158,20 @@ export async function scrapePokemonCardsEn({
                         if (p === 1) {
                             shouldAbort = true;
                             totalPages = 0;
-                            send({
-                                type: SCRAPER_MESSAGE_TYPE.META,
+                            reportScraperMeta(send, {
                                 totalPages: 0,
                                 totalCards: 0,
                             });
                         } else if (p < totalPages) {
                             totalPages = p - 1;
-                            send({
-                                type: SCRAPER_MESSAGE_TYPE.META,
-                                totalPages,
-                            });
+                            reportScraperMeta(send, { totalPages });
                         }
                         break;
                     }
 
-                    if (
-                        pageData.discoveredTotal > 0 &&
-                        totalPages === Infinity
-                    ) {
+                    if (pageData.discoveredTotal > 0 && totalPages === Infinity) {
                         totalPages = pageData.discoveredTotal;
-                        send({ type: SCRAPER_MESSAGE_TYPE.META, totalPages });
+                        reportScraperMeta(send, { totalPages });
                     }
 
                     const beforeCount = sharedCardList.length;
@@ -217,16 +192,9 @@ export async function scrapePokemonCardsEn({
                         logStep(`Reached card limit (${limit}). Stopping all workers...`);
                         shouldAbort = true;
                     }
-                    send({
-                        type: SCRAPER_MESSAGE_TYPE.CHUNK,
-                        items: cardsToAdd,
-                        startIndex,
-                    });
+                    reportScraperChunk(send, cardsToAdd, startIndex);
                 } catch (pageErr) {
-                    console.error(
-                        `[Scraper En] Worker ${workerId} failed at page ${p}:`,
-                        pageErr,
-                    );
+                    console.error(`[Scraper En] Worker ${workerId} failed at page ${p}:`, pageErr);
                     logStep(`Worker ${workerId} failed at page ${p}. Retrying...`);
                 }
             }
@@ -236,15 +204,12 @@ export async function scrapePokemonCardsEn({
         }
     };
 
-    const paginationWorkers = Array.from(
-        { length: concurrency },
-        async (_, i) => {
-            const workerId = i + 1;
-            if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
-            if (shouldAbort) return;
-            return paginationWorker(workerId);
-        },
-    );
+    const paginationWorkers = Array.from({ length: concurrency }, async (_, i) => {
+        const workerId = i + 1;
+        if (i > 0) await new Promise((r) => setTimeout(r, i * 150));
+        if (shouldAbort) return;
+        return paginationWorker(workerId);
+    });
     await Promise.all(paginationWorkers);
 
     // Deep Scrape Phase (English)
@@ -258,8 +223,7 @@ export async function scrapePokemonCardsEn({
             try {
                 while (true) {
                     const cardIndex = sharedCardList.findIndex(
-                        (c) =>
-                            c.cardUrl && !c.isDeepScraped && !c.isBeingScraped,
+                        (c) => c.cardUrl && !c.isDeepScraped && !c.isBeingScraped,
                     );
                     if (cardIndex === -1) break;
 
@@ -286,57 +250,42 @@ export async function scrapePokemonCardsEn({
                             }
                         }
 
-                        if (!success)
-                            throw new Error("Failed to navigate after retries");
+                        if (!success) throw new Error("Failed to navigate after retries");
 
                         const details = await workerPage.evaluate(() => {
-                            const getText = (sel: string) =>
-                                document
-                                    .querySelector(sel)
-                                    ?.textContent?.trim() || "";
+                            const getText = (sel: string) => document.querySelector(sel)?.textContent?.trim() || "";
 
                             // Identification
                             const h1 =
                                 document.querySelector("h1") ||
-                                document.querySelector(
-                                    ".p-cardDetail__header h1",
-                                ) ||
-                                document.querySelector(
-                                    ".pageHeader.cardDetail",
-                                ) ||
+                                document.querySelector(".p-cardDetail__header h1") ||
+                                document.querySelector(".pageHeader.cardDetail") ||
                                 document.querySelector(".card-description h1");
 
                             let name = "";
                             if (h1) {
                                 const clone = h1.cloneNode(true) as HTMLElement;
-                                clone
-                                    .querySelectorAll(".evolveMarker")
-                                    .forEach((el) => el.remove());
+                                clone.querySelectorAll(".evolveMarker").forEach((el) => el.remove());
                                 name = clone.textContent?.trim() || "";
                             }
 
                             let collectorNumber = "";
                             let rarity = "N/A";
-                            const statsText =
-                                getText(".stats-footer span") || "";
+                            const statsText = getText(".stats-footer span") || "";
                             if (statsText.includes("/")) {
                                 const parts = statsText.split("/");
                                 collectorNumber = parts[0].trim();
                                 const rest = parts[1].trim();
                                 // Pattern: "109 Rare Holo" -> rarity: "Rare Holo"
                                 const rarityMatch = rest.match(/^\d+\s+(.*)$/);
-                                rarity = rarityMatch
-                                    ? rarityMatch[1].trim()
-                                    : rest;
+                                rarity = rarityMatch ? rarityMatch[1].trim() : rest;
                             } else {
                                 collectorNumber = statsText || "N/A";
                             }
 
                             // Final extraction from URL fallback if still empty
                             if (!collectorNumber || collectorNumber === "N/A") {
-                                const urlMatch = window.location.pathname.match(
-                                    /\/series\/(.+?)\/(.+?)\//,
-                                );
+                                const urlMatch = window.location.pathname.match(/\/series\/(.+?)\/(.+?)\//);
                                 if (urlMatch) collectorNumber = urlMatch[2];
                             }
 
@@ -350,9 +299,7 @@ export async function scrapePokemonCardsEn({
 
                         // Map rarity to code
                         if (details.rarity) {
-                            details.rarity =
-                                APP_CONFIG.POKEMON_RARITY_MAP[details.rarity] ||
-                                details.rarity;
+                            details.rarity = APP_CONFIG.POKEMON_RARITY_MAP[details.rarity] || details.rarity;
                         }
 
                         Object.assign(card, details);
@@ -364,10 +311,7 @@ export async function scrapePokemonCardsEn({
                         });
                     } catch (e) {
                         card.isBeingScraped = false;
-                        console.error(
-                            `Failed to deep scrape English card ${cardIndex}:`,
-                            e,
-                        );
+                        console.error(`Failed to deep scrape English card ${cardIndex}:`, e);
                     }
                 }
             } finally {
@@ -396,7 +340,9 @@ export async function scrapePokemonCardsEn({
             if (result) {
                 const { addedItems, matchedItems } = result;
                 reportScraperStats(send, "cards", result);
-                logStep(`Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`);
+                logStep(
+                    `Successfully saved ${sharedCardList.length} English cards — ✅ ${addedItems.length} new, 🔁 ${matchedItems.length} matched.`,
+                );
             }
         } catch (error) {
             console.error("Failed to save English cards:", error);

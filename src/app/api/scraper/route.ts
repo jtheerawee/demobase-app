@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 import { chromium as playwright } from "playwright";
 import { APP_CONFIG } from "@/constants/app";
-import {
-    scrapeMTGCards,
-    scrapeMTGCollections,
-} from "@/services/scraper/mtg/mtgScraper";
-import {
-    scrapeOnepieceCards,
-    scrapeOnepieceCollections,
-} from "@/services/scraper/onepiece/onepieceScraper";
-import {
-    scrapePokemonCards,
-    scrapePokemonCollections,
-} from "@/services/scraper/pokemon/pokemonScraper";
+import { scrapeMTGCards, scrapeMTGCollections } from "@/services/scraper/mtg/mtgScraper";
+import { scrapeOnepieceCards, scrapeOnepieceCollections } from "@/services/scraper/onepiece/onepieceScraper";
+import { scrapePokemonCards, scrapePokemonCollections } from "@/services/scraper/pokemon/pokemonScraper";
 import {
     scrapeTCGPlayerCards as scrapeLorcanaCards,
     scrapeTCGPlayerCollections as scrapeLorcanaCollections,
@@ -34,15 +25,10 @@ export async function POST(request: Request) {
             type = body.type || "cards";
             franchise = body.franchise;
             language = body.language;
-            collectionId = body.collectionId
-                ? Number(body.collectionId)
-                : undefined;
+            collectionId = body.collectionId ? Number(body.collectionId) : undefined;
         } catch (e) {
             console.error("Failed to parse request body:", e);
-            return NextResponse.json(
-                { error: "Invalid request body" },
-                { status: 400 },
-            );
+            return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
         }
 
         if (!url && type === "collections") {
@@ -68,10 +54,7 @@ export async function POST(request: Request) {
         }
 
         if (!url) {
-            return NextResponse.json(
-                { error: "URL is required" },
-                { status: 400 },
-            );
+            return NextResponse.json({ error: "URL is required" }, { status: 400 });
         }
 
         const deepScrape = body.deepScrape !== false;
@@ -83,9 +66,7 @@ export async function POST(request: Request) {
                 async start(controller) {
                     const send = (data: unknown) => {
                         try {
-                            controller.enqueue(
-                                encoder.encode(`${JSON.stringify(data)}\n`),
-                            );
+                            controller.enqueue(encoder.encode(`${JSON.stringify(data)}\n`));
                         } catch (_err) {}
                     };
 
@@ -104,10 +85,7 @@ export async function POST(request: Request) {
                                 headless: true,
                             });
                         } catch (launchError: any) {
-                            console.error(
-                                "[Scraper Launch Error]:",
-                                launchError,
-                            );
+                            console.error("[Scraper Launch Error]:", launchError);
                             send({
                                 success: false,
                                 error: `Failed to launch browser: ${launchError.message}`,
@@ -126,9 +104,7 @@ export async function POST(request: Request) {
                                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
                         });
 
-                        const cardLimit = body.cardLimit
-                            ? Number(body.cardLimit)
-                            : undefined;
+                        const cardLimit = body.cardLimit ? Number(body.cardLimit) : undefined;
 
                         const tcgUrlOnly = body.tcgUrlOnly === true;
 
@@ -146,10 +122,7 @@ export async function POST(request: Request) {
                             tcgUrlOnly,
                         };
 
-                        if (
-                            url.includes("gatherer.wizards.com") ||
-                            franchise === "mtg"
-                        ) {
+                        if (url.includes("gatherer.wizards.com") || franchise === "mtg") {
                             if (type === "cards") {
                                 await scrapeMTGCards(scraperOptions);
                             } else {

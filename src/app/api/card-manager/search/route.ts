@@ -35,16 +35,10 @@ export async function GET(request: Request) {
             `);
 
         if (franchise && franchise !== "all") {
-            supabaseQuery = supabaseQuery.eq(
-                "scraped_collections.franchise",
-                franchise,
-            );
+            supabaseQuery = supabaseQuery.eq("scraped_collections.franchise", franchise);
         }
         if (language && language !== "all") {
-            supabaseQuery = supabaseQuery.eq(
-                "scraped_collections.language",
-                language,
-            );
+            supabaseQuery = supabaseQuery.eq("scraped_collections.language", language);
         }
 
         if (scanIds) {
@@ -75,17 +69,12 @@ export async function GET(request: Request) {
 
             // Filter results to ensure both Set and No match
             const filteredCards = (data || []).filter((card: any) => {
-                const cardSet =
-                    card.scraped_collections?.collection_code?.toLowerCase();
+                const cardSet = card.scraped_collections?.collection_code?.toLowerCase();
                 const cardNo = card.card_no;
-                return idPairs.some(
-                    (p) => p.set === cardSet && p.no === cardNo,
-                );
+                return idPairs.some((p) => p.set === cardSet && p.no === cardNo);
             });
 
-            console.log(
-                `[API Search] Scan result: ${filteredCards.length} matches found after set verification.`,
-            );
+            console.log(`[API Search] Scan result: ${filteredCards.length} matches found after set verification.`);
 
             const cards = filteredCards.map((card: any) => ({
                 id: card.id,
@@ -111,9 +100,7 @@ export async function GET(request: Request) {
                 .split(/\s+/)
                 .filter((t) => t.length > 0);
             terms.forEach((term) => {
-                supabaseQuery = supabaseQuery.or(
-                    `name.ilike.%${term}%,card_no.ilike.%${term}%`,
-                );
+                supabaseQuery = supabaseQuery.or(`name.ilike.%${term}%,card_no.ilike.%${term}%`);
             });
         }
 
@@ -121,10 +108,7 @@ export async function GET(request: Request) {
 
         if (error) {
             console.error("[API Search] Error fetching cards:", error);
-            return NextResponse.json(
-                { success: false, error: error.message },
-                { status: 500 },
-            );
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
         const cards = data.map((card: any) => ({
@@ -145,9 +129,6 @@ export async function GET(request: Request) {
         });
     } catch (err: any) {
         console.error("[API Search] Unexpected error:", err);
-        return NextResponse.json(
-            { success: false, error: err.message },
-            { status: 500 },
-        );
+        return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
 }

@@ -9,21 +9,11 @@ interface CameraDevicesProps {
     onDeviceChange: (deviceId: string | null) => void;
 }
 
-export function CameraDevices({
-    devices,
-    selectedDeviceId,
-    onDeviceChange,
-}: CameraDevicesProps) {
+export function CameraDevices({ devices, selectedDeviceId, onDeviceChange }: CameraDevicesProps) {
     if (devices.length <= 1) return null;
 
     return (
-        <Box
-            pos="absolute"
-            top={10}
-            left={10}
-            w={CARD_MANAGER_CONFIG.CAMERA_DEVICES_WIDTH}
-            style={{ zIndex: 10 }}
-        >
+        <Box pos="absolute" top={10} left={10} w={CARD_MANAGER_CONFIG.CAMERA_DEVICES_WIDTH} style={{ zIndex: 10 }}>
             <Select
                 size="xs"
                 placeholder="Select Camera"
@@ -45,12 +35,8 @@ export function CameraDevices({
 const STORAGE_KEY = "preferred-camera-device";
 
 export function useCameraDevices() {
-    const [devices, setDevices] = useState<{ value: string; label: string }[]>(
-        [],
-    );
-    const [selectedDeviceId, setSelectedDeviceId] = useLocalStorage<
-        string | null
-    >({
+    const [devices, setDevices] = useState<{ value: string; label: string }[]>([]);
+    const [selectedDeviceId, setSelectedDeviceId] = useLocalStorage<string | null>({
         key: STORAGE_KEY,
         defaultValue: null,
     });
@@ -70,23 +56,17 @@ export function useCameraDevices() {
         try {
             const allDevices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = allDevices
-                .filter(
-                    (device) => device.kind === "videoinput" && device.deviceId,
-                )
+                .filter((device) => device.kind === "videoinput" && device.deviceId)
                 .map((device) => ({
                     value: device.deviceId,
-                    label:
-                        device.label ||
-                        `Camera ${device.deviceId.slice(0, 5)}...`,
+                    label: device.label || `Camera ${device.deviceId.slice(0, 5)}...`,
                 }));
             setDevices(videoDevices);
 
             // Only fall back to first device if nothing is saved
             setSelectedDeviceId((prev) => {
-                if (prev && videoDevices.some((d) => d.value === prev))
-                    return prev;
-                if (!prev && videoDevices.length > 0)
-                    return videoDevices[0].value;
+                if (prev && videoDevices.some((d) => d.value === prev)) return prev;
+                if (!prev && videoDevices.length > 0) return videoDevices[0].value;
                 return prev;
             });
         } catch (err) {

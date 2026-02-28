@@ -27,13 +27,7 @@ export function CardScraperPageHeaderIcons({
                 </ActionIcon>
             </Tooltip>
             <Tooltip label="Scraper Settings" withArrow>
-                <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="lg"
-                    radius="md"
-                    onClick={onOpenSettings}
-                >
+                <ActionIcon variant="subtle" color="gray" size="lg" radius="md" onClick={onOpenSettings}>
                     <IconSettings size={22} />
                 </ActionIcon>
             </Tooltip>
