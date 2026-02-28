@@ -29,6 +29,7 @@ import { CardScraperCollectionList } from "@/components/CardScraper/CardScraperC
 import { CardScraperInputs } from "@/components/CardScraper/CardScraperInputs";
 import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRunningSteps";
 import { CardScraperSettingsModal } from "@/components/CardScraper/CardScraperSettingsModal";
+import { CardScraperPageHeaderIcons } from "@/components/CardScraper/CardScraperPageHeaderIcons";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 import {
     CardScraperStats,
@@ -729,31 +730,11 @@ export default function CardScraperPage() {
                         />
                     }
                     actions={
-                        <Group gap="xs">
-                            <Tooltip label="Delete All Database Collections" color="red" withArrow>
-                                <ActionIcon
-                                    variant="subtle"
-                                    color="red"
-                                    size="lg"
-                                    radius="md"
-                                    onClick={handleDeleteAllDatabaseCollections}
-                                    loading={collectionLoading}
-                                >
-                                    <IconTrash size={22} />
-                                </ActionIcon>
-                            </Tooltip>
-                            <Tooltip label="Scraper Settings" withArrow>
-                                <ActionIcon
-                                    variant="subtle"
-                                    color="gray"
-                                    size="lg"
-                                    radius="md"
-                                    onClick={openSettings}
-                                >
-                                    <IconSettings size={22} />
-                                </ActionIcon>
-                            </Tooltip>
-                        </Group>
+                        <CardScraperPageHeaderIcons
+                            onDeleteAllDatabaseCollections={handleDeleteAllDatabaseCollections}
+                            collectionLoading={collectionLoading}
+                            onOpenSettings={openSettings}
+                        />
                     }
                 />
 
