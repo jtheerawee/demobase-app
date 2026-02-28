@@ -245,7 +245,7 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                     timeout: CARD_SCRAPER_CONFIG.CARD_DETAILS_LOAD_TIMEOUT,
                                 });
 
-                                const details = await wp.evaluate((rarityMap: Record<string, string>) => {
+                                const details = await wp.evaluate(() => {
                                     // Match both modern and detail layouts
                                     const oracleText = Array.from(
                                         document.querySelectorAll(
@@ -289,7 +289,6 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                         "[data-testid='cardDetailsRarity'], .rarity",
                                     );
                                     const rarityText = rarityEl?.textContent?.trim() || null;
-                                    const rarity = lookupRarity(rarityText, rarityMap);
 
                                     const artistEl = document.querySelector(
                                         "[data-testid='cardDetailsArtist'] a, [data-testid='cardDetailsArtist'], .artist",
@@ -309,13 +308,16 @@ export async function scrapeMTGCards(options: ScraperOptions) {
                                         toughness,
                                         typeLine,
                                         manaCost,
-                                        rarity,
+                                        rarityText,
                                         artist,
                                         imageUrl,
                                     };
-                                }, APP_CONFIG.MTG_RARITY_MAP);
+                                });
 
-                                Object.assign(card, details);
+                                Object.assign(card, {
+                                    ...details,
+                                    rarity: lookupRarity(details.rarityText, APP_CONFIG.MTG_RARITY_MAP),
+                                });
                                 reportScraperChunk(send, [card], idx);
                             } catch (err) {
                                 console.error(`[Worker ${workerId}] Failed: ${card.name}`, err);
