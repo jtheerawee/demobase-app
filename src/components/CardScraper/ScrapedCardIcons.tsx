@@ -40,6 +40,18 @@ export function ScrapedCardIcons({
 }: ScrapedCardIconsProps) {
     return (
         <Group gap="xs">
+            <Tooltip label="Refresh from database" withArrow>
+                <ActionIcon
+                    variant="light"
+                    color="blue"
+                    size="sm"
+                    onClick={() => onRefresh?.()}
+                    loading={loading}
+                    disabled={!canDownload}
+                >
+                    <IconRefresh size={14} />
+                </ActionIcon>
+            </Tooltip>
             <Tooltip label="Scrape cards for this collection" withArrow>
                 <ActionIcon
                     variant="light"
@@ -69,18 +81,6 @@ export function ScrapedCardIcons({
                     disabled={cardsCount === 0}
                 >
                     <IconDownload size={14} />
-                </ActionIcon>
-            </Tooltip>
-            <Tooltip label="Refresh from database" withArrow>
-                <ActionIcon
-                    variant="light"
-                    color="blue"
-                    size="sm"
-                    onClick={() => onRefresh?.()}
-                    loading={loading}
-                    disabled={!canDownload}
-                >
-                    <IconRefresh size={14} />
                 </ActionIcon>
             </Tooltip>
             <Tooltip

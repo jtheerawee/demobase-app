@@ -834,13 +834,15 @@ export default function CardScraperPage() {
                                 loading={collectionLoading}
                                 onDeleteAllCollections={handleDeleteAll}
                                 onDeleteCollection={handleDeleteCollection}
-                                onRefresh={() =>
-                                    selectedFranchise &&
-                                    fetchExistingCollections(
-                                        selectedFranchise,
-                                        selectedLanguage ?? "en",
-                                    )
-                                }
+                                onRefresh={() => {
+                                    setScraperStats(DEFAULT_STATS);
+                                    if (selectedFranchise) {
+                                        fetchExistingCollections(
+                                            selectedFranchise,
+                                            selectedLanguage ?? "en",
+                                        );
+                                    }
+                                }}
                                 onDownloadAllCollections={
                                     handleDownloadCollections
                                 }
@@ -877,10 +879,12 @@ export default function CardScraperPage() {
                                 onDeleteCard={handleDeleteCard}
                                 onDeleteAllCards={handleDeleteAllCards}
                                 onDownloadCards={handleDownloadCards}
-                                onRefresh={() =>
-                                    selectedCollection?.id &&
-                                    fetchCards(selectedCollection.id)
-                                }
+                                onRefresh={() => {
+                                    setScraperStats(DEFAULT_STATS);
+                                    if (selectedCollection?.id) {
+                                        fetchCards(selectedCollection.id);
+                                    }
+                                }}
                                 canDownload={!!selectedCollection}
                             />
                         </Box>
