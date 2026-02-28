@@ -5,7 +5,6 @@ import {
     Alert,
     Box,
     Button,
-    Card,
     Container,
     Flex,
     Group,
@@ -40,20 +39,12 @@ import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 
 const DEFAULT_STATS: ScraperStats = {
     collections: {
-        added: 0,
-        matched: 0,
-        missed: 0,
-        discarded: 0,
         addedItems: [],
         matchedItems: [],
         missedItems: [],
         discardedItems: [],
     },
     cards: {
-        added: 0,
-        matched: 0,
-        missed: 0,
-        discarded: 0,
         addedItems: [],
         matchedItems: [],
         missedItems: [],
@@ -604,10 +595,6 @@ export default function CardScraperPage() {
                                     ...prev,
                                     [category]: {
                                         ...current,
-                                        added: (current?.added ?? 0) + (msg.added ?? 0),
-                                        matched: (current?.matched ?? 0) + (msg.matched ?? 0),
-                                        missed: (current?.missed ?? 0) + (msg.missed ?? 0),
-                                        discarded: (current?.discarded ?? 0) + (msg.discarded ?? 0),
                                         addedItems: [
                                             ...(current?.addedItems ?? []),
                                             ...(msg.addedItems ?? []),
