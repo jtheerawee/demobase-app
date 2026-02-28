@@ -871,6 +871,7 @@ export default function CardScraperPage() {
                             }}
                         >
                             <CardScraperCardList
+                                franchise={selectedFranchise}
                                 cards={cards}
                                 collectionCode={
                                     selectedCollection?.collectionCode

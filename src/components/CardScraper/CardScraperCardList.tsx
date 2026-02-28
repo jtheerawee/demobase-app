@@ -42,6 +42,7 @@ interface CardScraperCardListProps {
     onDownloadAllImages?: () => void;
     onRefresh?: () => void;
     canDownload?: boolean;
+    franchise?: string | null;
 }
 
 export function CardScraperCardList({
@@ -54,6 +55,7 @@ export function CardScraperCardList({
     onDownloadAllImages,
     onRefresh,
     canDownload,
+    franchise,
 }: CardScraperCardListProps) {
     const [filterInvalid, setFilterInvalid] = useState(false);
     const [search, setSearch] = useState("");
@@ -193,7 +195,7 @@ export function CardScraperCardList({
                     onChange={setSearch}
                 />
 
-                <ScrapedCardSummary cards={filteredCards} />
+                <ScrapedCardSummary cards={filteredCards} franchise={franchise} />
 
                 <ScrollArea style={{ flex: 1, minHeight: 0 }} pt="xs">
                     <SimpleGrid cols={CARD_SCRAPER_CONFIG.CARDS_PER_ROW} spacing="xs">
