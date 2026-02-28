@@ -18,7 +18,7 @@ export interface ScraperOptions {
     franchise?: string;
     language?: string;
     deepScrape?: boolean;
-    context: any; // BrowserContext
+    context: any;
     send: (data: unknown) => void;
     collectionId?: number | string;
     skipSave?: boolean;
