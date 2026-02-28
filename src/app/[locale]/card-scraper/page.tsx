@@ -28,6 +28,7 @@ import { CardScraperCardList } from "@/components/CardScraper/CardScraperCardLis
 import { CardScraperCollectionList } from "@/components/CardScraper/CardScraperCollectionList";
 import { CardScraperInputs } from "@/components/CardScraper/CardScraperInputs";
 import { CardScraperRunningSteps } from "@/components/CardScraper/CardScraperRunningSteps";
+import { CardScraperSettingsModal } from "@/components/CardScraper/CardScraperSettingsModal";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
 import {
     CardScraperStats,
@@ -710,33 +711,12 @@ export default function CardScraperPage() {
                 </Stack>
             </Modal>
 
-            <Modal
+            <CardScraperSettingsModal
                 opened={settingsOpened}
                 onClose={closeSettings}
-                title={<Text fw={700}>Scraper Settings</Text>}
-                radius="md"
-            >
-                <Stack gap="md">
-                    <NumberInput
-                        label="Max cards per collection"
-                        description="Limit the number of cards to scrape from each set."
-                        value={cardScraperLimit}
-                        onChange={(val) => {
-                            const num = Number(val);
-                            setCardScraperLimit(num);
-                            localStorage.setItem(
-                                "scraper_card_limit",
-                                num.toString(),
-                            );
-                        }}
-                        min={1}
-                        max={1000}
-                    />
-                    <Button onClick={closeSettings} fullWidth>
-                        Save & Close
-                    </Button>
-                </Stack>
-            </Modal>
+                limit={cardScraperLimit}
+                onLimitChange={setCardScraperLimit}
+            />
 
             <Stack gap="lg">
                 <PageHeader
