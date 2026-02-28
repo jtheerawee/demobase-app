@@ -77,12 +77,16 @@ export async function scrapePokemonCollectionsTh({
                                         : "/") +
                                     relativeLink;
 
-                                // Extract code from URL (e.g., /series/4578/ -> 4578)
+                                // Extract code from URL (e.g., /series/4578/ -> 4578 or ?expansionCodes=SVHK -> SVHK)
                                 const codeMatch =
                                     absoluteLink.match(/\/series\/(\d+)/);
-                                const collectionCode = codeMatch
-                                    ? codeMatch[1]
-                                    : `TH-${name.replace(/\s+/g, "-")}`;
+                                const expansionCodeMatch =
+                                    absoluteLink.match(/expansionCodes=([^&]+)/);
+                                const collectionCode = expansionCodeMatch
+                                    ? expansionCodeMatch[1]
+                                    : codeMatch
+                                        ? codeMatch[1]
+                                        : `TH-${name.replace(/\s+/g, "-")}`;
 
                                 return {
                                     name,
