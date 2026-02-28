@@ -197,6 +197,8 @@ export default function CardScraperPage() {
                         setCollections([]);
                         setCards([]);
                         setSelectedCollection(null);
+                        setSteps([]);
+                        setScraperStats(DEFAULT_STATS);
                     } else {
                         setError(data.error || "Failed to delete collections");
                     }
@@ -228,6 +230,8 @@ export default function CardScraperPage() {
                         setCollections([]);
                         setCards([]);
                         setSelectedCollection(null);
+                        setSteps([]);
+                        setScraperStats(DEFAULT_STATS);
                         notifications.show({
                             title: "Global Wipe Complete",
                             message: `Successfully wiped all collections from the database.`,

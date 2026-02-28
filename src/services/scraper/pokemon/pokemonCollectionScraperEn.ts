@@ -1,10 +1,7 @@
 import { saveScrapedCollections } from "@/services/scraper/persistence";
-import type { ScraperOptions } from "@/services/scraper/types";
 import { SCRAPER_MESSAGE_TYPE } from "@/services/scraper/types";
-
-// ==========================================
-// ENGLISH (EN) COLLECTION SCRAPER LOGIC
-// ==========================================
+import type { ScraperOptions } from "@/services/scraper/types";
+import { CARD_SCRAPER_CONFIG } from "@/constants/card_scraper";
 
 export async function scrapePokemonCollectionsEn({
     url,
@@ -32,7 +29,7 @@ export async function scrapePokemonCollectionsEn({
         // Use a more realistic user agent if possible through context, but here we just navigate
         await page.goto(url, {
             waitUntil: "domcontentloaded",
-            timeout: 60000,
+            timeout: CARD_SCRAPER_CONFIG.PAGE_LOAD_TIMEOUT,
         });
 
         send({
@@ -45,7 +42,7 @@ export async function scrapePokemonCollectionsEn({
             "span.filter-title, #toggleWrapperMainText, .filter-title";
         await page
             .waitForSelector(advancedBtnSelector, {
-                timeout: 15000,
+                timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
             })
             .catch(() => { });
 
@@ -69,7 +66,7 @@ export async function scrapePokemonCollectionsEn({
         });
         await page
             .waitForSelector(expansionHeaderSelector, {
-                timeout: 15000,
+                timeout: CARD_SCRAPER_CONFIG.SELECTOR_WAIT_TIMEOUT,
             })
             .catch(() => {
                 console.warn("Expansion header selector timeout");
